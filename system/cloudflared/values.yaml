@@ -4,7 +4,7 @@ cloudflared:
   config:
     tunnel: homelab
     ingress:
-      - hostname: '*.khuedoan.com'
+      - hostname: '*.lajas.tech'
         service: https://ingress-nginx-controller.ingress-nginx
         originRequest:
           noTLSVerify: true
