@@ -1,13 +1,12 @@
-# Khue's Homelab
+# Lauren's Homelab
 
 **[Features](#features) • [Get Started](#get-started) • [Documentation](https://homelab.khuedoan.com)**
 
-[![tag](https://img.shields.io/github/v/tag/khuedoan/homelab?style=flat-square&logo=semver&logoColor=white)](https://github.com/khuedoan/homelab/tags)
+[![tag](https://img.shields.io/github/v/tag/llajas/homelab?style=flat-square&logo=semver&logoColor=white)](https://github.com/llajas/homelab/tags)
 [![document](https://img.shields.io/website?label=document&logo=gitbook&logoColor=white&style=flat-square&url=https%3A%2F%2Fhomelab.khuedoan.com)](https://homelab.khuedoan.com)
-[![license](https://img.shields.io/github/license/khuedoan/homelab?style=flat-square&logo=gnu&logoColor=white)](https://www.gnu.org/licenses/gpl-3.0.html)
-[![stars](https://img.shields.io/github/stars/khuedoan/homelab?logo=github&logoColor=white&color=gold&style=flat-square)](https://github.com/khuedoan/homelab)
+[![license](https://img.shields.io/github/license/llajas/homelab?style=flat-square&logo=gnu&logoColor=white)](https://www.gnu.org/licenses/gpl-3.0.html)
 
-This project utilizes [Infrastructure as Code](https://en.wikipedia.org/wiki/Infrastructure_as_code) and [GitOps](https://www.weave.works/technologies/gitops) to automate provisioning, operating, and updating self-hosted services in my homelab.
+This project utilizes [Infrastructure as Code](https://en.wikipedia.org/wiki/Infrastructure_as_code) and [GitOps](https://www.weave.works/technologies/gitops) approaches to automate provisioning, operating, and updating self-hosted services in my homelab.
 It can be used as a highly customizable framework to build your own homelab.
 
 > **What is a homelab?**
@@ -28,13 +27,14 @@ More information can be found in [the roadmap](#roadmap) below.
 
 ![Hardware](https://user-images.githubusercontent.com/27996771/98970963-25137200-2543-11eb-8f2d-f9a2d45756ef.JPG)
 
-- 4 × NEC SFF `PC-MK26ECZDR` (Japanese version of the ThinkCentre M700):
+- 4 × Lenovo `ThinkCentre M700`:
     - CPU: `Intel Core i5-6600T @ 2.70GHz`
-    - RAM: `16GB`
+    - RAM: `16GB DDR4`
     - SSD: `128GB`
-- TP-Link `TL-SG108` switch:
-    - Ports: `8`
-    - Speed: `1000Mbps`
+- 1 x Dell `Latitude e5430` Controller Running Arch Linux:
+    - CPU: `Intel Core i3-3110M @ 2.40GHz`
+    - RAM: `16GB DDR3`
+    - SSD: `128GB`
 
 ### Features
 
@@ -239,38 +239,4 @@ See [license page](https://homelab.khuedoan.com/reference/license) or `LICENSE.m
 
 ## Acknowledgements
 
-References:
-
-- [Ephemeral PXE server inspired by Minimal First Machine in the DC](https://speakerdeck.com/amcguign/minimal-first-machine-in-the-dc)
-- [ArgoCD usage and monitoring configuration in locmai/humble](https://github.com/locmai/humble)
-- [README template](https://github.com/othneildrew/Best-README-Template)
-- [Run the same Cloudflare Tunnel across many `cloudflared` processes](https://developers.cloudflare.com/cloudflare-one/tutorials/many-cfd-one-tunnel)
-- [MAC address environment variable in GRUB config](https://askubuntu.com/questions/1272400/how-do-i-automate-network-installation-of-many-ubuntu-18-04-systems-with-efi-and)
-- [Official k3s systemd service file](https://github.com/k3s-io/k3s/blob/master/k3s.service)
-- [Official Cloudflare Tunnel examples](https://github.com/cloudflare/argo-tunnel-examples)
-- [Initialize GitOps repository on Gitea and integrate with Tekton by RedHat](https://github.com/redhat-scholars/tekton-tutorial/tree/master/triggers)
-- [SSO configuration from xUnholy/k8s-gitops](https://github.com/xUnholy/k8s-gitops)
-- [Pre-commit config from k8s-at-home/flux-cluster-template](https://github.com/k8s-at-home/flux-cluster-template)
-- [Diátaxis technical documentation framework](https://diataxis.fr)
-- [Official Terratest examples](https://github.com/gruntwork-io/terratest/tree/master/test)
-
-Here is a list of the contributors who have helped to improve this project.
-Big shout-out to them!
-
-- ![](https://github.com/locmai.png?size=24) [@locmai](https://github.com/locmai)
-- ![](https://github.com/MatthewJohn.png?size=24) [@MatthewJohn](https://github.com/MatthewJohn)
-- ![](https://github.com/karpfediem.png?size=24) [@karpfediem](https://github.com/karpfediem)
-- ![](https://github.com/linhng98.png?size=24) [@linhng98](https://github.com/linhng98)
-- ![](https://github.com/BlueHatbRit.png?size=24) [@BlueHatbRit](https://github.com/BlueHatbRit)
-- ![](https://github.com/dotdiego.png?size=24) [@dotdiego](https://github.com/dotdiego)
-- ![](https://github.com/Crimrose.png?size=24) [@Crimrose](https://github.com/Crimrose)
-- ![](https://github.com/eventi.png?size=24) [@eventi](https://github.com/eventi)
-- ![](https://github.com/Bourne-ID.png?size=24) [@Bourne-ID](https://github.com/Bourne-ID)
-- ![](https://github.com/akwan.png?size=24) [@akwan](https://github.com/akwan)
-- ![](https://github.com/trangmaiq.png?size=24) [@trangmaiq](https://github.com/trangmaiq)
-
-If you feel you're missing from this list, feel free to add yourself in a PR.
-
-## Stargazers over time
-
-[![Stargazers over time](https://starchart.cc/khuedoan/homelab.svg)](https://starchart.cc/khuedoan/homelab)
+Based on [khuedoan/homelab](https://github.com/khuedoan/homelab) - Buy him a coffee!!
