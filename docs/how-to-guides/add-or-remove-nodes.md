@@ -24,7 +24,7 @@ index 7f6474a..1bb2cbc 100644
 
 Install the OS and join the cluster:
 
-```
+```sh
 make metal
 ```
 
@@ -67,6 +67,6 @@ kubectl delete node ${NODE_NAME}
 
 Shutdown the node:
 
-```
+```sh
 ssh root@${NODE_IP} poweroff
 ```

@@ -1,7 +1,7 @@
 # Updating documentation (this website)
 
 This project uses the [Diátaxis](https://diataxis.fr) technical documentation framework.
-The website is generated using [Material for MkDocs](https://squidfunk.github.io/mkdocs-material) and can be viewed at [homelab.khuedoan.com](https://homelab.khuedoan.com).
+The website is generated using [Material for MkDocs](https://squidfunk.github.io/mkdocs-material) and can be viewed at [homelab.lajas.tech](https://homelab.lajas.tech).
 
 There are 4 main parts:
 
@@ -22,8 +22,7 @@ Then visit [localhost:8000](http://localhost:8000)
 
 ## Deployment
 
-It's running on my other cluster in the [khuedoan/horus](https://github.com/khuedoan/horus) project
-(so if the homelab goes down everyone can still read the documentation).
+This is running on the controller device for now (so if the homelab goes down the documentation is still available).
 
 <!-- TODO -->
 <!-- This website is running in both my homelab cluster and on my other cluster in the [khuedoan/horus](https://github.com/khuedoan/horus) project (both in `apps/homelab-docs`), -->

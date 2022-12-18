@@ -17,7 +17,7 @@ Install the following packages:
 - `docker`
 - `make`
 
-Clone the repository and checkout the development branch:
+Clone the repository and checkout the development branch from the original repository:
 
 ```sh
 git clone https://github.com/khuedoan/homelab

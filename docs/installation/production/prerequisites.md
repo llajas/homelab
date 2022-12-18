@@ -2,8 +2,8 @@
 
 ## Fork this repository
 
-Because [this project](https://github.com/khuedoan/homelab) applies GitOps practices,
-it's the source of truth for _my_ homelab, so you'll need to fork it to make it yours:
+Because [this project](https://github.com/llajas/homelab) applies GitOps practices,
+it's the source of truth for _my_ homelab, so you'll need to fork it to make it yours. I recommend forking straight from the originator below for the most up-to-date implementation:
 
 [:fontawesome-solid-code-fork: Fork khuedoan/homelab](https://github.com/khuedoan/homelab/fork){ .md-button }
 
