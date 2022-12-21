@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://squidfunk.github.io/mkdocs-material/schema.json
 
 site_name: Lauren's Homelab
-copyright: Copyright &copy; 2020 - 2023 Lauren Lajas - Based on [khuedoan/homelab](https://github.com/khuedoan/homelab)
+copyright: Copyright &copy; 2020 - 2023 Lauren Lajas - Based on <a href="https://github.com/khuedoan/homelab">khuedoan/homelab</a>
 
 repo_url: https://github.com/llajas/homelab
 
