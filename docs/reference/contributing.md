@@ -4,7 +4,7 @@
 
 ### Bug report
 
-You can [create a new GitHub issue](https://github.com/khuedoan/homelab/issues/new/choose) with the bug report template.
+You can [create a new GitHub issue](https://github.com/khuedoan/homelab/issues/new/choose) at the original repo with the bug report template.
 
 ### Submitting patches
 

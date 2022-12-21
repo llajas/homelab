@@ -1,9 +1,9 @@
 # Lauren's Homelab
 
-**[Features](#features) • [Get Started](#get-started) • [Documentation](https://homelab.khuedoan.com)**
+**[Features](#features) • [Get Started](#get-started) • [Documentation](https://homelab.lajas.tech)**
 
 [![tag](https://img.shields.io/github/v/tag/llajas/homelab?style=flat-square&logo=semver&logoColor=white)](https://github.com/llajas/homelab/tags)
-[![document](https://img.shields.io/website?label=document&logo=gitbook&logoColor=white&style=flat-square&url=https%3A%2F%2Fhomelab.khuedoan.com)](https://homelab.khuedoan.com)
+[![document](https://img.shields.io/website?label=document&logo=gitbook&logoColor=white&style=flat-square&url=https%3A%2F%2Fhomelab.lajas.tech)](https://homelab.lajas.tech)
 [![license](https://img.shields.io/github/license/llajas/homelab?style=flat-square&logo=gnu&logoColor=white)](https://www.gnu.org/licenses/gpl-3.0.html)
 
 This project utilizes [Infrastructure as Code](https://en.wikipedia.org/wiki/Infrastructure_as_code) and [GitOps](https://www.weave.works/technologies/gitops) approaches to automate provisioning, operating, and updating self-hosted services in my homelab.
@@ -25,13 +25,13 @@ More information can be found in [the roadmap](#roadmap) below.
 
 ### Hardware
 
-![Hardware](https://user-images.githubusercontent.com/27996771/98970963-25137200-2543-11eb-8f2d-f9a2d45756ef.JPG)
+![Hardware](https://user-images.githubusercontent.com/29675370/208781819-c0a4b94b-8554-4518-b17f-75eee7f22a5f.png)
 
 - 4 × Lenovo `ThinkCentre M700`:
     - CPU: `Intel Core i5-6600T @ 2.70GHz`
     - RAM: `16GB DDR4`
-    - SSD: `128GB`
-- 1 x Dell `Latitude e5430` Controller Running Arch Linux:
+    - SSD: `512GB`
+- 1 x Dell `Latitude e5430` (Controller & PXE Host Running Arch Linux):
     - CPU: `Intel Core i3-3110M @ 2.40GHz`
     - RAM: `16GB DDR3`
     - SSD: `128GB`
@@ -217,26 +217,26 @@ They can't capture all the project's features, but they are sufficient to get a 
 
 ## Get Started
 
-- [Try it out locally](https://homelab.khuedoan.com/installation/sandbox) without any hardware (just 4 commands!)
-- [Deploy on real hardware](https://homelab.khuedoan.com/installation/production/prerequisites) for production workload
+- [Try it out locally](https://homelab.lajas.tech/installation/sandbox) without any hardware (just 4 commands!)
+- [Deploy on real hardware](https://homelab.lajas.tech/installation/production/prerequisites) for production workload
 
 ## Roadmap
 
-See [roadmap](https://homelab.khuedoan.com/reference/roadmap) and [open issues](https://github.com/khuedoan/homelab/issues) for a list of proposed features and known issues.
+See [roadmap](https://homelab.lajas.tech/reference/roadmap) and [open issues](https://github.com/khuedoan/homelab/issues) from the original repo for a list of proposed features and known issues.
 
 ## Contributing
 
 Any contributions you make are greatly appreciated.
 
-Please see [contributing guide](https://homelab.khuedoan.com/reference/contributing) for more information.
+Please see [contributing guide](https://homelab.lajas.tech/reference/contributing) for more information.
 
 ## License
 
-Copyright &copy; 2020 - 2022 Khue Doan
+Copyright &copy; 2020 - 2023 Lauren Lajas - Based on works originally done by 'Khue Doan'
 
 Distributed under the GPLv3 License.
-See [license page](https://homelab.khuedoan.com/reference/license) or `LICENSE.md` file for more information.
+See [license page](https://homelab.lajas.tech/reference/license) or `LICENSE.md` file for more information.
 
 ## Acknowledgements
 
-Based on [khuedoan/homelab](https://github.com/khuedoan/homelab) - Buy him a coffee!!
+Based on work originating from [khuedoan/homelab](https://github.com/khuedoan/homelab) - Buy him a coffee!!

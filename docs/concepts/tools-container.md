@@ -25,7 +25,7 @@ You can use the default Docker wrapper, or use Nix if you have Nix installed:
 It will open a shell like this:
 
 ```
-[nix-shell:/home/khuedoan/Documents/homelab]# echo hello
+[nix-shell:/home/llajas/Documents/homelab]# echo hello
 hello
 ```
 
