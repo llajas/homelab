@@ -232,7 +232,7 @@ Please see [contributing guide](https://homelab.lajas.tech/reference/contributin
 
 ## License
 
-Copyright &copy; 2020 - 2023 Lauren Lajas - Based on works originally done by 'Khue Doan'
+Copyright &copy; 2020 - 2023 Lauren Lajas - Based on [khuedoan/homelab](https://github.com/khuedoan/homelab)
 
 Distributed under the GPLv3 License.
 See [license page](https://homelab.lajas.tech/reference/license) or `LICENSE.md` file for more information.
