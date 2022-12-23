@@ -29,7 +29,7 @@ hajimari:
           - name: Documentation
             url: https://homelab.lajas.tech
           - name: Public GitHub repository
-            url: https://github.com/khuedoan/homelab
+            url: https://github.com/llajas/homelab
       - name: Managed services
         links:
           - name: Terraform Cloud
