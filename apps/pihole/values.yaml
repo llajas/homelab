@@ -1,0 +1,154 @@
+pihole:
+    # Default values for pihole.
+    # This is a YAML-formatted file.
+    # Declare variables to be passed into your templates.
+    
+    serviceTCP:
+      type: LoadBalancer
+      externalTrafficPolicy: Local
+      # loadBalancerIP: ""
+        # a fixed LoadBalancer IP
+      annotations:
+        # metallb.universe.tf/address-pool: network-services
+        metallb.universe.tf/allow-shared-ip: pihole-svc
+    
+    serviceUDP:
+      type: LoadBalancer
+      externalTrafficPolicy: Local
+      # loadBalancerIP: ""
+        # a fixed LoadBalancer IP
+      annotations:
+        # metallb.universe.tf/address-pool: network-services
+        metallb.universe.tf/allow-shared-ip: pihole-svc
+    
+    virtualHost: pi.hole
+    
+    ingress:
+      enabled: true
+      annotations:
+          traefik.ingress.kubernetes.io/router.entrypoints: websecure
+          traefik.ingress.kubernetes.io/router.tls: "true"
+          traefik.ingress.kubernetes.io/router.middlewares: "traefik-local-ipwhitelist@kubernetescrd"
+      path: /
+      hosts:
+        # virtualHost (default value is pi.hole) will be appended to the hosts
+        - pihole.in.lab
+    
+    persistentVolumeClaim:
+      # set to true to use pvc
+      enabled: true
+      # set to true to use you own pvc
+      # existingClaim: myExistingClaim
+      annotations:
+        backup.velero.io/backup-volumes: config
+    
+      accessModes:
+        - ReadWriteOnce
+      size: "500Mi"
+    
+    nodeSelector: {}
+    
+    tolerations: []
+    
+    affinity: {}
+    
+    # Administrator password when not using an existing secret (see below)
+    adminPassword: "admin"
+    
+    # Use an existing secret for the admin password.
+    #admin:
+    #  existingSecret: ""
+    #  passwordKey: "password"
+    
+    # extraEnvironmentVars is a list of extra enviroment variables to set for pihole to use
+    extraEnvVars:
+        TZ: America/Chicago
+    
+    # extraEnvVarsSecret is a list of secrets to load in as environment variables.
+    #extraEnvVarsSecret: {}
+      # env_var:
+      #   name: secret-name
+      #   key: secret-key
+    
+    # default upstream DNS servers to use
+    DNS1: {}
+    DNS2: {}
+    
+    doh:
+      # set to true to enabled DNS over HTTPs via cloudflared
+      enabled: true
+      name: "cloudflared"
+      repository: "crazymax/cloudflared"
+      tag: latest
+      pullPolicy: IfNotPresent
+      envVars: {}
+        # Here you can pass environment variables to the DoH container, for example:
+        # TUNNEL_DNS_UPSTREAM: "https://1.1.1.2/dns-query,https://1.0.0.2/dns-query"
+    
+    dnsmasq:
+      upstreamServers: []
+      # Here you can add upstream dns servers with. All lines will be added to the
+      # pihole dnsmasq configuration.
+      # The format should be like:
+      # - server=/foo.bar/192.168.178.10
+      # - server=/bar.foo/192.168.178.11
+    
+      customDnsEntries: []
+      # Here you can add custom dns entries to override the
+      # dns resolution with. All lines will be added to the
+      # pihole dnsmasq configuration.
+      # The format should be like:
+      # - address=/foo.bar/192.168.178.10
+      # - address=/bar.foo/192.168.178.11
+    
+      additionalHostsEntries: []
+      # Dnsmasq reads the /etc/hosts file to resolve ips. You can add additional entries if you like
+      # - 192.168.0.3     host4
+      # - 192.168.0.4     host5
+    
+    
+    adlists: {}
+      # If you want to provide blocklists, add them here.
+      # - https://hosts-file.net/grm.txt
+      # - https://reddestdream.github.io/Projects/MinimalHosts/etc/MinimalHostsBlocker/minimalhosts
+    
+    whitelist:
+      # If you want to provide whitelisted domains, add them here.
+        - clients4.google.com
+        - clients2.google.com
+        - s.youtube.com
+        - video-stats.l.google.com
+        - android.clients.google.com
+        - reminders-pa.googleapis.com
+        - firestore.googleapis.com 
+        - dl.google.com
+        - sls.update.microsoft.com.akadns.net
+        - fe3.delivery.dsp.mp.microsoft.com.nsatc.net
+    
+    blacklist: {}
+      # If you want to have special domains blacklisted, add them here
+      # - *.blackist.com
+    
+    regex: {}
+      # Add regular expression blacklist items
+      # - (^|\.)facebook\.com$
+templates:
+    secrets: {}
+
+  ingress:
+    main:
+        enabled: true
+        ingressClassName: nginx
+        annotations:
+          cert-manager.io/cluster-issuer: letsencrypt-prod
+          hajimari.io/appName: Pihole
+          hajimari.io/icon: home-automation
+        hosts:
+          - host: &host pihole.lajas.tech
+            paths:
+              - path: /
+                pathType: Prefix
+        tls:
+          - secretName: pihole-tls-certificate
+            hosts:
+              - *host
