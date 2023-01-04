@@ -1,4 +1,6 @@
 homebridge:
+  env:
+    hostNetwork: true
   ingress:
     main:
       enabled: true
