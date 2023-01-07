@@ -1,9 +1,4 @@
-tautulli:
-  # Tautulli image and tag to use
-  image:
-    repository: linuxserver/tautulli
-    tag: latest
-  # Ingress configuration
+homebridge:
   ingress:
     main:
       enabled: true
@@ -21,17 +16,3 @@ tautulli:
         - secretName: tautulli-tls-certificate
           hosts:
             - *host
-  # Configuration file persistence
-  persistence:
-    enabled: true
-    existingClaim: tautulli-config-pvc
-    mountPath: /config/config.ini
-    subPath: config.ini
-  # Database file persistence
-  database:
-    enabled: true
-    existingClaim: tautulli-db-pvc
-    mountPath: /config/tautulli.db
-    subPath: tautulli.db
-  service:
-    port: 8181

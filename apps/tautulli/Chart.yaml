@@ -1,29 +1,7 @@
 apiVersion: v2
 name: tautulli
 version: 0.0.0
-metadata:
-  name: tautulli
-  description: A Helm chart for deploying Tautulli
-  maintainers:
-    - name: John Doe
-      email: johndoe@example.com
-templates:
-  deployment.yaml: deployment.yaml
-  pvc-config.yaml: pvc-config.yaml
-  pvc-database.yaml: pvc-database.yaml
-values:
-  image:
-    repository: linuxserver/tautulli
-    tag: latest
-  service:
-    port: 8181
-  persistence:
-    enabled: true
-    existingClaim: tautulli-config-pvc
-    mountPath: /config/config.ini
-    subPath: config.ini
-  database:
-    enabled: true
-    existingClaim: tautulli-db-pvc
-    mountPath: /config/tautulli.db
-    subPath: tautulli.db
+dependencies:
+  - name: tautulli
+    version: 11.4.2
+    repository: https://k8s-at-home.com/charts/
