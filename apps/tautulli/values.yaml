@@ -16,3 +16,14 @@ tautulli:
         - secretName: tautulli-tls-certificate
           hosts:
             - *host
+  persistence:
+    enabled: true
+    existingClaim: tautulli-config-pvc
+    mountPath: /config/config.ini
+    subPath: config.ini
+
+  database:
+    enabled: true
+    existingClaim: tautulli-db-pvc
+    mountPath: /config/tautulli.db
+    subPath: tautulli.db
