@@ -1,4 +1,4 @@
-tautulli:
+homebridge:
   ingress:
     main:
       enabled: true
