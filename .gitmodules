@@ -1,0 +1,3 @@
+[submodule "apps/tautulli"]
+	path = apps/tautulli
+	url = https://github.com/halkeye-helm-charts/tautulli.git
