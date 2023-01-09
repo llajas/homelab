@@ -16,3 +16,10 @@ tautulli:
         - secretName: tautulli-tls-certificate
           hosts:
             - *host
+  persistence:
+    enabled: true
+    claimName: tautulli-pvc
+    storageClass: longhorn
+    accessModes:
+      - ReadWriteOnce
+    size: 1Gi
