@@ -75,20 +75,19 @@ getGeoCity:
     pullPolicy: IfNotPresent
 
 ingress:
-  main:
-    enabled: true
-    ingressClassName: nginx
-    annotations:
-      cert-manager.io/cluster-issuer: letsencrypt-prod
-      hajimari.io/appName: Tautulli
-      hajimari.io/icon: movie-cog
+  enabled: true
+  ingressClassName: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    hajimari.io/appName: Tautulli
+    hajimari.io/icon: movie-cog
     # kubernetes.io/tls-acme: "true"
-    hosts:
-      - tautulli.lajas.tech
-    tls:
-      - secretName: tautulli-tls-certificate
-        hosts:
-          - tautulli.lajas.tech
+  hosts:
+    - tautulli.lajas.tech
+  tls:
+    - secretName: tautulli-tls-certificate
+      hosts:
+        - tautulli.lajas.tech
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
