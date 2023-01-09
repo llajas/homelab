@@ -125,7 +125,7 @@ persistence:
   ##   GKE, AWS & OpenStack)
   ##
   existingClaim: ""
-  storageClassName: ""
+  storageClassName: "longhorn"
   accessModes:
     - ReadWriteOnce
   size: 1Gi
