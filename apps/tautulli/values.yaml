@@ -83,14 +83,11 @@ ingress:
     hajimari.io/icon: movie-cog
     # kubernetes.io/tls-acme: "true"
   hosts:
-    - host: &host tautulli.lajas.tech
-      paths:
-        - path: /
-          pathType: Prefix
+    - tautulli.lajas.tech
   tls:
     - secretName: tautulli-tls-certificate
       hosts:
-        - *host
+        - tautulli.lajas.tech
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
