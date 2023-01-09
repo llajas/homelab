@@ -76,16 +76,21 @@ getGeoCity:
 
 ingress:
   enabled: false
-  annotations: {}
-    # kubernetes.io/ingress.class: nginx
+  ingressClassName: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    hajimari.io/appName: Tautulli
+    hajimari.io/icon: movie-cog
     # kubernetes.io/tls-acme: "true"
-  paths: ['/']
   hosts:
-    - chart-example.local
-  tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
+    - host: &host tautulli.lajas.tech
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: tautulli-tls-certificate
+      hosts:
+        - *host
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
