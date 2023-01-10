@@ -144,7 +144,6 @@ ingress:
     cert-manager.io/cluster-issuer: letsencrypt-prod
     hajimari.io/appName: Pihole
     hajimari.io/icon: pi-hole
-  path: /
   hosts:
     # virtualHost (default value is pi.hole) will be appended to the hosts
     - pihole.lajas.tech
