@@ -58,14 +58,14 @@ ingress:
     hajimari.io/appName: Homebridge
     hajimari.io/icon: home-automation
   hosts:
-    - host: &host homebridge.lajas.tech
+    - host: homebridge.lajas.tech
       paths:
         - path: /
           pathType: Prefix
   tls:
     - secretName: homebridge-tls-certificate
       hosts:
-        - *host
+        - homebridge.lajas.tech
 persistence:
   # persistence.enabled - Should disk persistence be enabled
   enabled: true
