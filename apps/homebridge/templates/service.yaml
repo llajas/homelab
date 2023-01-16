@@ -1,12 +1,16 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: homebridge
-  namespace: {{ $.Values.namespaceOverride  }}
+  name: {{ include "homebridge.fullname" . }}
+  labels:
+{{ include "homebridge.labels" . | indent 4 }}
 spec:
-  selector:
-    app.kubernetes.io/instance: homebridge
+  type: {{ .Values.service.type }}
+  externalTrafficPolicy: {{ .Values.service.externalTrafficPolicy }}
   ports:
     - port: {{ .Values.service.port }}
-      targetPort: {{ .Values.service.port }}
+      targetPort: http
       protocol: TCP
+      name: http
+  selector:
+    {{- include "homebridge.selectorLabels" . | nindent 4 }}
