@@ -52,7 +52,20 @@ service:
 
 ingress:
   enabled: true
-  host: homebridge.lajas.tech
+  ingressClassName: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    hajimari.io/appName: Homebridge
+    hajimari.io/icon: home-automation
+  hosts:
+    - host: &host homebridge.lajas.tech
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: homebridge-tls-certificate
+      hosts:
+        - *host
 persistence:
   # persistence.enabled - Should disk persistence be enabled
   enabled: true
