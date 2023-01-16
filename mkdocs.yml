@@ -69,6 +69,7 @@ nav:
     - how-to-guides/updating-documentation.md
     - Troubleshooting:
       - how-to-guides/troubleshooting/index.md
+      - how-to-guides/troubleshooting/deployment.md
       - how-to-guides/troubleshooting/argocd.md
       - how-to-guides/troubleshooting/cert-manager.md
       - how-to-guides/troubleshooting/gitea.md
