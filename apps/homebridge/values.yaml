@@ -53,3 +53,19 @@ service:
 ingress:
   enabled: true
   host: homebridge.lajas.tech
+persistence:
+  # persistence.enabled - Should disk persistence be enabled
+  enabled: true
+  ## If defined, storageClassName: <storageClass>
+  ## If set to "-", storageClassName: "", which disables dynamic provisioning
+  ## If undefined (the default) or set to null, no storageClassName spec is
+  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+  ##   GKE, AWS & OpenStack)
+  ##
+  existingClaim: ""
+  storageClassName: "longhorn"
+  accessModes:
+    - ReadWriteOnce
+  size: 1Gi
+  ## persistence.skipuninstall -- Do not delete the pvc upon helm uninstall
+  skipuninstall: false
