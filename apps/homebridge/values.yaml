@@ -51,5 +51,5 @@ service:
   port: 8090
 
 ingress:
-  enabled: false
-  host: chart-example.local
+  enabled: true
+  host: homebridge.lajas.tech
