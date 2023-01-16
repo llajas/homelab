@@ -1,72 +1,23 @@
-# Default values for homebridge.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
-
-replicaCount: 1
-
-image:
-  repository: oznu/homebridge
-  pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is the chart version.
-  tag: "latest"
-
-
-namespaceOverride: homebridge
-
-imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
-
-podAnnotations: {}
-
-autoscaling:
-  enabled: false
-
-serviceAccount:
-  create: false
-
-extraEnvs:
-  - name: PUID
-    value: "1000"
-  - name: PGID
-    value: "1000"
-  - name: HOMEBRIDGE_CONFIG_UI
-    value: "1"
-  - name: HOMEBRIDGE_CONFIG_UI_PORT
-    value: "8090"
-
-podSecurityContext:
-  fsGroup: 2000
-
-securityContext:
-    #capabilities:
-    #cadrop:
-    #ca- ALL
-  readOnlyRootFilesystem: false
-  runAsNonRoot: false
-  allowPrivilegeEscalation: true
-  #runAsUser: 1000
-
-service:
-  port: 8090
-
-ingress:
-  main:
-    enabled: true
-    ingressClassName: nginx
-    annotations:
-      cert-manager.io/cluster-issuer: letsencrypt-prod
-      hajimari.io/appName: Homebridge
-      hajimari.io/icon: home-automation
-    hosts:
-      - host: &host homebridge.lajas.tech
-        paths:
-          - path: /
-            pathType: Prefix
-    tls:
-      - secretName: homebridge-tls-certificate
-        hosts:
-          - *host
+homebridge:
+  env:
+    hostNetwork: true
+  ingress:
+    main:
+      enabled: true
+      ingressClassName: nginx
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+        hajimari.io/appName: Homebridge
+        hajimari.io/icon: home-automation
+      hosts:
+        - host: &host homebridge.lajas.tech
+          paths:
+            - path: /
+              pathType: Prefix
+      tls:
+        - secretName: homebridge-tls-certificate
+          hosts:
+            - *host
 persistence:
   # persistence.enabled - Should disk persistence be enabled
   enabled: true
