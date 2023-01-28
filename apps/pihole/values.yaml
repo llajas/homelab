@@ -129,29 +129,29 @@ serviceWeb:
     # metallb.universe.tf/address-pool: network-services
     # metallb.universe.tf/allow-shared-ip: pihole-svc
 
-virtualHost: pi.hole
+virtualHost: pihole.lajas.tech
 
 # -- Configuration for the Ingress
 ingress:
   # -- Generate a Ingress resource
-  enabled: false
+  enabled: true
 
   # -- Specify an ingressClassName
-  # ingressClassName: nginx
+  ingressClassName: nginx
 
   # -- Annotations for the ingress
-  annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-  path: /
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    hajimari.io/appName: Pihole
+    hajimari.io/icon: pi-hole
   hosts:
     # virtualHost (default value is pi.hole) will be appended to the hosts
-    - chart-example.local
-  tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
+    - pihole.lajas.tech
+  tls:
+    - secretName: pihole-tls-certificate
+      hosts:
   #     #- virtualHost (default value is pi.hole) will be appended to the hosts
-  #      - chart-example.local
+        - pihole.lajas.tech
 
 # -- Probes configuration
 probes:
@@ -188,7 +188,7 @@ resources: {}
 # -- `spec.PersitentVolumeClaim` configuration
 persistentVolumeClaim:
   # -- set to true to use pvc
-  enabled: false
+  enabled: true
 
   # -- specify an existing `PersistentVolumeClaim` to use
   # existingClaim: ""
@@ -241,7 +241,9 @@ admin:
   passwordKey: "password"
 
 # -- extraEnvironmentVars is a list of extra enviroment variables to set for pihole to use
-extraEnvVars: {}
+extraEnvVars: {
+  TZ: CST
+}
   # TZ: UTC
 
 # -- extraEnvVarsSecret is a list of secrets to load in as environment variables.
