@@ -64,7 +64,7 @@ serviceDns:
 serviceDhcp:
 
   # -- Generate a Service resource for DHCP traffic
-  enabled: false
+  enabled: true
 
   # -- `spec.type` for the DHCP Service
   type: NodePort
@@ -134,24 +134,24 @@ virtualHost: pi.hole
 # -- Configuration for the Ingress
 ingress:
   # -- Generate a Ingress resource
-  enabled: true
+  enabled: false
 
   # -- Specify an ingressClassName
-  ingressClassName: nginx
+  # ingressClassName: nginx
 
   # -- Annotations for the ingress
-  annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-    hajimari.io/appName: Pihole
-    hajimari.io/icon: pi-hole
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  path: /
   hosts:
     # virtualHost (default value is pi.hole) will be appended to the hosts
-    - pihole.lajas.tech
-  tls:
-    - secretName: pihole-tls-certificate
-      hosts:
+    - chart-example.local
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
   #     #- virtualHost (default value is pi.hole) will be appended to the hosts
-        - pihole.lajas.tech
+  #      - chart-example.local
 
 # -- Probes configuration
 probes:
@@ -188,7 +188,7 @@ resources: {}
 # -- `spec.PersitentVolumeClaim` configuration
 persistentVolumeClaim:
   # -- set to true to use pvc
-  enabled: true
+  enabled: false
 
   # -- specify an existing `PersistentVolumeClaim` to use
   # existingClaim: ""
@@ -241,9 +241,9 @@ admin:
   passwordKey: "password"
 
 # -- extraEnvironmentVars is a list of extra enviroment variables to set for pihole to use
-extraEnvVars: {
-  TZ: CST
-}
+extraEnvVars: {}
+  # TZ: UTC
+
 # -- extraEnvVarsSecret is a list of secrets to load in as environment variables.
 extraEnvVarsSecret: {}
   # env_var:
