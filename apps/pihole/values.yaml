@@ -64,7 +64,7 @@ serviceDns:
 serviceDhcp:
 
   # -- Generate a Service resource for DHCP traffic
-  enabled: true
+  enabled: false
 
   # -- `spec.type` for the DHCP Service
   type: NodePort
@@ -188,7 +188,7 @@ resources: {}
 # -- `spec.PersitentVolumeClaim` configuration
 persistentVolumeClaim:
   # -- set to true to use pvc
-  enabled: false
+  enabled: true
 
   # -- specify an existing `PersistentVolumeClaim` to use
   # existingClaim: ""
@@ -241,9 +241,9 @@ admin:
   passwordKey: "password"
 
 # -- extraEnvironmentVars is a list of extra enviroment variables to set for pihole to use
-extraEnvVars: {}
-  # TZ: UTC
-
+extraEnvVars: {
+  TZ: CST
+}
 # -- extraEnvVarsSecret is a list of secrets to load in as environment variables.
 extraEnvVarsSecret: {}
   # env_var:
