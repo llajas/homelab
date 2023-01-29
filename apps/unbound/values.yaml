@@ -44,7 +44,7 @@ securityContext: {}
 
 service:
   enabled: true
-  type: LoadBalancer
+  type: ClusterIP
   port: 53
   # Additional annotations (e.g. for cloud provider specific config)
   annotations:
