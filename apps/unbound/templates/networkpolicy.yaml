@@ -9,8 +9,20 @@ spec:
       app: unbound
   policyTypes:
   - Ingress
+  - Egress
   ingress:
   - from:
+    - namespaceSelector:
+        matchLabels:
+          name: pihole
+    - podSelector:
+        matchLabels:
+          app: pihole
+    ports:
+    - protocol: UDP
+      port: 53
+  egress:
+  - to:
     - namespaceSelector:
         matchLabels:
           name: pihole
