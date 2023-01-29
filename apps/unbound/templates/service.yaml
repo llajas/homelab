@@ -22,6 +22,7 @@ spec:
       name: dns-udp
   selector:
     {{- include "unbound-chart.selectorLabels" . | nindent 4 }}
+    app: pihole
 
 ---
 apiVersion: v1
@@ -47,3 +48,4 @@ spec:
       name: dns-tcp
   selector:
     {{- include "unbound-chart.selectorLabels" . | nindent 4 }}
+    app: pihole
