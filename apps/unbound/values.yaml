@@ -59,16 +59,18 @@ service:
 
 ingress:
   enabled: true
-  annotations: {}
+  annotations: {
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  }
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
   hosts:
     - host: unbound.lajas.tech
       paths: []
-  tls: []
-  # - secretName: chart-example-tls
-  #   hosts:
-  #     - chart-example.local
+  tls:
+    - secretName: unbound.lajas.tech
+      hosts:
+        - unbound.lajas.tech
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
