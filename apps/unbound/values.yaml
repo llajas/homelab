@@ -53,9 +53,9 @@ service:
   labels: {}
   # Additional entries here will be added to the service spec. Cannot contains
   # type, selector or ports entries.
-  spec:
-    externalTrafficPolicy: Local
-    loadBalancerIP: ""
+  #  spec:
+  #    externalTrafficPolicy: Local
+  #    loadBalancerIP: ""
 
 ingress:
   enabled: false
