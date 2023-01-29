@@ -56,9 +56,6 @@ service:
   #  spec:
   #    externalTrafficPolicy: Local
   #    loadBalancerIP: ""
-  spec:
-    selector:
-      app: pihole
 
 ingress:
   enabled: false
