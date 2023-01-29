@@ -31,4 +31,4 @@ spec:
           app: pihole
     ports:
     - protocol: UDP
-      port: "0-65535"
+      port: any
