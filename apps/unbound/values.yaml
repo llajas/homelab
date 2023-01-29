@@ -58,19 +58,17 @@ service:
   #    loadBalancerIP: ""
 
 ingress:
-  enabled: true
-  annotations: {
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-  }
+  enabled: false
+  annotations: {}
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
   hosts:
-    - host: unbound.lajas.tech
+    - host: chart-example.local
       paths: []
-  tls:
-    - secretName: unbound.lajas.tech
-      hosts:
-        - unbound.lajas.tech
+  tls: []
+  # - secretName: chart-example-tls
+  #   hosts:
+  #     - chart-example.local
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
