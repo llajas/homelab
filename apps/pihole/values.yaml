@@ -39,7 +39,7 @@ serviceDns:
   mixedService: false
 
   # -- `spec.type` for the DNS Service
-  type: loadBalancer
+  type: LoadBalancer
 
   # -- The port of the DNS service
   port: 53
