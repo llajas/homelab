@@ -20,7 +20,7 @@ spec:
           app: pihole
     ports:
     - protocol: UDP
-      port: any
+      port: 53
   egress:
   - to:
     - namespaceSelector:
