@@ -36,7 +36,7 @@ dnsHostPort:
 serviceDns:
 
   # -- deploys a mixed (TCP + UDP) Service instead of separate ones
-  mixedService: false
+  mixedService: true
 
   # -- `spec.type` for the DNS Service
   type: LoadBalancer
@@ -51,7 +51,7 @@ serviceDns:
   externalTrafficPolicy: Local
 
   # -- A fixed `spec.loadBalancerIP` for the DNS Service
-  loadBalancerIP: ""
+  loadBalancerIP: "10.137.255.226"
   # -- A fixed `spec.loadBalancerIP` for the IPv6 DNS Service
   loadBalancerIPv6: ""
 
