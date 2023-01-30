@@ -1,9 +1,0 @@
-# This template allows name resolution of the IP for the unbound-udp service - While deployment will work without this, proper names do not show unless this is deployed.
-kind: Service
-apiVersion: v1
-metadata:
-  name: unbound-udp
-  namespace: pihole
-spec:
-  type: ExternalName
-  externalName: unbound-udp.unbound.svc.cluster.local
