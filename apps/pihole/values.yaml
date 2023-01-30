@@ -394,6 +394,7 @@ adlists: {
   https://zerodot1.gitlab.io/CoinBlockerLists/hosts
   https://pastebin.com/raw/qVeVgzQ9
   https://raw.githubusercontent.com/danhorton7/pihole-block-tiktok/main/tiktok.txt
+  https://pgl.yoyo.org/adservers/serverlist.php%3Fhostformat=hosts;showintro=0
 }
   # If you want to provide blocklists, add them here.
   # - https://hosts-file.net/grm.txt
