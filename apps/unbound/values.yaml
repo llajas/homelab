@@ -44,7 +44,7 @@ securityContext: {}
 
 service:
   enabled: true
-  type: LoadBalancer
+  type: ClusterIP
   port: 53
   # Additional annotations (e.g. for cloud provider specific config)
   annotations:
@@ -53,9 +53,7 @@ service:
   labels: {}
   # Additional entries here will be added to the service spec. Cannot contains
   # type, selector or ports entries.
-  spec:
-    externalTrafficPolicy: Local
-    loadBalancerIP: "10.137.255.205"
+  spec: {}
 
 ingress:
   enabled: false
