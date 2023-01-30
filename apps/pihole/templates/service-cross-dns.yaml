@@ -1,0 +1,10 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: pihole-unbound-dns-resolver
+  namespace: pihole
+spec:
+  type: ExternalName
+  externalName: unbound-udp.unbound.svc.cluster.local
+  ports:
+  - port: 53
