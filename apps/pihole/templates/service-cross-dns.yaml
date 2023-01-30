@@ -6,5 +6,3 @@ metadata:
 spec:
   type: ExternalName
   externalName: unbound-udp.unbound.svc.cluster.local
-  ports:
-  - port: 53
