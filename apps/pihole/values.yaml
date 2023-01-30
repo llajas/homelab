@@ -365,9 +365,9 @@ dnsmasq:
 
 # -- list of adlists to import during initial start of the container
 adlists: {
-  "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts",
-  "http://sysctl.org/cameleon/hosts",
-  "https://s3.amazonaws.com/lists.disconnect.me/simple_tracking.txt",
+  'https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts',
+  'http://sysctl.org/cameleon/hosts',
+  'https://s3.amazonaws.com/lists.disconnect.me/simple_tracking.txt',
   "https://s3.amazonaws.com/lists.disconnect.me/simple_ad.txt",
   "https://reddestdream.github.io/Projects/MinimalHosts/etc/MinimalHostsBlocker/minimalhosts",
   "https://raw.githubusercontent.com/StevenBlack/hosts/master/data/KADhosts/hosts",
