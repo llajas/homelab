@@ -2,7 +2,7 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: unbound-udp-resolver
+  name: unbound-udp
   namespace: pihole
 spec:
   type: ExternalName
