@@ -464,4 +464,4 @@ podDnsConfig:
   policy: "None"
   nameservers:
     - 127.0.0.1
-    - "unbound-udp.unbound.svc.cluster.local"
+    - 10.43.0.10
