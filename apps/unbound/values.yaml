@@ -55,7 +55,7 @@ service:
   # type, selector or ports entries.
   spec:
     externalTrafficPolicy: Local
-    loadBalancerIP: "192.168.10.254"
+    loadBalancerIP: "10.137.255.205"
 
 ingress:
   enabled: false
