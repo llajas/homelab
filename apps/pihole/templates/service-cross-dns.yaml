@@ -1,8 +1,0 @@
-kind: Service
-apiVersion: v1
-metadata:
-  name: unbound-udp
-  namespace: pihole
-spec:
-  type: ExternalName
-  externalName: unbound-udp.unbound.svc.cluster.local
