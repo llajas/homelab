@@ -21,13 +21,13 @@ repositories:
     # TODO create webhook (use a global one?)
     # webhooks:
     #   - http://gitea-webhook.tekton-pipelines:3000
-  - name: blog
-    owner: khuedoan
-    migrate:
-      source: https://github.com/khuedoan/blog
-      mirror: true
-  - name: backstage
-    owner: khuedoan
-    migrate:
-      source: https://github.com/khuedoan/backstage
-      mirror: true
+#  - name: blog
+#    owner: khuedoan
+#    migrate:
+#      source: https://github.com/khuedoan/blog
+#      mirror: true
+#  - name: backstage
+#    owner: khuedoan
+#    migrate:
+#      source: https://github.com/khuedoan/backstage
+#      mirror: true
