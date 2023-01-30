@@ -301,6 +301,10 @@ doh:
 dnsmasq:
   # -- Add upstream dns servers. All lines will be added to the pihole dnsmasq configuration
   upstreamServers: []
+  # - server=/foo.bar/192.168.178.10
+  # - server=/bar.foo/192.168.178.11
+
+  # -- Add custom dns entries to override the dns resolution. All lines will be added to the pihole dnsmasq configuration.
   customDnsEntries: []
   # - address=/foo.bar/192.168.178.10
   # - address=/bar.foo/192.168.178.11
