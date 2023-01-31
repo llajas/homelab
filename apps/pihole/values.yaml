@@ -385,7 +385,9 @@ regex: {}
   # - (^|\.)facebook\.com$
 
 # -- values that should be added to pihole-FTL.conf
-ftl: {}
+ftl: {
+  BLOCK_ICLOUD_PR=false
+}
   # Add values for pihole-FTL.conf
   # MAXDBDAYS: 14
 
