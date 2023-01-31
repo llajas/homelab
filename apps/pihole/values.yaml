@@ -386,7 +386,7 @@ regex: {}
 
 # -- values that should be added to pihole-FTL.conf
 ftl: {
-  BLOCK_ICLOUD_PR=false
+  BLOCK_ICLOUD_PR: false
 }
   # Add values for pihole-FTL.conf
   # MAXDBDAYS: 14
