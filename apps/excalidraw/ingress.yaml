@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: excalidraw
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    external-dns.alpha.kubernetes.io/target: "homelab-tunnel.lajas.tech"
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: &host draw.lajas.tech
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            backend:
+              service:
+                name: excalidraw
+                port:
+                  name: http
+  tls:
+    - secretName: excalidraw-tls-certificate
+      hosts:
+        - *host
