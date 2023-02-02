@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
-  name: master
+  name: pull-request
 spec:
   workspaces:
     - name: shared-data
@@ -23,7 +23,7 @@ spec:
         - name: url
           value: $(params.git_url)
         - name: revision
-          value: master
+          value: $(params.git_revision)
     - name: pre-commit
       workspaces:
         - name: source
@@ -34,5 +34,10 @@ spec:
         stepTemplate:
           image: nixos/nix:latest
           workingDir: /workspace/source
-          value: $(params.git_revision)
-    # TODO add tests here
+        steps:
+          - name: run
+            command:
+              - nix-shell
+              - --command
+            args:
+              - "pre-commit run --color=always"
