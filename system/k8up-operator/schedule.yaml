@@ -5,8 +5,8 @@ metadata:
 spec:
   backend:
     s3:
-      endpoint: s3.us-west-002.backblazeb2.com
-      bucket: khuedoan-homelab-backup
+      endpoint: s3.us-east-005.backblazeb2.com
+      bucket: llajas-homelab-backup
       accessKeyIDSecretRef:
         name: backblaze-credentials
         key: application-key-id
