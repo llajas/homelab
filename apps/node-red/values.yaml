@@ -61,5 +61,5 @@ ingress:
 # @default -- See values.yaml
 persistence:
   data:
-    enabled: true
+    enabled: false
     mountPath: /data
