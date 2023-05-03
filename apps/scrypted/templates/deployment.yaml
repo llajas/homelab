@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "scrypted.fullname" . }}
+  labels:
+    {{- include "scrypted.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "scrypted.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "scrypted.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "scrypted.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      hostNetwork: true
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: SCRYPTED_WEBHOOK_UPDATE_AUTHORIZATION
+              value: "Bearer SET_THIS_TO_SOME_RANDOM_TEXT"
+            - name: SCRYPTED_WEBHOOK_UPDATE
+              value: http://localhost:8080/v1/update
+          ports:
+            - name: https
+              containerPort: 10443
+              protocol: TCP
+            - name: http
+              containerPort: 11080
+              protocol: TCP
+#          livenessProbe:
+#            httpGet:
+#              path: /
+#              port: http
+#          readinessProbe:
+#            httpGet:
+#              path: /
+#              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - mountPath: /server/volume
+              name: {{ include "scrypted.fullname" . }}
+            {{- if .Values.raspberry.hardware }}
+            - mountPath: /dev/video0
+              name: dev-video0
+            {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - name: {{ include "scrypted.fullname" . }}
+          persistentVolumeClaim:
+            claimName: {{ include "scrypted.fullname" . }}
+        {{- if .Values.raspberry.hardware }}
+        - name: dev-video0
+          hostPath:
+            path: /dev/video0
+        {{- end }}
