@@ -50,6 +50,9 @@ ingress:
     nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
   hosts:
     - host: scrypted.lajas.tech
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
   tls:
     - secretName: scrypted-tls-certificate
       hosts:
