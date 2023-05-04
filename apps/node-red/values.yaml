@@ -65,3 +65,12 @@ persistence:
     mountPath: /data
     accessMode: ReadWriteOnce
     size: 1Gi
+
+controller:
+  initContainers:
+    - name: volume-permissions
+      image: busybox:latest
+      command: ['sh', '-c', 'chown -R 1000:1000 /data']
+      volumeMounts:
+        - name: data
+          mountPath: /data
