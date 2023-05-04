@@ -29,6 +29,11 @@ env:
   # If you set `FLOWS: ""` then the flow file can be set via the `flowFile` property in the `settings.js` file.
   FLOWS: flows.json
 
+securityContext:
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+
 # -- Configures service settings for the chart.
 # @default -- See values.yaml
 service:
