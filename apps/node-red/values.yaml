@@ -32,6 +32,8 @@ env:
 securityContext:
   runAsUser: 1000
   runAsGroup: 1000
+
+podSecurityContext:
   fsGroup: 1000
 
 # -- Configures service settings for the chart.
