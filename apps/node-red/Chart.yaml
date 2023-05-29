@@ -1,9 +1,9 @@
 ---
 apiVersion: v2
-appVersion: 2.2.2
+appVersion: 3.0.2
 description: Node-RED is low-code programming for event-driven applications
 name: node-red
-version: 10.3.2
+version: 10.3.2.1
 kubeVersion: ">=1.16.0-0"
 keywords:
   - nodered
