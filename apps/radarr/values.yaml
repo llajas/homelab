@@ -17,7 +17,7 @@ image:
 # @default -- See below
 env:
   # -- Set the container timezone
-  TZ: CST
+  TZ: America/Chicago
 
 # -- Configures service settings for the chart.
 # @default -- See values.yaml
