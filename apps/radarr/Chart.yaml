@@ -1,29 +1,27 @@
+---
 apiVersion: v2
-appVersion: "4.4.4.7068"
-dependencies:
-  - name: common
-    repository: https://library-charts.truecharts.org
-    version: 12.13.0
-deprecated: false
-description: "A fork of Sonarr to work with movies à la Couchpotato"
-home: https://truecharts.org/charts/stable/radarr
-icon: https://truecharts.org/img/hotlink-ok/chart-icons/radarr.png
+appVersion: v4.1.0.6175
+description: A fork of Sonarr to work with movies à la Couchpotato
+name: radarr
+version: 16.3.2
+kubeVersion: ">=1.16.0-0"
 keywords:
   - radarr
   - torrent
   - usenet
-kubeVersion: ">=1.16.0-0"
-maintainers:
-  - email: info@truecharts.org
-    name: TrueCharts
-    url: https://truecharts.org
-name: radarr
+home: https://github.com/k8s-at-home/charts/tree/master/charts/stable/radarr
+icon: https://github.com/Radarr/Radarr/blob/aphrodite/Logo/512.png?raw=true
 sources:
-  - https://github.com/truecharts/charts/tree/master/charts/stable/radarr
   - https://github.com/Radarr/Radarr
-type: application
-version: 16.0.16
+  - https://github.com/k8s-at-home/container-images
+maintainers:
+  - name: billimek
+    email: jeff@billimek.com
+dependencies:
+  - name: common
+    repository: https://library-charts.k8s-at-home.com
+    version: 4.5.2
 annotations:
-  truecharts.org/catagories: |
-    - media
-  truecharts.org/SCALE-support: "true"
+  artifacthub.io/changes: |-
+    - kind: changed
+      description: Upgraded `common` chart dependency to version 4.5.2
