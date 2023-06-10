@@ -78,7 +78,7 @@ persistence:
     enabled: true
 
   media:
-    enabled: true
+    enabled: false
     mountPath: /media
 
 metrics:
