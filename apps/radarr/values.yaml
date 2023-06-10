@@ -75,7 +75,7 @@ probes:
 # @default -- See values.yaml
 persistence:
   config:
-    enabled: true
+    enabled: false
 
   media:
     enabled: false
