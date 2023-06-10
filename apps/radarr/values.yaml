@@ -76,7 +76,6 @@ probes:
 persistence:
   config:
     enabled: true
-    mountPath: /config
 
   media:
     enabled: false
