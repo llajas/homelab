@@ -75,7 +75,9 @@ probes:
 # @default -- See values.yaml
 persistence:
   config:
-    enabled: false
+    enabled: true
+    accessMode: ReadWriteOnce
+    size: 1Gi
 
   media:
     enabled: false
