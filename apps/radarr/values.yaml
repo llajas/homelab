@@ -18,6 +18,7 @@ image:
 env:
   # -- Set the container timezone
   TZ: CST
+  RADARR_CONFIG_DIR: "/config"
 
 # -- Configures service settings for the chart.
 # @default -- See values.yaml
