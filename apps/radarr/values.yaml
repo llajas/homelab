@@ -76,6 +76,8 @@ probes:
 persistence:
   config:
     enabled: true
+    existingClaim: ""
+    storageClassName: "longhorn"
 
   media:
     enabled: false
