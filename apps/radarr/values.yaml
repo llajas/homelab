@@ -130,8 +130,8 @@ metrics:
       # -- Set to true to enable gathering unknown queue items
       unknownQueueItems: false
 
-securityContext: {
-  runAsUser: 568,
-  fsGroup: 568,
-  runAsNonRoot: true
-}
+securityContext: 
+  runAsUser: 568
+
+podSecurityContext:
+  fsGroup: 568
