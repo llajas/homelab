@@ -124,7 +124,8 @@ metrics:
       # -- Set to true to enable gathering unknown queue items
       unknownQueueItems: false
 
-securityContext:
+securityContext: {
   runAsUser: 568
   fsGroup: 568
   runAsNonRoot: true
+}
