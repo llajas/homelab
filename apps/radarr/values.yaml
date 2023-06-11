@@ -74,10 +74,9 @@ probes:
 ## Config persistence is required for the Prometheus exporter sidecar.
 # @default -- See values.yaml
 persistence:
-  config:
-    enabled: true
-    existingClaim: ""
-    storageClassName: "longhorn"
+  enabled: true
+  existingClaim: ""
+  storageClassName: "longhorn"
 
   media:
     enabled: false
