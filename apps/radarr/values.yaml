@@ -131,7 +131,7 @@ metrics:
       unknownQueueItems: false
 
 securityContext: {
-  runAsUser: 568
-  fsGroup: 568
+  runAsUser: 568,
+  fsGroup: 568,
   runAsNonRoot: true
 }
