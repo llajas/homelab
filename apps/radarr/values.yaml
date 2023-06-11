@@ -7,7 +7,7 @@
 
 image:
   # -- image repository
-  repository: lscr.io/linuxserver/radarr
+  repository: ghcr.io/k8s-at-home/radarr
   # @default -- chart.appVersion
   tag:
   # -- image pull policy
@@ -18,8 +18,8 @@ image:
 env:
   # -- Set the container timezone
   TZ: America/Chicago
-  PUID: "911"
-  PGID: "1001"
+  PUID: "568"
+  PGID: "568"
 
 # -- Configures service settings for the chart.
 # @default -- See values.yaml
