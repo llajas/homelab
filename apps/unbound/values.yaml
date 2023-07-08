@@ -8,7 +8,7 @@ image:
   repository: klutchell/unbound
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "1.17.1"
+  #  tag: "1.17.1"
 
 imagePullSecrets: []
 nameOverride: ""
