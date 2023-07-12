@@ -28,7 +28,7 @@ spec:
 {{- with .Values.node.affinity }}
       affinity:
 {{ toYaml . | indent 8 }}
-{{- end }}    
+{{- end }}
       hostNetwork: true
       dnsPolicy: {{ .Values.linux.dnsPolicy }}
       serviceAccountName: {{ .Values.serviceAccount.node }}

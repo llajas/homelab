@@ -1,8 +1,8 @@
 image:
   baseRepo: registry.k8s.io/sig-storage
   smb:
-    repository: gcr.io/k8s-staging-sig-storage/smbplugin
-    tag: canary
+    repository: registry.k8s.io/sig-storage/smbplugin
+    tag: v1.11.0
     pullPolicy: IfNotPresent
   csiProvisioner:
     repository: registry.k8s.io/sig-storage/csi-provisioner
@@ -18,7 +18,7 @@ image:
     pullPolicy: IfNotPresent
 
 serviceAccount:
-  create: true # When true, service accounts will be created for you. Set to false if you want to use your own.
+  create: true
   controller: csi-smb-controller-sa
   node: csi-smb-node-sa
 
@@ -85,7 +85,7 @@ node:
 
 linux:
   enabled: true
-  dsName: csi-smb-node # daemonset name
+  dsName: csi-smb-node
   dnsPolicy: ClusterFirstWithHostNet  # available values: Default, ClusterFirstWithHostNet, ClusterFirst
   kubelet: /var/lib/kubelet
   tolerations:
@@ -112,7 +112,7 @@ linux:
 
 windows:
   enabled: false
-  dsName: csi-smb-node-win # daemonset name
+  dsName: csi-smb-node-win
   kubelet: 'C:\var\lib\kubelet'
   removeSMBMappingDuringUnmount: true
   tolerations:
@@ -150,4 +150,4 @@ priorityClassName: system-cluster-critical
 ## Security context give the opportunity to run container as nonroot by setting a securityContext
 ## by example :
 ## securityContext: { runAsUser: 1001 }
-securityContext: { seccompProfile: {type: RuntimeDefault} }
+securityContext: {seccompProfile: {type: RuntimeDefault}}
