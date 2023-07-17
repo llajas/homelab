@@ -1,3 +1,6 @@
+addons:
+  codeserver:
+    enabled: false
 radarr: {}
 
 smb-pvc: {}
