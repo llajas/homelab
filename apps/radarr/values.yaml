@@ -76,13 +76,14 @@ probes:
 ## Config persistence is required for the Prometheus exporter sidecar.
 # @default -- See values.yaml
 persistence:
-  config: 
+  config:
     enabled: true
     existingClaim: ""
     storageClassName: "longhorn"
 
   media:
-    enabled: false
+    enabled: true
+    existingClaim: "plex-smb-pvc"
     mountPath: /media
 
 metrics:
@@ -126,7 +127,7 @@ metrics:
       # -- Set to true to enable gathering unknown queue items
       unknownQueueItems: false
 
-securityContext: 
+securityContext:
   runAsUser: 568
 
 podSecurityContext:
