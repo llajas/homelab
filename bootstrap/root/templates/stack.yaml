@@ -38,4 +38,12 @@ spec:
           - CreateNamespace=true
           - ApplyOutOfSyncOnly=true
           - ServerSideApply=true
+      {{- if eq $stack.name "csi-driver-smb" }}
+      ignoreDifferences:
+        - group: storage.k8s.io
+          kind: CSIDriver
+          name: smb.csi.k8s.io
+          jsonPointers:
+            - /spec/seLinuxMount
+      {{- end }}
 {{- end }}
