@@ -5,11 +5,6 @@ Main entrypoint for the common library chart. It will render all underlying temp
   {{- /* Merge the local chart values and the common chart defaults */ -}}
   {{- include "common.values.setup" . }}
 
-  {{- /* Enable VPN add-on if required */ -}}
-  {{- if .Values.addons.vpn.enabled }}
-    {{- include "common.addon.vpn" . }}
-  {{- end -}}
-
   {{- /* Enable promtail add-on if required */ -}}
   {{- if .Values.addons.promtail.enabled }}
     {{- include "common.addon.promtail" . }}
