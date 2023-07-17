@@ -1,0 +1,13 @@
+pvc:
+  name: plex-win-pvc
+  size: 20Ti
+storageClass:
+  name: smb
+  mountOptions:
+    - dir_mode=0777
+    - file_mode=0777
+    - uid=1001
+    - gid=1001
+secret:
+  name: smb-creds
+  namespace: radarr
