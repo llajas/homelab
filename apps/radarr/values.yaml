@@ -83,7 +83,7 @@ persistence:
 
   media:
     enabled: true
-    existingClaim: "plex-smb-pvc"
+    existingClaim: "plex-win-pvc"
     mountPath: /media
 
 metrics:
