@@ -39,8 +39,8 @@ controller:
   metricsPort: 29644
   livenessProbe:
     healthPort: 29642
-  runOnMaster: false
-  runOnControlPlane: false
+  runOnMaster: true
+  runOnControlPlane: true
   logLevel: 5
   workingMountDir: "/tmp"
   resources:
