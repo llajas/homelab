@@ -35,10 +35,10 @@ spec:
 {{- end }}
         kubernetes.io/os: linux
         {{- if .Values.controller.runOnMaster}}
-        node-role.kubernetes.io/master: true
+        node-role.kubernetes.io/master: 'true'
         {{- end}}
         {{- if .Values.controller.runOnControlPlane}}
-        node-role.kubernetes.io/control-plane: true
+        node-role.kubernetes.io/control-plane: 'true'
         {{- end}}
       priorityClassName: {{ .Values.priorityClassName | quote }}
       {{- if .Values.securityContext }}
