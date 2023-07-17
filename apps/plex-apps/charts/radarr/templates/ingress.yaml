@@ -1,0 +1,30 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "radarr.fullname" . }}-ingress
+  labels:
+  {{- include "radarr.labels" . | nindent 4 }}
+  annotations:
+    hajimari.io/appName: Radarr
+    hajimari.io/icon: bullseye
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/proxy-body-size: 16m
+    nginx.org/client-max-body-size: "0"
+    nginx.org/proxy-connect-timeout: 600s
+    nginx.org/proxy-read-timeout: 600s
+spec:
+  rules:
+  - host: {{ .Values.ingress.rules.host }}
+    http:
+      paths:
+      - backend:
+          service:
+            name: radarr-service
+            port:
+              number: 7878
+        pathType: ImplementationSpecific
+  tls:
+  - hosts:
+    - {{ .Values.ingress.rules.host }}
+    secretName: radarr-tls-certificate
