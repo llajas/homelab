@@ -12,5 +12,5 @@ dependencies:
     version: "16.3.2"
     repository: "file://./charts/radarr"
   - name: plex-smb-share
-    version: "1.0.0"
+    version: 1.0.0
     repository: "file://./charts/plex-smb-share"
