@@ -2,15 +2,9 @@ apiVersion: v2
 name: plex-apps
 description: A Helm chart for Plex applications
 type: application
-version: 0.1.0
-appVersion: 1.16.0
+version: 1.0.0
+appVersion: 1.0.0
 dependencies:
-  - name: common
-    version: 4.5.2
-    repository: "file://./charts/common"
-  - name: radarr
-    version: 16.3.2
-    repository: "file://./charts/radarr"
   - name: plex-smb-share
     version: 0.1.0
     repository: "file://./charts/plex-smb-share"
