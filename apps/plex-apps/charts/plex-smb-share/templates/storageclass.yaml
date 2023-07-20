@@ -3,10 +3,9 @@ kind: StorageClass
 metadata:
   name: smb
   annotations:
-    avp.kubernetes.io/path: "secret/data/plex-smb-share"
 provisioner: smb.csi.k8s.io
 parameters:
-  source: <vault:plex-smb-share#serverPath>
+  source: '//sector-u.lauren.lajas.tech/Plex Media/Downloads'
   csi.storage.k8s.io/provisioner-secret-name: "smbcreds"
   csi.storage.k8s.io/provisioner-secret-namespace: {{ .Release.Namespace }}
   csi.storage.k8s.io/node-stage-secret-name: "smbcreds"
