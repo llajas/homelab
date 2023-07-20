@@ -6,7 +6,7 @@ metadata:
     avp.kubernetes.io/path: "secret/plex-smb-share"
 provisioner: smb.csi.k8s.io
 parameters:
-  source: "<vault:secret/plex-smb-share#serverPath>"
+  source: <vault:secret/data/plex-smb-share#serverPath>
   csi.storage.k8s.io/provisioner-secret-name: "smbcreds"
   csi.storage.k8s.io/provisioner-secret-namespace: {{ .Release.Namespace }}
   csi.storage.k8s.io/node-stage-secret-name: "smbcreds"
