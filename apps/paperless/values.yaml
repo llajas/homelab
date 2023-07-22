@@ -25,8 +25,8 @@ env:
   PAPERLESS_REDIS: redis://paperless-redis-headless:6379
   # -- OCR languages to install
   PAPERLESS_OCR_LANGUAGE: eng
-  USERMAP_UID: 1000
-  USERMAP_GID: 1000
+  USERMAP_UID: 1001
+  USERMAP_GID: 1001
   # PAPERLESS_TIME_ZONE: Europe/London
   # -- Database host to use
   PAPERLESS_DBHOST:
