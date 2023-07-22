@@ -88,7 +88,7 @@ persistence:
     mountPath: /usr/src/paperless/consume
     accessMode: ReadWriteOnce
     emptyDir:
-      enabled: false
+      enabled: true
   # -- Configure export volume.
   # @default -- See values.yaml
   export:
