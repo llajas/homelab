@@ -22,7 +22,7 @@ paperless:
     enabled: true
   env:
     COMPOSE_PROJECT_NAME: paperless
-    PAPERLESS_REDIS:
+    PAPERLESS_REDIS: redis://paperless-redis-headless:6379
     PAPERLESS_OCR_LANGUAGE: eng
     PAPERLESS_DBHOST:
     PAPERLESS_PORT: 8000
