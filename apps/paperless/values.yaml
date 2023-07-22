@@ -120,6 +120,6 @@ postgresql:
 redis:
   enabled: true
   auth:
-    enabled: true
+    enabled: false
     existingSecret: paperless-redis
     existingSecretPasswordKey: redis-password
