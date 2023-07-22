@@ -35,7 +35,10 @@ env:
   # -- Username for the root user
   # PAPERLESS_ADMIN_USER: admin
   # -- Password for the root user
-  # PAPERLESS_ADMIN_PASSWORD: admin
+  PAPERLESS_ADMIN_PASSWORD:
+    secretKeyRef:
+      name: paperless-redis
+      key: redis-password
   # PAPERLESS_URL: <set to main ingress by default>
 
 # -- Configures service settings for the chart.
@@ -118,3 +121,5 @@ redis:
   enabled: true
   auth:
     enabled: true
+    existingSecret: paperless-redis
+    existingSecretPasswordKey: redis-password
