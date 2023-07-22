@@ -118,7 +118,7 @@ postgresql:
 #    For more options see [redis chart documentation](https://github.com/bitnami/charts/tree/master/bitnami/redis)
 # @default -- See values.yaml
 redis:
-  enabled: true
+  enabled: false
   auth:
     enabled: false
     existingSecret: paperless-redis
