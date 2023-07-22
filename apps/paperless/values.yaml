@@ -22,7 +22,7 @@ env:
   # -- Project name
   COMPOSE_PROJECT_NAME: paperless
   # -- Redis to use
-  PAPERLESS_REDIS:
+  PAPERLESS_REDIS: 'redis://paperless-redis-headless:6379'
   # -- OCR languages to install
   PAPERLESS_OCR_LANGUAGE: eng
   # USERMAP_UID: 1000
@@ -84,7 +84,7 @@ persistence:
   # -- Configure volume to monitor for new documents.
   # @default -- See values.yaml
   consume:
-    enabled: false
+    enabled: true
     mountPath: /usr/src/paperless/consume
     accessMode: ReadWriteOnce
     emptyDir:
