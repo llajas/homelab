@@ -87,6 +87,7 @@ persistence:
     enabled: true
     mountPath: /usr/src/paperless/consume
     accessMode: ReadWriteOnce
+    size: 1Gi
     emptyDir:
       enabled: true
   # -- Configure export volume.
