@@ -50,7 +50,7 @@ argo-cd:
       - name: custom-tools
         mountPath: /custom-tools
       - name: cmp-plugin
-        mountPath: /home/argocd/cmp-server/config/plugin.yaml
+        mountPath: /home/argrcd/cmp-server/config/plugin.yaml
         subPath: avp.yaml
     initContainers:
       - name: download-tools
@@ -83,7 +83,7 @@ argo-cd:
             mountPath: /tmp
           - name: cmp-plugin
             mountPath: /home/argocd/cmp-server/config/plugin.yaml
-            subPath: avp.yaml
+            subPath: avp-helm.yaml
           - name: custom-tools
             mountPath: /usr/local/bin/argocd-vault-plugin
             subPath: argocd-vault-plugin
