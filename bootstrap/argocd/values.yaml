@@ -70,7 +70,7 @@ argo-cd:
     extraContainers:
       - name: avp
         command: ["/var/run/argocd/argocd-cmp-server"]
-        image: alpine:3.8
+        image: alpine/helm:3.12.2
         securityContext:
           runAsNonRoot: true
           runAsUser: 999
