@@ -21,3 +21,4 @@
     src: /tmp/cifs
     dest: /usr/libexec/kubernetes/kubelet-plugins/volume/exec/fstab~cifs/
     mode: '0755'
+    remote_src: yes
