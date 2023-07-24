@@ -61,7 +61,7 @@ tautulli:
 
 chownDataImage:
   repository: busybox
-  tag: 1.30.0
+  tag: 1.36.1
   pullPolicy: IfNotPresent
 
 getGeoCity:
