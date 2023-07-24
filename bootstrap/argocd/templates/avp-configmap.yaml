@@ -19,7 +19,7 @@ data:
             - "find . -name 'Chart.yaml' && find . -name 'values.yaml'"
       generate:
         command:
-          - bash
+          - sh
           - "-c"
           - |
             helm template $ARGOCD_APP_NAME -n $ARGOCD_APP_NAMESPACE -f <(echo "$ARGOCD_ENV_HELM_VALUES") . |
