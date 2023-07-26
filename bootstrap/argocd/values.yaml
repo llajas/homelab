@@ -44,7 +44,7 @@ argo-cd:
         image: registry.access.redhat.com/ubi8
         env:
           - name: AVP_VERSION
-            value: 1.11.0
+            value: 1.15.0
         command: [sh, -c]
         args:
           - >-
