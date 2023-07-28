@@ -51,13 +51,13 @@ argo-cd:
         mountPath: /custom-tools
       - name: cmp-plugin
         mountPath: /home/argrcd/cmp-server/config/plugin.yaml
-        subPath: avp.yaml
+        subPath: avp-helm.yaml
     initContainers:
       - name: download-tools
         image: registry.access.redhat.com/ubi8
         env:
           - name: AVP_VERSION
-            value: "1.11.0"
+            value: "1.15.0"
         command: ["sh", "-c"]
         args:
           - >
