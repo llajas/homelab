@@ -40,52 +40,52 @@ argo-cd:
     metrics: *metrics
   repoServer:
     metrics: *metrics
-    volumes:
-      - name: custom-tools
-        emptyDir: {}
-      - name: cmp-plugin
-        configMap:
-          name: cmp-plugin
-    volumeMounts:
-      - name: custom-tools
-        mountPath: /custom-tools
-      - name: cmp-plugin
-        mountPath: /home/argrcd/cmp-server/config/plugin.yaml
-        subPath: avp-helm.yaml
-    initContainers:
-      - name: download-tools
-        image: registry.access.redhat.com/ubi8
-        env:
-          - name: AVP_VERSION
-            value: "1.15.0"
-        command: ["sh", "-c"]
-        args:
-          - >
-            curl -L https://github.com/argoproj-labs/argocd-vault-plugin/releases/download/v${AVP_VERSION}/argocd-vault-plugin_${AVP_VERSION}_linux_amd64 -o argocd-vault-plugin &&
-            chmod +x argocd-vault-plugin &&
-            mv argocd-vault-plugin /custom-tools/
-        volumeMounts:
-          - name: custom-tools
-            mountPath: /custom-tools
-    extraContainers:
-      - name: avp
-        command: ["/var/run/argocd/argocd-cmp-server"]
-        image: alpine/helm:3.12.2
-        securityContext:
-          runAsNonRoot: true
-          runAsUser: 999
-        volumeMounts:
-          - name: var-files
-            mountPath: /var/run/argocd
-          - name: plugins
-            mountPath: /home/argocd/cmp-server/plugins
-          - name: tmp
-            mountPath: /tmp
-          - name: cmp-plugin
-            mountPath: /home/argocd/cmp-server/config/plugin.yaml
-            subPath: avp-helm.yaml
-          - name: custom-tools
-            mountPath: /usr/local/bin/argocd-vault-plugin
-            subPath: argocd-vault-plugin
+      #    volumes:
+      #      - name: custom-tools
+      #        emptyDir: {}
+      #      - name: cmp-plugin
+      #        configMap:
+      #          name: cmp-plugin
+      #    volumeMounts:
+      #      - name: custom-tools
+      #        mountPath: /custom-tools
+      #      - name: cmp-plugin
+      #        mountPath: /home/argrcd/cmp-server/config/plugin.yaml
+      #        subPath: avp-helm.yaml
+      #    initContainers:
+      #      - name: download-tools
+      #        image: registry.access.redhat.com/ubi8
+      #        env:
+      #          - name: AVP_VERSION
+      #            value: "1.15.0"
+      #        command: ["sh", "-c"]
+      #        args:
+      #          - >
+      #            curl -L https://github.com/argoproj-labs/argocd-vault-plugin/releases/download/v${AVP_VERSION}/argocd-vault-plugin_${AVP_VERSION}_linux_amd64 -o argocd-vault-plugin &&
+      #            chmod +x argocd-vault-plugin &&
+      #            mv argocd-vault-plugin /custom-tools/
+      #        volumeMounts:
+      #          - name: custom-tools
+      #            mountPath: /custom-tools
+      #    extraContainers:
+      #      - name: avp
+      #        command: ["/var/run/argocd/argocd-cmp-server"]
+      #        image: alpine/helm:3.12.2
+      #        securityContext:
+      #          runAsNonRoot: true
+      #          runAsUser: 999
+      #        volumeMounts:
+      #          - name: var-files
+      #            mountPath: /var/run/argocd
+      #          - name: plugins
+      #            mountPath: /home/argocd/cmp-server/plugins
+      #          - name: tmp
+      #            mountPath: /tmp
+      #          - name: cmp-plugin
+      #            mountPath: /home/argocd/cmp-server/config/plugin.yaml
+      #            subPath: avp-helm.yaml
+      #          - name: custom-tools
+      #            mountPath: /usr/local/bin/argocd-vault-plugin
+      #            subPath: argocd-vault-plugin
   redis:
     metrics: *metrics
