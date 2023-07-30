@@ -397,7 +397,7 @@ persistence:
     accessMode: ReadWriteOnce
 
     # -- The amount of storage that is requested for the persistent volume.
-    size: 1Gi
+    size: 5Gi
 
     # -- Set to true to retain the PVC upon `helm uninstall`
     retain: false
