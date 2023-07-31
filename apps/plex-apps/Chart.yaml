@@ -11,3 +11,6 @@ dependencies:
   - name: radarr
     version: 16.3.2
     repository: "file://./charts/radarr"
+  - name: prowlarr
+    version: 4.5.2
+    repository: "file://./charts/prowlarr"
