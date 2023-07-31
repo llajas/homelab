@@ -57,6 +57,11 @@ persistence:
     existingClaim: ""
     storageClassName: "longhorn"
 
+  media:
+    enabled: true
+    existingClaim: "plex-win-pvc"
+    mountPath: /media
+
 securityContext:
   runAsUser: 568
 
