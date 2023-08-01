@@ -8,6 +8,3 @@ storageClass:
     - file_mode=0777
     - uid=1001
     - gid=1001
-secret:
-  name: smb-creds
-  namespace: radarr
