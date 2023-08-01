@@ -5,7 +5,7 @@ metadata:
   annotations:
 provisioner: smb.csi.k8s.io
 parameters:
-  source: '//sector-u.lauren.lajas.tech/Plex Media/Downloads'
+  source: '//plex.lajas.tech/downloads'
   csi.storage.k8s.io/provisioner-secret-name: "smbcreds"
   csi.storage.k8s.io/provisioner-secret-namespace: {{ .Release.Namespace }}
   csi.storage.k8s.io/node-stage-secret-name: "smbcreds"
