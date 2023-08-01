@@ -3,6 +3,7 @@ pvc:
   size: 20Ti
 storageClass:
   name: smb
+  source: '//plex.lajas.tech/downloads'
   mountOptions:
     - dir_mode=0777
     - file_mode=0777
