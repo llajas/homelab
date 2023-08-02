@@ -14,3 +14,6 @@ dependencies:
   - name: prowlarr
     version: 4.5.2
     repository: "file://./charts/prowlarr"
+  - name: rdtclient
+    version: 0.1.0
+    repository: "file://./charts/rdtclient"

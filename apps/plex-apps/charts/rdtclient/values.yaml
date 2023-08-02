@@ -1,0 +1,52 @@
+# Default values for rdtclient.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+image:
+  repository: rogerfar/rdtclient
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: 2.0.32
+
+service:
+  type: ClusterIP
+  port: 6500
+
+securityContext:
+  runAsUser: 911
+  runAsGroup: 911
+
+ingress:
+  main:
+    enabled: true
+    ingressclassName: nginx
+    annotations:
+      certManagerClusterIssuer: letsencrypt-prod
+      hajimariAppName: RDT-Client
+      hajimariIcon: earth
+    host: rdclient.lajas.tech
+    path: /
+    pathType: Prefix
+    tls:
+      secretName: rdtclient-tls-certificate
+      host: rdclient.lajas.tech
+
+volumes:
+  downloads:
+    flexVolume:
+      enabled: true
+      name: flexvolume
+      mountPath: /data/downloads
+      driver: fstab/cifs
+      fsType: cifs
+      options:
+        mountOptions: dir_mode=0755,file_mode=0644,noperm
+        networkPath: \\plex.lajas.tech\downloads
+      secretRef:
+        name: smbcreds
+  db:
+    pvc:
+      name: db-pvc
+      mountPath: /data/db
+      accessModes: ReadWriteOnce
+      storageSize: 1Gi
