@@ -134,7 +134,7 @@ flexVolume:
   driver: fstab/cifs
   fsType: cifs
   options:
-    mountOptions: dir_mode=0755,file_mode=0644,noperm
+    mountOptions: dir_mode=0755,file_mode=0644,noperm,nobrl
     networkPath: \\plex.lajas.tech\media
   secretRef:
     name: smbcreds
