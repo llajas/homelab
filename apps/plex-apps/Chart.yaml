@@ -17,3 +17,6 @@ dependencies:
   - name: rdtclient
     version: 0.1.0
     repository: "file://./charts/rdtclient"
+  - name: sonarr
+    version: 16.3.2
+    repository: "file://./charts/sonarr"

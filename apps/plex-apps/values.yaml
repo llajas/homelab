@@ -5,3 +5,5 @@ smb-pvc: {}
 prowlarr: {}
 
 rdtclient: {}
+
+sonarr: {}
