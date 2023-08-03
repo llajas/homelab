@@ -53,7 +53,7 @@ ingress:
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-prod
       hajimari.io/appName: node-RED
-      hajimari.io/icon: bullseye
+      hajimari.io/icon: resistor-nodes
     hosts:
       - host: &host node-red.lajas.tech
         paths:
