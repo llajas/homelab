@@ -127,12 +127,6 @@ metrics:
       # -- Set to true to enable gathering unknown queue items
       unknownQueueItems: false
 
-#securityContext:
- #runAsUser: 568
-
-#podSecurityContext:
-  #fsGroup: 568
-
 flexVolume:
   enabled: true
   name: flexvolume
