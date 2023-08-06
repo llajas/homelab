@@ -7,3 +7,5 @@ prowlarr: {}
 rdtclient: {}
 
 sonarr: {}
+
+overseerr: {}
