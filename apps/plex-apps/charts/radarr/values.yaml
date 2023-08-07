@@ -38,7 +38,7 @@ ingress:
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-prod
       hajimari.io/appName: Radarr
-      hajimari.io/icon: bullseye
+      hajimari.io/icon: radar
     hosts:
       - host: &host radarr.lajas.tech
         paths:

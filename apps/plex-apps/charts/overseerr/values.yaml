@@ -7,34 +7,19 @@
 
 image:
   # -- image repository
-  repository: nodered/node-red
+  repository: ghcr.io/sct/overseerr
   # -- image tag
-  # @default -- chart.appVersion
-  tag:
+  tag: 1.33.2
   # -- image pull policy
   pullPolicy: IfNotPresent
 
-# -- environment variables. See [image docs](https://nodered.org/docs/getting-started/docker) for more details.
+# -- environment variables.
 # @default -- See below
 env:
   # -- Set the container timezone
-  TZ: CST
-  # -- Node.js runtime arguments
-  NODE_OPTIONS:
-  # -- Setting to `true` starts Node-RED with the projects feature enabled
-  NODE_RED_ENABLE_PROJECTS:
-  # -- Setting to `true` starts Node-RED in safe (not running) mode
-  NODE_RED_ENABLE_SAFE_MODE:
-  # -- Location of the flows configuration file.
-  # If you set `FLOWS: ""` then the flow file can be set via the `flowFile` property in the `settings.js` file.
-  FLOWS: flows.json
-
-securityContext:
-  runAsUser: 1000
-  runAsGroup: 1000
-
-podSecurityContext:
-  fsGroup: 1000
+  TZ: America/Chicago
+  # -- Set the application log level
+  LOG_LEVEL: info
 
 # -- Configures service settings for the chart.
 # @default -- See values.yaml
@@ -42,7 +27,7 @@ service:
   main:
     ports:
       http:
-        port: 1880
+        port: 5055
 
 ingress:
   # -- Enable and configure ingress settings for the chart under this key.
@@ -51,24 +36,27 @@ ingress:
     enabled: true
     ingressClassName: nginx
     annotations:
+      external-dns.alpha.kubernetes.io/target: "homelab-tunnel.lajas.tech"
+      external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
       cert-manager.io/cluster-issuer: letsencrypt-prod
-      hajimari.io/appName: node-RED
-      hajimari.io/icon: resistor-nodes
+      hajimari.io/appName: Overseerr
+      hajimari.io/icon: monitor-eye
     hosts:
-      - host: &host node-red.lajas.tech
+      - host: &host overseerr.lajas.tech
         paths:
           - path: /
             pathType: Prefix
     tls:
-      - secretName: noder-tls-certificate
+      - secretName: overseerr-tls-certificate
         hosts:
           - *host
 
 # -- Configure persistence settings for the chart under this key.
 # @default -- See values.yaml
 persistence:
-  data:
+  config:
     enabled: true
-    mountPath: /data
-    accessMode: ReadWriteOnce
-    size: 1Gi
+    mountPath: /app/config
+
+flexVolume:
+  enabled: false

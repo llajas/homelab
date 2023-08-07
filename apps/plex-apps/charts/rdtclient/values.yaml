@@ -23,7 +23,7 @@ ingress:
     annotations:
       certManagerClusterIssuer: letsencrypt-prod
       hajimariAppName: RDT-Client
-      hajimariIcon: earth
+      hajimariIcon: cloud-download
     host: rdclient.lajas.tech
     path: /
     pathType: Prefix
