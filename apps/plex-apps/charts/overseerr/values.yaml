@@ -36,6 +36,8 @@ ingress:
     enabled: true
     ingressClassName: nginx
     annotations:
+      external-dns.alpha.kubernetes.io/target: "homelab-tunnel.lajas.tech"
+      external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
       cert-manager.io/cluster-issuer: letsencrypt-prod
       hajimari.io/appName: Overseerr
       hajimari.io/icon: monitor-eye
