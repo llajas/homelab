@@ -175,7 +175,11 @@ initContainers:
       - name: custom-config-volume
         mountPath: /custom-config
 
-volumes:
+extraVolumes:
   - name: custom-config-volume
     configMap:
       name: home-assistant-custom-config
+
+extraVolumeMounts:
+  - name: custom-config-volume
+    mountPath: /custom-config
