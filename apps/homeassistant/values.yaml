@@ -162,3 +162,22 @@ addons:
     volumeMounts:
       - name: config
         mountPath: /data/config
+
+initContainers:
+  custom-init:
+    image: busybox
+    command: ['sh', '-c', 'cat /custom-config/custom-config.yaml >> /config/configuration.yaml']
+    imagePullPolicy: Always
+    name: merge-config
+    volumeMounts:
+      - name: config
+        mountPath: /config
+      - name: custom-config-volume
+        mountPath: /custom-config
+
+configmap:
+  custom-config:
+    http:
+      use_x_forwarded_for: true
+      trusted_proxies:
+        - 10.137.0.0/16
