@@ -163,6 +163,8 @@ addons:
       - name: config
         mountPath: /data/config
 
+# ...
+
 initContainers:
   custom-init:
     image: busybox
@@ -174,12 +176,7 @@ initContainers:
         mountPath: /config
       - name: custom-config-volume
         mountPath: /custom-config
-
-extraVolumes:
-  - name: custom-config-volume
-    configMap:
-      name: home-assistant-custom-config
-
-extraVolumeMounts:
-  - name: custom-config-volume
-    mountPath: /custom-config
+    volumes:
+      - name: custom-config-volume
+        configMap:
+          name: home-assistant-custom-config
