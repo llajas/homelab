@@ -172,10 +172,10 @@ initContainers:
     volumeMounts:
       - name: config
         mountPath: /config
-      - name: custom-config-volume
+      - name: home-assistant-custom-config
         mountPath: /custom-config
 
 volumes:
-  - name: custom-config-volume
+  - name: home-assistant-custom-config
     configMap:
       name: home-assistant-custom-config
