@@ -177,7 +177,10 @@ initContainers:
 
 configmap:
   custom-config:
-    http:
-      use_x_forwarded_for: true
-      trusted_proxies:
-        - 10.137.0.0/16
+    enabled: true
+    data:
+      custom-config.yaml: |
+        http:
+          use_x_forwarded_for: true
+          trusted_proxies:
+            - 10.137.0.0/16
