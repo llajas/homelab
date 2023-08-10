@@ -70,6 +70,11 @@ persistence:
     type: hostPath
     hostPath: /path/to/device
 
+  custom-config:
+    enabled: true
+    type: configMap
+    name: home-assistant-custom-config
+
 # -- Enable and configure mariadb database subchart under this key.
 #    For more options see [mariadb chart documentation](https://github.com/bitnami/charts/tree/master/bitnami/mariadb)
 # @default -- See values.yaml
