@@ -34,4 +34,4 @@ gitea:
     enabled: false
   redis-cluster:
     cluster:
-      nodes: 4
+      nodes: 6
