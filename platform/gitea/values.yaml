@@ -27,5 +27,8 @@ gitea:
   persistence:
     storageClass: longhorn
   postgresql:
+    enabled: true
     persistence:
       storageClass: longhorn
+  postgresql-ha:
+    enabled: false
