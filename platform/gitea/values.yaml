@@ -32,3 +32,6 @@ gitea:
       storageClass: longhorn
   postgresql-ha:
     enabled: false
+  redis-cluster:
+    cluster:
+      nodes: 4
