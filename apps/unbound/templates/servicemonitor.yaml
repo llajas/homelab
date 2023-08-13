@@ -1,0 +1,46 @@
+{{- if and ( .Capabilities.APIVersions.Has "monitoring.coreos.com/v1" ) ( and .Values.metrics.enabled .Values.serviceMonitor.enabled ) }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "unbound.fullname" . }}
+  labels:
+    {{- include "unbound.labels" . | nindent 4 }}
+{{- with .Values.serviceMonitor.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+spec:
+  endpoints:
+  - path: /metrics
+    targetPort: metrics
+    {{- if .Values.serviceMonitor.scrapeInterval }}
+    interval: {{ .Values.serviceMonitor.scrapeInterval | quote }}
+    {{- end }}
+    {{- if .Values.serviceMonitor.honorLabels }}
+      honorLabels: true
+    {{- end }}
+    {{- if .Values.serviceMonitor.relabelings }}
+      relabelings: {{ toYaml .Values.serviceMonitor.relabelings | nindent 8 }}
+    {{- end }}
+    {{- if .Values.serviceMonitor.metricRelabelings }}
+      metricRelabelings: {{ toYaml .Values.serviceMonitor.metricRelabelings | nindent 8 }}
+    {{- end }}
+{{- if .Values.serviceMonitor.jobLabel }}
+  jobLabel: {{ .Values.serviceMonitor.jobLabel | quote }}
+{{- end }}
+  namespaceSelector:
+    matchNames:
+    - {{ .Release.Namespace }}
+  selector:
+    matchLabels:
+      {{- include "unbound.selectorLabels" . | nindent 6 }}
+      {{- with .Values.labels }}
+        {{- toYaml . | nindent 6 }}
+      {{- end }}
+{{- if .Values.serviceMonitor.targetLabels }}
+  targetLabels:
+  {{- range .Values.serviceMonitor.targetLabels }}
+    - {{ . }}
+  {{- end }}
+{{- end }}
+{{- end }}

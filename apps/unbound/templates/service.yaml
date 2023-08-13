@@ -1,49 +1,49 @@
----
-apiVersion: v1
+{{- if or ( .Values.service.tcp.enabled ) ( .Values.service.udp.enabled ) }}
 kind: Service
+apiVersion: v1
 metadata:
-  name: unbound-udp
+  name: {{ template "unbound.fullname" . }}
   labels:
-    {{- include "unbound-chart.labels" . | nindent 4 }}
-  annotations:
+    {{- include "unbound.labels" . | nindent 4 }}
+    {{- with .Values.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- with .Values.service.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
     {{- with .Values.service.annotations }}
-    {{- toYaml . | nindent 8 }}
+      {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  {{- $type := default "LoadBalancer" .Values.service.type }}
-  type: {{ $type }}
-  {{- with .Values.service.spec }}
-  {{- toYaml . | nindent 2 }}
+  type: {{ .Values.service.type }}
+  {{- with .Values.clusterIP }}
+  clusterIP: {{ . }}
   {{- end }}
-  ports:
-    - port: {{ .Values.service.port }}
-      targetPort: dns-udp
-      protocol: UDP
-      name: dns-udp
   selector:
-    {{- include "unbound-chart.selectorLabels" . | nindent 4 }}
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: unbound-tcp
-  labels:
-    {{- include "unbound-chart.labels" . | nindent 4 }}
-  annotations:
-    {{- with .Values.service.annotations }}
-    {{- toYaml . | nindent 8 }}
+    {{- include "unbound.selectorLabels" . | nindent 4 }}
+    {{- with .Values.labels }}
+      {{- toYaml . | nindent 6 }}
     {{- end }}
-spec:
-  {{- $type := default "LoadBalancer" .Values.service.type }}
-  type: {{ $type }}
-  {{- with .Values.service.spec }}
-  {{- toYaml . | nindent 2 }}
-  {{- end }}
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: dns-tcp
-      protocol: TCP
-      name: dns-tcp
-  selector:
-    {{- include "unbound-chart.selectorLabels" . | nindent 4 }}
+  {{- if .Values.service.udp.enabled }}
+  - name: dns-udp
+    protocol: UDP
+    port: {{ .Values.containers.unbound.serverPort }}
+    targetPort: dns-udp
+  {{- end }}
+  {{- if and ( eq .Values.containers.unbound.config.doTcp "yes" ) ( .Values.service.tcp.enabled )}}
+  - name: dns-tcp
+    protocol: TCP
+    port: {{ .Values.containers.unbound.serverPort }}
+    targetPort: dns-tcp
+  {{- end }}
+  {{- with .Values.service.sessionAffinity }}
+  sessionAffinity: {{ .Values.service.sessionAffinity }}
+  {{- end }}
+  {{- with .Values.service.sessionAffinityConfig }}
+  sessionAffinityConfig: {{ toYaml . | nindent 2 }}
+  {{- end }}
+  {{- with .Values.service.topologyKeys }}
+  topologyKeys: {{ toYaml . | nindent 2 }}
+  {{- end }}
+{{- end }}

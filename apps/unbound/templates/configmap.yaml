@@ -1,68 +1,110 @@
+{{- $config := .Values.containers.unbound.config }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "unbound-chart.fullname" . }}
+  name: {{ template "unbound.fullname" . }}
   labels:
-    {{- include "unbound-chart.labels" . | nindent 4 }}
+    app: {{ template "unbound.name" . }}
+    chart: {{ template "unbound.chart" . }}
+    release: {{ .Release.Name  }}
+    heritage: {{ .Release.Service }}
 data:
   unbound.conf: |-
     server:
-    # If no logfile is specified, syslog is used
-    # logfile: "/var/log/unbound/unbound.log"
-    logfile: ""
-    verbosity: 3
+      chroot: ""
+      logfile: ""
+      log-local-actions: {{ $config.logLocalActions | default "no" }}
+      log-queries: {{ $config.logQueries | default "no" }}
+      log-replies: {{ $config.logReplies | default "no" }}
+      # log lines that say why queries return SERVFAIL to clients
+      log-servfail: {{ $config.logServfail | default "no" }}
+      verbosity: {{ $config.verbosity | default "1" }}
+      log-tag-queryreply: yes
 
-    interface: 0.0.0.0
-    port: 5053
-    do-ip4: yes
-    do-udp: yes
-    do-tcp: yes
+      num-threads: {{ $config.numThreads }}
+      directory: "/etc/unbound"
+      port: {{ .Values.containers.unbound.serverPort }}
+      so-reuseport: yes
+      do-daemonize: no
+      use-syslog: no
+      statistics-interval: {{ $config.statsInterval | default "0"}}
+      statistics-cumulative: {{ $config.statsCumulative | default "no" }}
 
-    # May be set to yes if you have IPv6 connectivity
-    do-ip6: no
+      auto-trust-anchor-file: "/var/lib/unbound/root.key"
+      {{- if $config.rootHints.enable }}
+      root-hints: {{ $config.rootHints.dir | quote }}
+      {{- end }}
+      do-ip4: {{ $config.doIp4 | default "yes" }}
+      prefer-ip4: {{ $config.preferIp6 | default "yes" }}
+      do-ip6: {{ $config.doIp6 | default "no" }}
+      prefer-ip6: {{ $config.preferIp6 | default "no" }}
+      # udp must be enabled because healthz nslookup ( busybox variant ) is not supporting tcp
+      do-udp: yes
+      do-tcp: {{ $config.doTcp }}
+      tcp-upstream: {{ $config.tcpUpstream | default "yes" }}
+      udp-upstream-without-downstream: {{ $config.udpUpstreamWithoutDownstream | default "no" }}
 
-    access-control: 127.0.0.1/32 allow
-    access-control: 192.168.0.0/16 allow
-    access-control: 172.16.0.0/12 allow
-    access-control: 10.0.0.0/8 allow
+      prefetch: {{ $config.prefetch }}
+      cache-max-ttl: {{ $config.cacheMaxTtl }}
+      cache-max-negative-ttl: {{ $config.cacheMaxNegativeTtl }}
+      cache-min-ttl: {{ $config.cacheMinTtl | default "0" }}
 
-    # You want to leave this to no unless you have *native* IPv6. With 6to4 and
-    # Terredo tunnels your web browser should favor IPv4 for the same reasons
-    prefer-ip6: no
+      extended-statistics: {{ $config.extendedStatistics | default "yes" }}
 
-    # Use this only when you downloaded the list of primary root servers!
-    # If you use the default dns-root-data package, unbound will find it automatically
-    #root-hints: "/var/lib/unbound/root.hints"
+      interface: 127.0.0.1
+      interface: 0.0.0.0
 
-    # Trust glue only if it is within the server's authority
-    harden-glue: yes
+      access-control: 127.0.0.1/32 allow
 
-    # Require DNSSEC data for trust-anchored zones, if such data is absent, the zone becomes BOGUS
-    harden-dnssec-stripped: yes
+      {{- range $config.allowedIpRanges }}
+      access-control: {{ . }} allow
+      {{- end }}{{ "\n" }}
 
-    # Don't use Capitalization randomization as it known to cause DNSSEC issues sometimes
-    # see https://discourse.pi-hole.net/t/unbound-stubby-or-dnscrypt-proxy/9378 for further details
-    use-caps-for-id: no
+      {{- range $config.privateAddresses }}
+      private-address: {{ . }}
+      {{- end }}
 
-    # Reduce EDNS reassembly buffer size.
-    # Suggested by the unbound man page to reduce fragmentation reassembly problems
-    edns-buffer-size: 1472
+      {{- range $config.localRecords }}
+      local-data: "{{ .name }} A {{ .ip }}"
+      local-data-ptr: "{{ .ip }} {{ .name }}"
+      {{- end }}
 
-    # Perform prefetching of close to expired message cache entries
-    # This only applies to domains that have been frequently queried
-    prefetch: yes
+      local-data: "health.check.unbound A 127.0.0.1"
+      local-data-ptr: "127.0.0.1 health.check.unbound"
 
-    # One thread should be sufficient, can be increased on beefy machines. In reality for most users running on small networks or on a single machine, it should be unnecessary to seek performance enhancement by increasing num-threads above 1.
-    num-threads: 1
+      {{ with $config.extraServer }}
+      {{- end }}
 
-    # Ensure kernel buffer is large enough to not lose messages in traffic spikes
-    so-rcvbuf: 1m
+      {{- range $config.localZones }}
+      local-zone: "{{ .name }}" {{ .localType }}
+      {{- end }}
+    remote-control:
+      control-enable: {{ $config.controleEnable | default "yes" }}
+      control-interface: {{ $config.controlInterface | default "127.0.0.1" }}
+      control-port: {{ $config.controlPort | default "8953" }}
+      control-use-cert: {{ $config.controlUseCert | default "no" }}
 
-    # Ensure privacy of local IP ranges
-    private-address: 192.168.0.0/16
-    private-address: 169.254.0.0/16
-    private-address: 172.16.0.0/12
-    private-address: 10.0.0.0/8
-    private-address: fd00::/8
-    private-address: fe80::/10
-    private-domain: lajas.tech
+    {{- range $config.forwardZones }}
+    forward-zone:
+        name: {{ .name }}
+        {{- range .forwardHosts }}
+        forward-host: {{ . }}
+        {{- end }}
+        {{- range .forwardIps }}
+        forward-addr: {{ . }}
+        {{- end }}
+    {{- end }}
+
+    {{- range $config.stubZones }}
+    stub-zone:
+        name: {{ .name }}
+        {{- range .stubHosts }}
+        stub-host: {{ . }}
+        {{- end }}
+        {{- range .stubIps }}
+        stub-addr: {{ . }}
+        {{- end }}
+    {{- end }}
+
+    {{ with $config.extra }}
+    {{- end }}

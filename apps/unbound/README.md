@@ -1,37 +1,36 @@
-## Welcome to GitHub Pages
+# Unbound
 
-You can use the [editor on GitHub](https://github.com/ryantiger658/unbound-helm-chart/edit/main/README.md) to maintain and preview the content for your website in Markdown files.
+[Unbound](https://www.nlnetlabs.nl/projects/unbound/about/) is a validating, recursive, caching DNS resolver.
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
 
-### Markdown
+## Prerequisites
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+-	Kubernetes 1.21 or later
 
-```markdown
-Syntax highlighted code block
+## Installing the Chart
 
-# Header 1
-## Header 2
-### Header 3
+The chart can be installed as follows:
 
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
+```console
+$ helm repo add unbound https://pixelfederation.github.io/unbound
+$ helm --namespace=unbound install unbound pixelfederation/unbound
 ```
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
+To uninstall/delete the `unbound` deployment:
 
-### Jekyll Themes
+```console
+$ helm uninstall unbound
+```
+The command removes all the Kubernetes components associated with the chart and deletes the release.
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/ryantiger658/unbound-helm-chart/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
+## Configuration
 
-### Support or Contact
+See `values.yaml` for configuration notes. Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example,
 
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+See [man](https://www.nlnetlabs.nl/documentation/unbound/unbound.conf/) and configmap for posible configuration options.
+
+Alternatively, a YAML file that specifies the values for the above parameters can be provided while installing the chart. For example,
+
+```console
+$ helm install unbound pixelfederation/unbound -f values.yaml
+```
