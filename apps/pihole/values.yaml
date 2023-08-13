@@ -253,9 +253,9 @@ extraEnvVarsSecret: {}
   #   key: secret-key
 
 # -- default upstream DNS 1 server to use
-DNS1: unbound-udp.unbound.svc.cluster.local
+DNS1: unbound.unbound.svc.cluster.local
 # -- default upstream DNS 2 server to use
-DNS2: unbound-tcp.unbound.svc.cluster.local
+DNS2: unbound.unbound.svc.cluster.local
 
 antiaff:
   # -- set to true to enable antiaffinity (example: 2 pihole DNS in the same cluster)
