@@ -128,3 +128,15 @@ persistence:
   size: 2Gi
   ## persistence.skipuninstall -- Do not delete the pvc upon helm uninstall
   skipuninstall: false
+
+flexVolume:
+  enabled: true
+  name: flexvolume
+  mountPath: /plexmedia
+  driver: fstab/cifs
+  fsType: cifs
+  options:
+    mountOptions: dir_mode=0755,file_mode=0644,noperm,nobrl
+    networkPath: \\plex.lajas.tech\plexLogs
+  secretRef:
+    name: smbcreds
