@@ -81,11 +81,6 @@ persistence:
     existingClaim: ""
     storageClassName: "longhorn"
 
-  media:
-    enabled: true
-    existingClaim: "plex-win-pvc"
-    mountPath: /media
-
 metrics:
   # -- Enable and configure Exportarr sidecar and Prometheus serviceMonitor.
   # @default -- See values.yaml
