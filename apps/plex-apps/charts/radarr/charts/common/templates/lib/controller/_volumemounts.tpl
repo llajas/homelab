@@ -53,9 +53,11 @@
       {{- end }}
     {{- end }}
   {{- end }}
+{{- end -}}
 
-  {{- if .Values.flexVolume.enabled }}
+
+
+{{- if .Values.flexVolume.enabled }}
 - name: {{ .Values.flexVolume.name }}
   mountPath: {{ .Values.flexVolume.mountPath }}
-  {{- end }}
-{{- end -}}
+{{- end}}
