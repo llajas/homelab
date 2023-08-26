@@ -53,5 +53,9 @@ spec:
       initContainers:
         {{- toYaml .Values.initContainers | nindent 8 }}
       {{- end }}
+      {{- if .Values.volumes }}
+      volumes:
+        {{- toYaml .Values.volumes | nindent 8 }}
+      {{- end }}
       {{- include "common.controller.pod" . | nindent 6 }}
 {{- end }}
