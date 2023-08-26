@@ -80,6 +80,7 @@ persistence:
     enabled: true
     existingClaim: ""
     storageClassName: "longhorn"
+    size: "5Gi"
 
 metrics:
   # -- Enable and configure Exportarr sidecar and Prometheus serviceMonitor.
