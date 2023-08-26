@@ -80,7 +80,7 @@ persistence:
     enabled: true
     existingClaim: ""
     storageClassName: "longhorn"
-
+    size: "5Gi"
       #  media:
       #    enabled: true
       #    existingClaim: "plex-win-pvc"
