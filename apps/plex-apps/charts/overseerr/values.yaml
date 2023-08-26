@@ -60,3 +60,7 @@ persistence:
 
 flexVolume:
   enabled: false
+
+addons:
+  codeserver:
+    enabled: false # or true, based on your requirement
