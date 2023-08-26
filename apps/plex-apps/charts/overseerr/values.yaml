@@ -63,4 +63,6 @@ flexVolume:
 
 addons:
   codeserver:
-    enabled: false # or true, based on your requirement
+    enabled: false # or true based on your requirement
+  vpn:
+    enabled: false # or true based on your requirement
