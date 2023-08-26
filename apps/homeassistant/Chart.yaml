@@ -20,7 +20,7 @@ maintainers:
     email: jeff@billimek.com
 dependencies:
   - name: common
-    repository: https://library-charts.k8s-at-home.com
+    repository: "file://./charts/common"
     version: 4.5.2
   - name: postgresql
     version: 12.6.8

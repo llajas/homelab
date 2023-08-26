@@ -185,3 +185,6 @@ initContainers:
       - name: custom-config-volume
         configMap:
           name: home-assistant-custom-config
+
+flexVolume:
+  enabled: false
