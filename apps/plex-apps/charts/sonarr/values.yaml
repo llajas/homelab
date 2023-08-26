@@ -138,3 +138,7 @@ flexVolume:
     networkPath: \\plex.lajas.tech\media
   secretRef:
     name: smbcreds
+
+addons:
+  codeserver:
+    enabled: false # or true, based on your requirement
