@@ -37,15 +37,15 @@ ingress:
     ingressClassName: nginx
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-prod
-      hajimari.io/appName: Radarr-test
+      hajimari.io/appName: Radarr
       hajimari.io/icon: radar
     hosts:
-      - host: &host radarr-test.lajas.tech
+      - host: &host radarr.lajas.tech
         paths:
           - path: /
             pathType: Prefix
     tls:
-      - secretName: radarr-test-tls-certificate
+      - secretName: radarr-tls-certificate
         hosts:
           - *host
 
