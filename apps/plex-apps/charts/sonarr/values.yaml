@@ -78,11 +78,13 @@ probes:
 persistence:
   config:
     enabled: true
+    accessMode: ReadWriteOnce
     existingClaim: ""
     storageClassName: "longhorn"
 
   media:
     enabled: true
+    accessMode: ReadWriteOnce
     existingClaim: "plex-win-pvc"
     mountPath: /media
 
