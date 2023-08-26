@@ -85,3 +85,5 @@ addons:
     enabled: false # or true based on your requirement
   vpn:
     enabled: false # or true based on your requirement
+  promtail:
+    enabled: false
