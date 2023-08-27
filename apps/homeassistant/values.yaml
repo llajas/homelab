@@ -170,12 +170,34 @@ addons:
 
 # ...
 
-initContainers:
-  custom-init:
+          #initContainers:
+          #  custom-init:
+          #    image: busybox
+          #    command: ['sh', '-c', 'cat /custom-config/custom-config.yaml >> /config/configuration.yaml']
+          #    imagePullPolicy: Always
+          #    name: merge-config
+          #    volumeMounts:
+          #      - name: config
+          #        mountPath: /config
+          #      - name: custom-config
+          #        mountPath: /custom-config
+
+sidecarContainers:
+  - name: config-sidecar
     image: busybox
-    command: ['sh', '-c', 'cat /custom-config/custom-config.yaml >> /config/configuration.yaml']
     imagePullPolicy: Always
-    name: merge-config
+    command:
+      - /bin/sh
+      - -c
+      - >-
+          while [ ! -f /config/configuration.yaml ]; do sleep 1; done;
+          if grep -q 'use_x_forwarded_for' /config/configuration.yaml; then
+            echo "Configuration already exists, skipping append.";
+          else
+            echo "Appending custom configuration.";
+            cat /custom-config/custom-config.yaml >> /config/configuration.yaml;
+          fi;
+          sleep infinity
     volumeMounts:
       - name: config
         mountPath: /config

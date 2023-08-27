@@ -53,6 +53,23 @@ spec:
       initContainers:
         {{- toYaml .Values.initContainers | nindent 8 }}
       {{- end }}
+      {{- if .Values.sidecarContainers }}
+      containers:
+      {{- range .Values.sidecarContainers }}
+        - name: {{ .name }}
+          image: {{ .image }}
+          {{- with .imagePullPolicy }}
+          imagePullPolicy: {{ . }}
+          {{- end }}
+          {{- with .command }}
+          command: {{ toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- end }}
+      {{- end }}
       {{- if .Values.volumes }}
       volumes:
         {{- toYaml .Values.volumes | nindent 8 }}
