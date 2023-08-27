@@ -179,7 +179,7 @@ initContainers:
     volumeMounts:
       - name: config
         mountPath: /config
-      - name: custom-config-volume
+      - name: custom-config
         mountPath: /custom-config
 
 volumes:
