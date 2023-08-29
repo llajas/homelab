@@ -1,0 +1,58 @@
+#
+# IMPORTANT NOTE
+#
+# This chart inherits from our common library chart. You can check the default values/options here:
+# https://github.com/k8s-at-home/library-charts/tree/main/charts/stable/common/values.yaml
+#
+
+image:
+  # -- image repository
+  repository: quay.io/linuxserver.io/nzbget
+  # -- image tag
+  tag: version-v21.1
+  # -- image pull policy
+  pullPolicy: IfNotPresent
+
+# -- Configures service settings for the chart.
+# @default -- See values.yaml
+service:
+  main:
+    ports:
+      http:
+        port: 6789
+
+ingress:
+  # -- Enable and configure ingress settings for the chart under this key.
+  # @default -- See values.yaml
+  main:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      hajimari.io/appName: NZBGet
+      hajimari.io/icon: file-arrow-up-down-outline
+    hosts:
+      - host: &host nzbget.lajas.tech
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: nzbget-tls-certificate
+        hosts:
+          - *host
+# -- Configure persistence settings for the chart under this key.
+# @default -- See values.yaml
+persistence:
+  config:
+    enabled: true
+
+  media:
+    enabled: false
+    mountPath: /media
+
+  downloads:
+    enabled: false
+    mountPath: /downloads
+
+flexVolume:
+  enabled: false
