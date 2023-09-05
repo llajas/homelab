@@ -56,6 +56,7 @@ persistence:
     enabled: true
     existingClaim: ""
     storageClassName: "longhorn"
+    size: "2Gi"
 
 securityContext:
   runAsUser: 568
