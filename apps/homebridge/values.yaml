@@ -79,3 +79,6 @@ persistence:
   size: 1Gi
   ## persistence.skipuninstall -- Do not delete the pvc upon helm uninstall
   skipuninstall: false
+
+nodeSelector:
+  has-bluetooth: "true"
