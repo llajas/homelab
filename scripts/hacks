@@ -54,7 +54,8 @@ def setup_gitea_access_token(name: str) -> None:
                 'Content-Type': 'application/json'
             },
             data=json.dumps({
-                'name': name
+                'name': name,
+                'scopes': ['write:repository', 'read:user', 'write:issue', 'read:organization']
             })
         )
 
