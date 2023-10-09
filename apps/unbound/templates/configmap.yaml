@@ -64,6 +64,10 @@ data:
       private-address: {{ . }}
       {{- end }}
 
+      {{- range $config.privateDomains }}
+      private-domain: {{ . }}
+      {{- end }}
+
       {{- range $config.localRecords }}
       local-data: "{{ .name }} A {{ .ip }}"
       local-data-ptr: "{{ .ip }} {{ .name }}"
