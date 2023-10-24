@@ -1,0 +1,25 @@
+{{- if .Values.ingress.main.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "unifi-browser.fullname" . }}
+  annotations:
+    cert-manager.io/cluster-issuer: {{ .Values.ingress.main.annotations.certManagerClusterIssuer }}
+spec:
+  ingressClassName: {{ .Values.ingress.main.ingressclassName }}
+  rules:
+  - host: {{ .Values.ingress.main.host }}
+    http:
+      paths:
+      - path: {{ .Values.ingress.main.path }}
+        pathType: {{ .Values.ingress.main.pathType }}
+        backend:
+          service:
+            name: {{ include "unifi-browser.fullname" . }}
+            port:
+              number: {{ .Values.service.port }}
+  tls:
+  - hosts:
+    - {{ .Values.ingress.main.tls.host }}
+    secretName: {{ .Values.ingress.main.tls.secretName }}
+{{- end }}
