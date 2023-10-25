@@ -23,7 +23,7 @@ dependencies:
     repository: https://llajas.github.io/common-library-charts/
     version: 4.5.2
   - name: postgresql
-    version: 12.6.8
+    version: 13.1.5
     repository: https://charts.bitnami.com/bitnami
     condition: postgresql.enabled
   - name: mariadb
