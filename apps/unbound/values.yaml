@@ -2,7 +2,7 @@ containers:
   unbound:
     image:
       repository: ghcr.io/pixelfederation/unbound
-      tag: v1.17.1_1
+      tag: 1.17.1_3
       pullPolicy: IfNotPresent
     resources:
       requests:
