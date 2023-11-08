@@ -156,7 +156,7 @@ worker:
     #    logFile:
     #    logFileMaxSize: 1800
     #    skipLogHeaders: false
-    #sources:
+    sources:
     #  cpu:
     #    cpuid:
     ##     NOTE: whitelist has priority over blacklist
@@ -215,7 +215,19 @@ worker:
     #      - "device"
     #  local:
     #    hooksEnabled: false
-    #  custom:
+      custom:
+        - name: "bluetooth-usb-pci"
+          labels:
+            "bluetooth-ready-node": "true"
+          matchAny:
+            - matchFeatures:
+                - feature: usb.device
+                  matchExpressions:
+                    class: {op: In, value: ["e0"]}
+            - matchFeatures:
+                - feature: pci.device
+                  matchExpressions:
+                    class: {op: In, value: ["0d11"]}
     #    # The following feature demonstrates the capabilities of the matchFeatures
     #    - name: "my custom rule"
     #      labels:
