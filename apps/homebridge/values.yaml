@@ -81,4 +81,4 @@ persistence:
   skipuninstall: false
 
 nodeSelector:
-  has-bluetooth: "true"
+  feature.node.kubernetes.io/bluetooth-ready-node: "true"
