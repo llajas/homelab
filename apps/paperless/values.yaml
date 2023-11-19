@@ -74,32 +74,34 @@ persistence:
     enabled: true
     mountPath: /usr/src/paperless/data
     accessMode: ReadWriteOnce
+    size: 1Gi
     emptyDir:
       enabled: false
-    size: 1Gi
   # -- Configure persistence for media.
   # @default -- See values.yaml
   media:
-    enabled: false
+    enabled: true
     mountPath: /usr/src/paperless/media
     accessMode: ReadWriteOnce
+    size: 1Gi
     emptyDir:
       enabled: false
   # -- Configure volume to monitor for new documents.
   # @default -- See values.yaml
   consume:
-    enabled: false
+    enabled: true
     mountPath: /usr/src/paperless/consume
     accessMode: ReadWriteOnce
     size: 1Gi
     emptyDir:
-      enabled: true
+      enabled: false
   # -- Configure export volume.
   # @default -- See values.yaml
   export:
-    enabled: false
+    enabled: true
     mountPath: /usr/src/paperless/export
     accessMode: ReadWriteOnce
+    size: 1Gi
     emptyDir:
       enabled: false
 
