@@ -23,15 +23,15 @@ dependencies:
     repository: https://llajas.github.io/common-library-charts/
     version: 4.5.2
   - name: postgresql
-    version: 13.2.2
+    version: 13.2.11
     repository: https://charts.bitnami.com/bitnami
     condition: postgresql.enabled
   - name: mariadb
-    version: 14.1.0
+    version: 14.1.2
     repository: https://charts.bitnami.com/bitnami
     condition: mariadb.enabled
   - name: influxdb
-    version: 5.10.0
+    version: 5.10.2
     repository: https://charts.bitnami.com/bitnami
     condition: influxdb.enabled
 annotations:
