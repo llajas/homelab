@@ -64,14 +64,5 @@ securityContext:
 podSecurityContext:
   fsGroup: 568
 
-    #flexVolume:
-    #  enabled: true
-    #  name: flexvolume
-    #  mountPath: /plexmedia
-    #  driver: fstab/cifs
-    #  fsType: cifs
-    #  options:
-    #    mountOptions: dir_mode=0755,file_mode=0644,noperm,nobrl
-    #    networkPath: \\plex.lajas.tech\media
-    #  secretRef:
-    #    name: smbcreds
+flexVolume:
+  enabled: false
