@@ -17,8 +17,9 @@ upstream_config = {
     "seed_repo": "https://github.com/llajas/homelab",
     "domain": "lajas.tech",
     "timezone": "America/Chicago",
-    "terraform_workspace": "llajas",
+    "terraform_organization": "llajas",
     "loadbalancer_ip_range": "10.137.0.224/27",
+    "storage_type": "cifs",
 }
 
 def check_python_version(required_version: str) -> None:
@@ -44,11 +45,12 @@ def main() -> None:
         required_version='3.10.0'
     )
 
-    editor = Prompt.ask("Select text editor", default='nvim')
+    # editor = Prompt.ask("Select text editor", default='nvim')
     domain = Prompt.ask("Enter your domain", default=upstream_config['domain'])
     seed_repo = Prompt.ask("Enter seed repo", default=upstream_config['seed_repo'])
     timezone = Prompt.ask("Enter time zone", default=upstream_config['timezone'])
     loadbalancer_ip_range = Prompt.ask("Enter IP range for load balancer", default=upstream_config['loadbalancer_ip_range'])
+    storage_type = Prompt.ask("Will you be using NFS or CIFS?", default=upstream_config('storage_type'))
 
     find_and_replace(
         pattern=upstream_config['domain'],
@@ -91,15 +93,26 @@ def main() -> None:
     )
 
     if Confirm.ask("Do you want to use managed services?"):
-        terraform_workspace = Prompt.ask("Enter Terraform Workspace", default=upstream_config['terraform_workspace'])
+        terraform_organization = Prompt.ask("Enter Terraform Organization", default=upstream_config['terraform_organization'])
 
         find_and_replace(
-            pattern=upstream_config['terraform_workspace'],
-            replacement=terraform_workspace,
+            pattern=upstream_config['terraform_organization'],
+            replacement=terraform_organization,
             paths=[
                 "external/versions.tf"
             ]
         )
+
+    find_and_replace(
+        pattern=upstream_config['storage_type'],
+        replacement=storage_type,
+        paths=[
+            "apps",
+            "system",
+            "metal"
+        ]
+    )
+
 
 
 if __name__ == '__main__':
