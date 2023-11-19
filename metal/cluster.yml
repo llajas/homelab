@@ -4,5 +4,5 @@
     - k3s
     - automatic_upgrade
     - cifs_plugin
-    - nfs_utils
+    #- nfs_utils
     - cronjobs

@@ -50,7 +50,7 @@ def main() -> None:
     seed_repo = Prompt.ask("Enter seed repo", default=upstream_config['seed_repo'])
     timezone = Prompt.ask("Enter time zone", default=upstream_config['timezone'])
     loadbalancer_ip_range = Prompt.ask("Enter IP range for load balancer", default=upstream_config['loadbalancer_ip_range'])
-    storage_type = Prompt.ask("Will you be using NFS or CIFS?", default=upstream_config('storage_type'))
+    storage_type = Prompt.ask("Will you be using NFS or CIFS?", default=upstream_config('storage_type')).lower()
 
     find_and_replace(
         pattern=upstream_config['domain'],
@@ -103,16 +103,24 @@ def main() -> None:
             ]
         )
 
-    find_and_replace(
-        pattern=upstream_config['storage_type'],
-        replacement=storage_type,
-        paths=[
-            "apps",
-            "system",
-            "metal"
-        ]
-    )
+    def update_config_files(storage_type):
+        if storage_type == "nfs":
+            def modify_file(file_path, search_string, new_line):
+                with open(file_path, 'r') as file:
+                    lines = file.readlines()
 
+                with open(file_path, 'w') as file:
+                    for line in lines:
+                        if search_string in line:
+                            file.write(new_line)
+                        else:
+                            file.write(line)
+
+            modify_file('bootstrap/root/values.yaml', '- name: csi-driver-smb', '#- name: csi-driver-smb\n')
+            modify_file('metal/cluster.yml', '- cifs_plugin', '#- cifs_plugin\n')
+            modify_file('metal/cluster.yml', '#- nfs_utils', '- nfs_utils\n')
+
+    update_config_files(storage_type)
 
 
 if __name__ == '__main__':
