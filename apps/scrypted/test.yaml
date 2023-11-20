@@ -20,4 +20,3 @@ ingress:
 nodeSelector:
   kubernetes.io/arch: arm64
 persistence:
-  storageClass: longhorn
