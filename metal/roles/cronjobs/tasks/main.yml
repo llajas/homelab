@@ -1,4 +1,12 @@
 ---
+- name: Copy rebooter.sh script to /usr/local/bin
+  ansible.builtin.copy:
+    src: rebooter.sh
+    dest: /usr/local/bin/rebooter.sh
+    owner: root
+    group: root
+    mode: '0755'
+
 - name: Install Cronie Package
   dnf:
     name: cronie
@@ -10,7 +18,7 @@
     minute: 0
     hour: 2
     weekday: 1
-    job: "/sbin/reboot"
+    job: "/usr/bin/touch /var/run/reboot-required"
     state: present
 
 - name: Set up SECOND WEEKLY reboot
@@ -19,7 +27,7 @@
     minute: 0
     hour: 2
     weekday: 5
-    job: "/sbin/reboot"
+    job: "/usr/bin/touch /var/run/reboot-required"
     state: present
 
 - name: Restart Cronie Service
