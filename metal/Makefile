@@ -15,7 +15,7 @@ boot: ~/.ssh/id_ed25519
 cluster:
 	ansible-playbook \
 		--inventory inventories/${env}.yml \
-		cluster.yml
+		cluster.yml $(TAGS)
 
 console:
 	ansible-console \
