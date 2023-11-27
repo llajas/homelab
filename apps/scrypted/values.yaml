@@ -78,7 +78,6 @@ affinity: {}
 
 persistence:
   size: 10Gi
-  storageClass: "longhorn"
 
 raspberry:
   hardware: false
