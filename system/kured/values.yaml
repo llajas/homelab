@@ -2,4 +2,6 @@ kured:
   configuration:
     annotateNodes: true
     rebootSentinelCommand: sh -c "! needs-restarting --reboothint"
+    rebootSentinel: /var/run/reboot-required
+    period: 5m
     timeZone: America/Chicago
