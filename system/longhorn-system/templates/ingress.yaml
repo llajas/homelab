@@ -10,7 +10,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: storage.lajas.tech
+  - host: longhorn.lajas.tech
     http:
       paths:
       - pathType: Prefix
@@ -23,7 +23,7 @@ spec:
   tls:
   - hosts:
     - longhorn.lajas.tech
-    secretName: storage-tls-certificate
+    secretName: longhorn-tls-certificate
 status:
   loadBalancer:
     ingress:
