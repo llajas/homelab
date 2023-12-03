@@ -22,7 +22,7 @@ spec:
               number: 80
   tls:
   - hosts:
-    - storage.lajas.tech
+    - longhorn.lajas.tech
     secretName: storage-tls-certificate
 status:
   loadBalancer:
