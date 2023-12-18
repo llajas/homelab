@@ -18,6 +18,10 @@
 - Install - `sudo dnf install pciutils -y`
 - Removal - `sudo dnf remove pciutils -y; sudo dnf autoremove`
 
+### Default Labels
+
+NFD comes with [built-in labels](https://kubernetes-sigs.github.io/node-feature-discovery/v0.14/usage/features.html#built-in-labels) that surround the various aspects of the hardware, namely CPU featuresets.
+
 ## Reference
 
 [Dynamic Node Labeling via Node Feature Discovery on Kubernetes](https://medium.com/@reefland/dynamic-kubernetes-node-labeling-via-node-feature-discovery-2c3e9c1879d1)
