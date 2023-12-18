@@ -57,6 +57,7 @@ nav:
     - concepts/certificate-management.md
     - concepts/tools-container.md
     - concepts/testing.md
+    - concepts/node-feature-discovery.md
   - How-to guides:
     - how-to-guides/index.md
     - how-to-guides/alternate-dns-setup.md
