@@ -15,7 +15,7 @@ replicaCount: 1
 ##
 resources:
   requests:
-    memory: 512Mi
+    memory: 2Gi
     cpu: 500m
 
 lifecycle:
@@ -104,12 +104,24 @@ initContainers:
             LATEST_BACKUP=$(ls -t /backups/BluffCraft-*.tgz | head -1)
             if [ -n "$LATEST_BACKUP" ]; then
                 echo "Restoring from backup: $LATEST_BACKUP"
-                # Create a temporary directory to extract the backup
+                # Create a temporary directory to extract the .tgz backup
                 TEMP_DIR=$(mktemp -d)
                 tar -xzf "$LATEST_BACKUP" -C "$TEMP_DIR"
-                # Copy the contents from the extracted folder to /data
-                BACKUP_CONTENT_DIR=$(find "$TEMP_DIR" -mindepth 1 -maxdepth 1 -type d)
-                cp -a "$BACKUP_CONTENT_DIR/." /data/
+                # Find the .tar file inside the extracted directory
+                TAR_FILE=$(find "$TEMP_DIR" -name "*.tar")
+                if [ -n "$TAR_FILE" ]; then
+                    # Extract the .tar file contents
+                    tar -xf "$TAR_FILE" -C "$TEMP_DIR"
+                fi
+                # Identify the directory containing the actual data
+                DATA_DIR=$(find "$TEMP_DIR" -mindepth 1 -maxdepth 1 -type d -name '.')
+                if [ -n "$DATA_DIR" ]; then
+                    # Move contents of the '.' directory to /data
+                    cp -a "$DATA_DIR/." /data/
+                else
+                    # If no '.' directory, move all contents of TEMP_DIR
+                    cp -a "$TEMP_DIR/." /data/
+                fi
                 # Clean up the temporary directory
                 rm -rf "$TEMP_DIR"
                 echo "Backup restored into /data."
@@ -181,7 +193,7 @@ minecraftServer:
   eula: "TRUE"
   # One of: LATEST, SNAPSHOT, or a specific version (ie: "1.7.9").
   version: "LATEST"
-  # This can be one of "VANILLA", "FORGE", "SPIGOT", "BUKKIT", "PAPER", "FTBA", "SPONGEVANILLA", "CURSEFORGE"
+  # This can be one of "VANILLA", "FORGE", "SPIGOT", "BUKKIT", "PAPER", "FTBA", "SPONGEVANILLA", "CURSEFORGE", or "FABRIC"
   type: "VANILLA"
   # If type is set to FORGE, this sets the version; this is ignored if forgeInstallerUrl is set
   forgeVersion:
@@ -206,9 +218,9 @@ minecraftServer:
   # One of: peaceful, easy, normal, and hard
   difficulty: hard
   # A comma-separated list of player names to whitelist.
-  whitelist: "$(WHITELIST)"
+  #whitelist: "$(WHITELIST)"
   # A comma-separated list of player names who should be admins.
-  ops: "$(OPS)"
+  #ops: "$(OPS)"
   # A server icon URL for server listings. Auto-scaled and transcoded.
   icon:
   # Max connected players.
@@ -264,12 +276,12 @@ minecraftServer:
   # If true, old versions of downloaded mods will be replaced with new ones from downloadModpackUrl
   removeOldMods: false
   # A list of VanillaTweaks Share Codes to download. (https://vanillatweaks.net/share#wUq1iz => "wUq1iz")
-  vanillaTweaksShareCodes: [Vegtun]
+  vanillaTweaksShareCodes: []
   # Optional URI to a resource pack. The player may choose to use it.
   resourcePackUrl:
   # Optional SHA-1 digest of the resource pack, in lowercase hexadecimal.
   # It is recommended to specify this, because it is used to verify the integrity of the resource pack.
-  resourcePackSha: 896fb24b6b34e123170daf699a47d1077c5428bd
+  resourcePackSha:
   # When true, players will be prompted for a response and will be disconnected if they decline the required pack
   resourcePackEnforce: true
   # Check accounts against Minecraft account service.
@@ -277,7 +289,7 @@ minecraftServer:
   # Require public key to be signed by Mojang to join
   enforceSecureProfile: true
   # If you adjust this, you may need to adjust resources.requests above to match.
-  memory: 1024M
+  memory: 2048M
   # General JVM options to be passed to the Minecraft server invocation
   jvmOpts: ""
   # Options like -X that need to proceed general JVM options
@@ -288,16 +300,16 @@ minecraftServer:
   overrideServerProperties: false
   # DEPRECATED: use top-level rconServiceAnnotations instead
   serviceAnnotations: {}
-  serviceType: ClusterIP
+  serviceType: LoadBalancer
   ## Set the port used if the serviceType is NodePort
-  nodePort:
+  #nodePort:
   # Set the external port of the service, usefull when using the LoadBalancer service type
   servicePort: 25565
   clusterIP:
-  loadBalancerIP:
+  loadBalancerIP: 10.137.0.248
   # loadBalancerSourceRanges: []
   ## Set the externalTrafficPolicy in the Service to either Cluster or Local
-  # externalTrafficPolicy: Cluster
+  externalTrafficPolicy: Cluster
   externalIPs:
 
   # List with URLs and paths to jar files, additionally may be a directory with jars
@@ -360,9 +372,9 @@ minecraftServer:
     # can be used, but the password is secure.
     withGeneratedPassword: false
     port: 25575
-    password: "CHANGEME!"
-    existingSecret:
-    secretKey: rcon-password
+      #password:
+    existingSecret: minecraft-player-secrets
+    secretKey: RCON_PASSWORD
     serviceType: ClusterIP
     ## Set the external port if the rcon serviceType is NodePort
     nodePort:
@@ -416,16 +428,7 @@ minecraftServer:
 ## Values can be either variable values or `valueFrom` yaml
 ##
 extraEnv:
-  WHITELIST:
-    valueFrom:
-      secretKeyRef:
-        name: minecraft-player-secrets
-        key: WHITELIST
-  OPS:
-    valueFrom:
-      secretKeyRef:
-        name: minecraft-player-secrets
-        key: OPS
+  {}
   # some_variable: some value
   # another_variable:
   #   valueFrom:
@@ -435,7 +438,9 @@ extraEnv:
 ## Additional environment variables to add to the minecraft container from
 ## ConfigMaps and Secrets
 ##
-envFrom: []
+envFrom:
+  - secretRef:
+      name: minecraft-player-secrets
 
 persistence:
   labels: {}
@@ -462,7 +467,8 @@ podLabels: {}
 deploymentAnnotations: {}
 deploymentLabels: {}
 
-serviceAnnotations: {}
+serviceAnnotations:
+  external-dns.alpha.kubernetes.io/hostname: "bluffcraft.lajas.tech"
 serviceLabels: {}
 
 rconServiceAnnotations: {}
