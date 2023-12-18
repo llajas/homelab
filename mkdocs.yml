@@ -67,6 +67,7 @@ nav:
     - how-to-guides/single-node-cluster-adjustments.md
     - how-to-guides/disable-dhcp-proxy-in-dnsmasq.md
     - how-to-guides/updating-documentation.md
+    - how-to-guides/rebooting-nodes-kured.md
     - Troubleshooting:
       - how-to-guides/troubleshooting/index.md
       - how-to-guides/troubleshooting/deployment.md
