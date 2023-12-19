@@ -619,7 +619,7 @@ addons:
       # -- Specify the code-server image
       repository: ghcr.io/coder/code-server
       # -- Specify the code-server image tag
-      tag: 4.19.0
+      tag: 4.19.1
       # -- Specify the code-server image pull policy
       pullPolicy: IfNotPresent
 
@@ -712,7 +712,7 @@ addons:
       # -- Specify the promtail image
       repository: docker.io/grafana/promtail
       # -- Specify the promtail image tag
-      tag: 2.9.2
+      tag: 2.9.3
       # -- Specify the promtail image pull policy
       pullPolicy: IfNotPresent
 
