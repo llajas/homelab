@@ -1,0 +1,11 @@
+apiVersion: longhorn.io/v1beta2
+kind: Setting
+metadata:
+  name: backup-target
+value: cifs://plex.lajas.tech/pvc
+---
+apiVersion: longhorn.io/v1beta2
+kind: Setting
+metadata:
+  name: backup-target-credential-secret
+value: longhorn-backup-creds
