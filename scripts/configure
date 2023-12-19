@@ -1,127 +1,86 @@
 #!/usr/bin/env python
 
-# WIP
-# TODO clean this up
-
-"""
-Basic configure script for new users
-"""
-
 import fileinput
 import subprocess
 import sys
-
 from rich.prompt import Confirm, Prompt
 
+# Configuration dictionary with default settings for the script.
 upstream_config = {
     "seed_repo": "https://github.com/llajas/homelab",
     "domain": "lajas.tech",
     "timezone": "America/Chicago",
     "terraform_organization": "llajas",
     "loadbalancer_ip_range": "10.137.0.224/27",
-    "storage_type": "cifs",
+    "storage_type": "",
 }
 
+# Function to check if the current Python version meets the required version.
 def check_python_version(required_version: str) -> None:
     if sys.version_info < tuple(map(int, required_version.split('.'))):
         raise Exception(f"Must be using Python >= {required_version}")
 
-
+# Function to find and replace a pattern in a set of files using git grep.
 def find_and_replace(pattern: str, replacement: str, paths: list[str]) -> None:
+    # Get a list of files containing the pattern.
     files_with_matches = subprocess.run(
         ["git", "grep", "--files-with-matches", pattern, "--"] + paths,
         capture_output=True,
         text=True
     ).stdout.splitlines()
 
+    # Replace the pattern with the replacement in each file.
     for file_with_maches in files_with_matches:
         with fileinput.FileInput(file_with_maches, inplace=True) as file:
             for line in file:
                 print(line.replace(pattern, replacement), end='')
 
+# Function to update specific configuration files based on predefined modifications.
+def update_config_files():
+    file_modifications = [
+        {'file_path': 'bootstrap/root/values.yaml', 'search_string': '- name: csi-driver-smb', 'new_line': '#- name: csi-driver-smb\n'},
+        {'file_path': 'metal/cluster.yml', 'search_string': '#- nfs_utils', 'new_line': '- nfs_utils\n'}
+    ]
 
+    # Apply each modification to the respective file.
+    for modification in file_modifications:
+        with open(modification['file_path'], 'r') as file:
+            lines = file.readlines()
+
+        with open(modification['file_path'], 'w') as file:
+            for line in lines:
+                if modification['search_string'] in line:
+                    file.write(modification['new_line'])
+                else:
+                    file.write(line)
+
+# Main function of the script.
 def main() -> None:
-    check_python_version(
-        required_version='3.10.0'
-    )
+    # Check if the Python version is at least 3.10.0.
+    check_python_version(required_version='3.10.0')
 
-    # editor = Prompt.ask("Select text editor", default='nvim')
+    # Interactive prompts to gather user inputs for configuration.
     domain = Prompt.ask("Enter your domain", default=upstream_config['domain'])
     seed_repo = Prompt.ask("Enter seed repo", default=upstream_config['seed_repo'])
     timezone = Prompt.ask("Enter time zone", default=upstream_config['timezone'])
     loadbalancer_ip_range = Prompt.ask("Enter IP range for load balancer", default=upstream_config['loadbalancer_ip_range'])
-    storage_type = Prompt.ask("Will you be using NFS or CIFS?", default=upstream_config('storage_type')).lower()
+    storage_type = Prompt.ask("Will you be using NFS for custom apps storage?", default=upstream_config('storage_type')).lower()
 
-    find_and_replace(
-        pattern=upstream_config['domain'],
-        replacement=domain,
-        paths=[
-            ".ci",
-            "apps",
-            "bootstrap",
-            "platform",
-            "system",
-            "external"
-        ]
-    )
+    # Applying the user-provided configurations to the system files.
+    find_and_replace(pattern=upstream_config['domain'], replacement=domain, paths=[".ci", "apps", "bootstrap", "platform", "system", "external"])
+    find_and_replace(pattern=upstream_config['seed_repo'], replacement=seed_repo, paths=["bootstrap", "platform"])
+    find_and_replace(pattern=upstream_config['timezone'], replacement=timezone, paths=["apps", "system", "metal"])
+    find_and_replace(pattern=upstream_config['loadbalancer_ip_range'], replacement=loadbalancer_ip_range, paths=["system/metallb-system/templates/ipaddresspool.yaml"])
 
-    find_and_replace(
-        pattern=upstream_config['seed_repo'],
-        replacement=seed_repo,
-        paths=[
-            "bootstrap",
-            "platform"
-        ]
-    )
-
-    find_and_replace(
-        pattern=upstream_config['timezone'],
-        replacement=timezone,
-        paths=[
-            "apps",
-            "system",
-            "metal"
-        ]
-    )
-
-    find_and_replace(
-        pattern=upstream_config['loadbalancer_ip_range'],
-        replacement=loadbalancer_ip_range,
-        paths=[
-            "system/metallb-system/templates/ipaddresspool.yaml",
-        ]
-    )
-
+    # Conditional checks for additional configurations.
     if Confirm.ask("Do you want to use managed services?"):
         terraform_organization = Prompt.ask("Enter Terraform Organization", default=upstream_config['terraform_organization'])
+        find_and_replace(pattern=upstream_config['terraform_organization'], replacement=terraform_organization, paths=["external/versions.tf"])
+    
+    # Updating configuration files if NFS storage type is selected.
+    if storage_type == "nfs":
+        update_config_files()
 
-        find_and_replace(
-            pattern=upstream_config['terraform_organization'],
-            replacement=terraform_organization,
-            paths=[
-                "external/versions.tf"
-            ]
-        )
-
-    def update_config_files(storage_type):
-        if storage_type == "nfs":
-            def modify_file(file_path, search_string, new_line):
-                with open(file_path, 'r') as file:
-                    lines = file.readlines()
-
-                with open(file_path, 'w') as file:
-                    for line in lines:
-                        if search_string in line:
-                            file.write(new_line)
-                        else:
-                            file.write(line)
-
-            modify_file('bootstrap/root/values.yaml', '- name: csi-driver-smb', '#- name: csi-driver-smb\n')
-            modify_file('metal/cluster.yml', '- cifs_plugin', '#- cifs_plugin\n')
-            modify_file('metal/cluster.yml', '#- nfs_utils', '- nfs_utils\n')
-
-    update_config_files(storage_type)
-
-
+# Entry point of the script.
 if __name__ == '__main__':
     main()
