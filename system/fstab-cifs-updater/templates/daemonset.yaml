@@ -1,17 +1,17 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: cifs-flexVol-install
+  name: cifs-flexvol-install
   labels:
-    k8s-app: cifs-flexVol-install
+    k8s-app: cifs-flexvol-install
 spec:
   selector:
     matchLabels:
-      k8s-app: cifs-flexVol-install
+      k8s-app: cifs-flexvol-install
   template:
     metadata:
       labels:
-        k8s-app: cifs-flexVol-install
+        k8s-app: cifs-flexvol-install
     spec:
       initContainers:
       - name: setup
