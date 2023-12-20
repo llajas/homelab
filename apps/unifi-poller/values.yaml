@@ -52,7 +52,7 @@ ingress:
   main:
     # -- Expose [unifi-poller's web interface](https://unifipoller.com/docs/advanced/webserver)
     #    (if enabled in the configuration) via the k8s ingress by setting this true.
-    enabled: true
+    enabled: false
 
 influxdb:
   # -- Create an InfluxDB instance as a [unifi-poller storage backend](https://unifipoller.com/docs/dependencies/influxdb).
