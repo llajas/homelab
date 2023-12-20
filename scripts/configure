@@ -1,86 +1,147 @@
 #!/usr/bin/env python
 
+# Import necessary libraries
 import fileinput
 import subprocess
 import sys
-from rich.prompt import Confirm, Prompt
+import json
+from rich.prompt import Prompt
 
-# Configuration dictionary with default settings for the script.
-upstream_config = {
-    "seed_repo": "https://github.com/llajas/homelab",
-    "domain": "lajas.tech",
-    "timezone": "America/Chicago",
-    "terraform_organization": "llajas",
-    "loadbalancer_ip_range": "10.137.0.224/27",
-    "storage_type": "",
-}
+# Path to the configuration file
+CONFIG_FILE = "scripts/config.json"
 
-# Function to check if the current Python version meets the required version.
+# Function to check the current Python version against a required version
 def check_python_version(required_version: str) -> None:
+    # Compare the current Python version with the required version
     if sys.version_info < tuple(map(int, required_version.split('.'))):
         raise Exception(f"Must be using Python >= {required_version}")
 
-# Function to find and replace a pattern in a set of files using git grep.
+# Function to find and replace a pattern in specified files
 def find_and_replace(pattern: str, replacement: str, paths: list[str]) -> None:
-    # Get a list of files containing the pattern.
+    print(f"Looking for '{pattern}' to replace with '{replacement}' in {paths}")
+
+    # Use Git to find files containing the pattern
     files_with_matches = subprocess.run(
         ["git", "grep", "--files-with-matches", pattern, "--"] + paths,
         capture_output=True,
         text=True
     ).stdout.splitlines()
 
-    # Replace the pattern with the replacement in each file.
-    for file_with_maches in files_with_matches:
-        with fileinput.FileInput(file_with_maches, inplace=True) as file:
+    # Inform if no files are found with the pattern
+    if not files_with_matches:
+        print(f"No files found with the pattern '{pattern}'.")
+        return
+
+    # Replace the pattern in each file found
+    for file_with_matches in files_with_matches:
+        print(f"Updating file: {file_with_matches}")
+        with fileinput.FileInput(file_with_matches, inplace=True) as file:
             for line in file:
                 print(line.replace(pattern, replacement), end='')
 
-# Function to update specific configuration files based on predefined modifications.
-def update_config_files():
-    file_modifications = [
-        {'file_path': 'bootstrap/root/values.yaml', 'search_string': '- name: csi-driver-smb', 'new_line': '#- name: csi-driver-smb\n'},
-        {'file_path': 'metal/cluster.yml', 'search_string': '#- nfs_utils', 'new_line': '- nfs_utils\n'}
-    ]
 
-    # Apply each modification to the respective file.
-    for modification in file_modifications:
-        with open(modification['file_path'], 'r') as file:
-            lines = file.readlines()
+# Function to load configuration from a JSON file
+def load_config():
+    try:
+        with open(CONFIG_FILE, "r") as file:
+            return json.load(file)
+    except FileNotFoundError:
+        # Return a default configuration if the file is not found
+        return {
+            "seed_repo": "https://github.com/<username>/<repo>",
+            "domain": "<domain>",
+            "timezone": "America/Chicago",
+            "terraform_organization": "<org_name>",
+            "loadbalancer_ip_range": "10.137.0.224/27",
+            "storage_type": "None",
+        }
 
-        with open(modification['file_path'], 'w') as file:
-            for line in lines:
-                if modification['search_string'] in line:
-                    file.write(modification['new_line'])
-                else:
-                    file.write(line)
+# Function to save the configuration to a JSON file
+def save_config(config):
+    with open(CONFIG_FILE, "w") as file:
+        json.dump(config, file, indent=4)
 
-# Main function of the script.
-def main() -> None:
-    # Check if the Python version is at least 3.10.0.
+# Function to display the current configuration and options for editing
+def display_menu(config, labels):
+    print("\nCurrent Configuration. Choose one to edit or you can 'Edit all settings':")
+    for index, key in enumerate(config.keys(), start=1):
+        print(f"{index} - {labels[key]}: {config[key]}")
+    print(f"{len(config) + 1} - Edit all settings")
+    print("0 - Exit")
+
+# Function to edit a specific setting in the configuration
+def edit_setting(config, setting):
+    new_value = Prompt.ask(f"Enter new value for {setting}", default=config[setting])
+    config[setting] = new_value
+
+# Main function of the script
+def main():
+    # Ensure the script is running on Python 3.10.0 or higher
     check_python_version(required_version='3.10.0')
 
-    # Interactive prompts to gather user inputs for configuration.
-    domain = Prompt.ask("Enter your domain", default=upstream_config['domain'])
-    seed_repo = Prompt.ask("Enter seed repo", default=upstream_config['seed_repo'])
-    timezone = Prompt.ask("Enter time zone", default=upstream_config['timezone'])
-    loadbalancer_ip_range = Prompt.ask("Enter IP range for load balancer", default=upstream_config['loadbalancer_ip_range'])
-    storage_type = Prompt.ask("Will you be using NFS for custom apps storage?", default=upstream_config('storage_type')).lower()
+    # Load the current configuration
+    upstream_config = load_config()
 
-    # Applying the user-provided configurations to the system files.
-    find_and_replace(pattern=upstream_config['domain'], replacement=domain, paths=[".ci", "apps", "bootstrap", "platform", "system", "external"])
-    find_and_replace(pattern=upstream_config['seed_repo'], replacement=seed_repo, paths=["bootstrap", "platform"])
-    find_and_replace(pattern=upstream_config['timezone'], replacement=timezone, paths=["apps", "system", "metal"])
-    find_and_replace(pattern=upstream_config['loadbalancer_ip_range'], replacement=loadbalancer_ip_range, paths=["system/metallb-system/templates/ipaddresspool.yaml"])
+    # Define labels for the configuration menu
+    menu_labels = {
+        "seed_repo": "Seed Repository",
+        "domain": "Domain",
+        "timezone": "Time Zone",
+        "terraform_organization": "Terraform Organization",
+        "loadbalancer_ip_range": "Loadbalancer IP Range",
+        "storage_type": "Storage Type",
+    }
 
-    # Conditional checks for additional configurations.
-    if Confirm.ask("Do you want to use managed services?"):
-        terraform_organization = Prompt.ask("Enter Terraform Organization", default=upstream_config['terraform_organization'])
-        find_and_replace(pattern=upstream_config['terraform_organization'], replacement=terraform_organization, paths=["external/versions.tf"])
-    
-    # Updating configuration files if NFS storage type is selected.
-    if storage_type == "nfs":
-        update_config_files()
+    # Interactive loop for configuration editing
+    while True:
+        display_menu(upstream_config, menu_labels)
+        choice = Prompt.ask("\nChoose an option to edit (or 0 to exit)", default="0")
 
-# Entry point of the script.
+        if choice == "0":
+            print("Exiting...")
+            break
+
+        made_changes = False
+        if choice.isdigit() and 1 <= int(choice) <= len(upstream_config):
+            selected_key = list(upstream_config.keys())[int(choice) - 1]
+            edit_setting(upstream_config, selected_key)
+            made_changes = True
+        elif choice == str(len(upstream_config) + 1):
+            for key in upstream_config.keys():
+                edit_setting(upstream_config, key)
+            made_changes = True
+
+        if made_changes:
+            save_config(upstream_config)
+            print("Configuration updated and saved.")
+            print("Applying the updated configuration...")
+            find_and_replace(
+                pattern="https://github.com/llajas/homelab",
+                replacement=upstream_config['seed_repo'],
+                paths=["bootstrap", "platform"]
+            )
+            find_and_replace(
+                pattern="lajas.tech",
+                replacement=upstream_config['domain'],
+                paths=[".ci", "apps", "bootstrap", "platform", "system", "external"]
+            )
+            find_and_replace(
+                pattern="America/Chicago",
+                replacement=upstream_config['timezone'],
+                paths=["apps", "system", "metal"]
+            )
+            find_and_replace(
+                pattern="10.137.0.224/27",
+                replacement=upstream_config['loadbalancer_ip_range'],
+                paths=["system/metallb-system/templates/ipaddresspool.yaml"]
+            )
+            find_and_replace(
+                pattern="llajas",
+                replacement=upstream_config['terraform_organization'],
+                paths=["external/versions.tf"]
+            )
+            print("Configuration update process complete.")
+
+# Entry point for the script
 if __name__ == '__main__':
     main()
