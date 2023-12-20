@@ -236,14 +236,13 @@ adminPassword: "admin"
 # -- Use an existing secret for the admin password.
 admin:
   # -- Specify an existing secret to use as admin password
-  existingSecret: ""
+  existingSecret: "pihole-admin-secret"
   # -- Specify the key inside the secret to use
   passwordKey: "password"
 
 # -- extraEnvironmentVars is a list of extra enviroment variables to set for pihole to use
-extraEnvVars: {
+extraEnvVars:
   TZ: CST
-}
   # TZ: UTC
 
 # -- extraEnvVarsSecret is a list of secrets to load in as environment variables.
@@ -319,9 +318,9 @@ dnsmasq:
     server=/0.33.10.in-addr.arpa/10.0.0.1
     server=/candace.lajas.tech/10.0.0.1
     server=/37.3.10.in-addr.arpa/10.0.0.1
-    server=/lab1.lajas.tech/10.0.0.1
+    server=/johto.lajas.tech/10.0.0.1
     server=/137.10.in-addr.arpa/10.0.0.1
-    server=/lab2.lajas.tech/10.0.0.1
+    server=/kanto.lajas.tech/10.0.0.1
     server=/51.10.in-addr.arpa/10.0.0.1
   ]
   # - server=/foo.bar/192.168.178.10
@@ -383,9 +382,8 @@ regex: {}
   # - (^|\.)facebook\.com$
 
 # -- values that should be added to pihole-FTL.conf
-ftl: {
+ftl:
   BLOCK_ICLOUD_PR: false
-}
   # Add values for pihole-FTL.conf
   # MAXDBDAYS: 14
 
