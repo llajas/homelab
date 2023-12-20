@@ -1,12 +1,4 @@
 ---
-- name: Copy rebooter.sh script to /usr/local/bin
-  ansible.builtin.copy:
-    src: rebooter.sh
-    dest: /usr/local/bin/rebooter.sh
-    owner: root
-    group: root
-    mode: '0755'
-
 - name: Install Cronie Package
   dnf:
     name: cronie

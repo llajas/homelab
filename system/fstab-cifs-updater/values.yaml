@@ -1,0 +1,11 @@
+image:
+  repository: alpine
+  tag: latest
+  pullPolicy: IfNotPresent
+
+cifsScriptUrl: "https://raw.githubusercontent.com/fstab/cifs/master/cifs"
+
+volumeMounts:
+  hostPath: /usr/libexec/kubernetes/kubelet-plugins/volume/exec
+
+resources: {}

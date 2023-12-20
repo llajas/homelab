@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: cifs-flexvol-install
+  labels:
+    k8s-app: cifs-flexvol-install
+spec:
+  selector:
+    matchLabels:
+      k8s-app: cifs-flexvol-install
+  template:
+    metadata:
+      labels:
+        k8s-app: cifs-flexvol-install
+    spec:
+      initContainers:
+      - name: setup
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        command: ["/bin/sh", "-c"]
+        args:
+          - >
+            echo "Checking if CIFS script already exists...";
+            if [ ! -f {{ .Values.volumeMounts.hostPath }}/fstab~cifs/cifs ]; then
+              echo "CIFS script not found. Proceeding with installation...";
+              apk add --no-cache curl &&
+              echo "Installing curl...";
+              mkdir -p {{ .Values.volumeMounts.hostPath }}/fstab~cifs &&
+              echo "Creating directory for CIFS script...";
+              curl -L -o {{ .Values.volumeMounts.hostPath }}/fstab~cifs/cifs https://raw.githubusercontent.com/fstab/cifs/master/cifs &&
+              echo "Downloading CIFS script...";
+              chmod 755 {{ .Values.volumeMounts.hostPath }}/fstab~cifs/cifs &&
+              echo "Setting execute permissions on CIFS script...";
+            else
+              echo "CIFS script already exists. Skipping installation.";
+            fi
+        volumeMounts:
+          - name: flexvolume
+            mountPath: /usr/libexec/kubernetes/kubelet-plugins/volume/exec
+      containers:
+      - name: keepalive
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        command: ["/bin/sh", "-c", "sleep infinity"]
+      volumes:
+      - name: flexvolume
+        hostPath:
+          path: {{ .Values.volumeMounts.hostPath }}

@@ -57,6 +57,8 @@ nav:
     - concepts/certificate-management.md
     - concepts/tools-container.md
     - concepts/testing.md
+    - concepts/node-feature-discovery.md
+    - concepts/dr-strategy.md
   - How-to guides:
     - how-to-guides/index.md
     - how-to-guides/alternate-dns-setup.md
@@ -67,6 +69,7 @@ nav:
     - how-to-guides/single-node-cluster-adjustments.md
     - how-to-guides/disable-dhcp-proxy-in-dnsmasq.md
     - how-to-guides/updating-documentation.md
+    - how-to-guides/rebooting-nodes-kured.md
     - Troubleshooting:
       - how-to-guides/troubleshooting/index.md
       - how-to-guides/troubleshooting/deployment.md

@@ -27,7 +27,7 @@ More information can be found in [the roadmap](#roadmap) below.
 
 ![Hardware](https://user-images.githubusercontent.com/29675370/208781819-c0a4b94b-8554-4518-b17f-75eee7f22a5f.png)
 
-- 4 × Lenovo `ThinkCentre M700`:
+- 6 × Lenovo `ThinkCentre M700`:
     - CPU: `Intel Core i5-6600T @ 2.70GHz`
     - RAM: `16GB DDR4`
     - SSD: `512GB`
