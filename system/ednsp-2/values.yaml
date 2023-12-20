@@ -1,0 +1,10 @@
+external-dns:
+  provider: pihole
+  env:
+    - name: EXTERNAL_DNS_PIHOLE_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: pihole-admin-secret
+          key: adminPassword
+  extraArgs:
+    - --pihole-server=http://10.0.0.3
