@@ -33,3 +33,5 @@ grafana:
       auth_url: https://dex.lajas.tech/auth
       token_url: https://dex.lajas.tech/token
       api_url: https://dex.lajas.tech/userinfo
+  persistence:
+    enabled: true
