@@ -158,7 +158,10 @@ sidecarContainers: []
 #           - port=2049
 #           - hard
 #           - vers=4
-extraVolumes: []
+extraVolumes:
+  - volumeMounts:
+      - name: backupdir
+        mountPath: /backups
 
 ## Array of extra objects to deploy with the release
 ##
