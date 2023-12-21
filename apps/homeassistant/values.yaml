@@ -123,7 +123,7 @@ influxdb:
 metrics:
   # -- Enable and configure a Prometheus serviceMonitor for the chart under this key.
   # @default -- See values.yaml
-  enabled: false
+  enabled: true
   serviceMonitor:
     interval: 1m
     scrapeTimeout: 30s
@@ -138,20 +138,20 @@ metrics:
   # -- Enable and configure Prometheus Rules for the chart under this key.
   # @default -- See values.yaml
   prometheusRule:
-    enabled: false
+    enabled: true
     labels: {}
     # -- Configure additionial rules for the chart under this key.
     # @default -- See prometheusrules.yaml
-    rules: []
-      # - alert: HomeAssistantAbsent
-      #   annotations:
-      #     description: Home Assistant has disappeared from Prometheus service discovery.
-      #     summary: Home Assistant is down.
-      #   expr: |
-      #     absent(up{job=~".*home-assistant.*"} == 1)
-      #   for: 5m
-      #   labels:
-      #     severity: critical
+    rules:
+      - alert: HomeAssistantAbsent
+        annotations:
+          description: Home Assistant has disappeared from Prometheus service discovery.
+          summary: Home Assistant is down.
+        expr: |
+          absent(up{job=~".*home-assistant.*"} == 1)
+        for: 5m
+        labels:
+          severity: critical
 
 addons:
   # -- Enable and configure codeserver for the chart.
@@ -208,6 +208,3 @@ volumes:
   - name: custom-config-volume
     configMap:
       name: home-assistant-custom-config
-
-flexVolume:
-  enabled: false
