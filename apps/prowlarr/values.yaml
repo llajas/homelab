@@ -63,6 +63,3 @@ securityContext:
 
 podSecurityContext:
   fsGroup: 568
-
-flexVolume:
-  enabled: false
