@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: smb-pv-media-rdtclient
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    pv.kubernetes.io/provisioned-by: smb.csi.k8s.io
+spec:
+  capacity:
+    storage: 63Ti
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: smb
+  mountOptions:
+    - dir_mode=0777
+    - file_mode=0777
+    - uid=1001
+    - gid=1001
+    - cache=strict
+    - noserverino
+  csi:
+    driver: smb.csi.k8s.io
+    volumeHandle: {{ .Release.Namespace }}-rdtclient
+    volumeAttributes:
+      source: "//storage.lajas.tech/"
+      subDir: "downloads"
+    nodeStageSecretRef:
+      name: smbcreds
+      namespace: {{ .Release.Namespace }}

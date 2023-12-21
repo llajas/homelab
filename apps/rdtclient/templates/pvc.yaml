@@ -1,6 +1,20 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
+  name: {{ .Values.volumes.downloads.pvc.name }}
+spec:
+  accessModes:
+    - {{ .Values.volumes.downloads.pvc.accessModes }}
+  resources:
+    requests:
+      storage: {{ .Values.volumes.downloads.pvc.storageSize }}
+  storageClassName: {{ .Values.volumes.downloads.pvc.storageClassName }}
+  volumeName: {{ .Values.volumes.downloads.pvc.volumeName }}
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
   name: {{ .Values.volumes.db.pvc.name }}
 spec:
   accessModes:

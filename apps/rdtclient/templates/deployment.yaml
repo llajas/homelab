@@ -21,20 +21,14 @@ spec:
         - containerPort: 6500
           name: http
         volumeMounts:
-        - name: "{{ .Values.volumes.downloads.flexVolume.name }}"
-          mountPath: "{{ .Values.volumes.downloads.flexVolume.mountPath }}"
+        - name: "{{ .Values.volumes.downloads.pvc.name }}"
+          mountPath: "{{ .Values.volumes.downloads.pvc.mountPath }}"
         - name: "{{ .Values.volumes.db.pvc.name }}"
           mountPath: "{{ .Values.volumes.db.pvc.mountPath }}"
       volumes:
-      - name: "{{ .Values.volumes.downloads.flexVolume.name }}"
-        flexVolume:
-          driver: "{{ .Values.volumes.downloads.flexVolume.driver }}"
-          fsType: "{{ .Values.volumes.downloads.flexVolume.fsType }}"
-          secretRef:
-            name: "{{ .Values.volumes.downloads.flexVolume.secretRef.name }}"
-          options:
-            mountOptions: "{{ .Values.volumes.downloads.flexVolume.options.mountOptions }}"
-            networkPath: {{ .Values.volumes.downloads.flexVolume.options.networkPath }}
+      - name: "{{ .Values.volumes.downloads.pvc.name }}"
+        persistentVolumeClaim:
+          claimName: "{{ .Values.volumes.downloads.pvc.name }}"
       - name: "{{ .Values.volumes.db.pvc.name }}"
         persistentVolumeClaim:
           claimName: "{{ .Values.volumes.db.pvc.name }}"

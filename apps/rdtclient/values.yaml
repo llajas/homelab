@@ -33,17 +33,14 @@ ingress:
 
 volumes:
   downloads:
-    flexVolume:
-      enabled: true
-      name: flexvolume
+    pvc:
+      name: downloads-pvc
       mountPath: /data/downloads
-      driver: fstab/cifs
-      fsType: cifs
-      options:
-        mountOptions: dir_mode=0755,file_mode=0644,noperm,nobrl
-        networkPath: \\plex.lajas.tech\downloads
-      secretRef:
-        name: smbcreds
+      accessModes: ReadWriteOnce
+      storageSize: "63Ti"
+      storageClassName: "smb"
+      volumeName: smb-pv-media-rdtclient
+
   db:
     pvc:
       name: db-pvc
