@@ -16,6 +16,7 @@ spec:
   storageClassName: {{ .Values.persistence.storageClassName }}
 {{- end }}
 
+---
 {{- if and .Values.persistence.logs.enabled (not .Values.persistence.logs.existingClaim) }}
 apiVersion: v1
 kind: PersistentVolumeClaim
