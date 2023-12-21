@@ -158,20 +158,7 @@ sidecarContainers: []
 #           - port=2049
 #           - hard
 #           - vers=4
-extraVolumes:
-  - volumeMounts:
-      - name: backup-volume
-        mountPath: /backups
-    volumes:
-      - name: backup-volume
-        flexVolume:
-          driver: "fstab/cifs"
-          fsType: "cifs"
-          options:
-            mountOptions: "dir_mode=0755,file_mode=0644,noperm,nobrl"
-            networkPath: \\storage.lajas.tech\minecraft-worlds
-          secretRef:
-            name: smbcreds
+extraVolumes: []
 
 ## Array of extra objects to deploy with the release
 ##
@@ -569,7 +556,8 @@ mcbackup:
       cpu: 500m
 
   persistence:
-    annotations: {}
+    annotations:
+      pv.kubernetes.io/provisioned-by: smb.csi.k8s.io
     ## minecraft data Persistent Volume Storage Class
     ## If defined, storageClassName: <storageClass>
     ## If set to "-", storageClassName: "", which disables dynamic provisioning
@@ -580,6 +568,8 @@ mcbackup:
     # storageClass: "-"
     backupDir:
       # Set this to false if you don't care to persist state between restarts.
-      enabled: false
+      enabled: true
+      Size: 63Ti
       # existingClaim: nil
-      Size: 1Gi
+    storageClass: smb
+    volumeName: smb-pv-world-backup

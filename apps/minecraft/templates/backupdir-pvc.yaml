@@ -32,5 +32,6 @@ spec:
 {{- else }}
   storageClassName: "{{ .Values.mcbackup.persistence.storageClass }}"
 {{- end }}
+  volumeName: "{{ .Values.mcbackup.persistence.volumeName }}"
 {{- end }}
 {{- end -}}
