@@ -1,24 +1,24 @@
 ---
 apiVersion: v2
-appVersion: v21.1
-description: NZBGet is a Usenet downloader client
-name: nzbget
-version: 12.4.2
+appVersion: v3.3.1
+description: Free and easy binary newsreader
+name: sabnzbd
+version: 9.4.2
 kubeVersion: ">=1.16.0-0"
 keywords:
-  - nzbget
+  - sabnzbd
   - usenet
-home: https://github.com/k8s-at-home/charts/tree/master/charts/stable/nzbget
-icon: https://avatars1.githubusercontent.com/u/3368377?s=400&v=4
+home: https://github.com/k8s-at-home/charts/tree/master/charts/stable/sabnzbd
+icon: https://avatars1.githubusercontent.com/u/960698?s=400&v=4
 sources:
-  - https://nzbget.net/
+  - https://sabnzbd.org/
   - https://github.com/k8s-at-home/container-images
 maintainers:
   - name: billimek
     email: jeff@billimek.com
 dependencies:
   - name: common
-    repository: https://llajas.github.io/common-library-charts/
+    repository: https://library-charts.k8s-at-home.com
     version: 4.5.2
 annotations:
   artifacthub.io/changes: |-

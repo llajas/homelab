@@ -7,11 +7,19 @@
 
 image:
   # -- image repository
-  repository: quay.io/linuxserver.io/nzbget
+  repository: quay.io/linuxserver.io/sabnzbd
   # -- image tag
-  tag: version-v21.1
+  tag: 4.1.0
   # -- image pull policy
   pullPolicy: IfNotPresent
+
+# -- environment variables.
+# @default -- See below
+env:
+  # -- Set the container timezone
+  TZ: America/Chicago
+  HOST_WHITELIST_ENTRIES: sabnzbd.lajas.tech
+  HOSTNAME: sabnzbd.lajas.tech
 
 # -- Configures service settings for the chart.
 # @default -- See values.yaml
@@ -19,7 +27,7 @@ service:
   main:
     ports:
       http:
-        port: 6789
+        port: 8080
 
 ingress:
   # -- Enable and configure ingress settings for the chart under this key.
@@ -29,17 +37,18 @@ ingress:
     ingressClassName: nginx
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-prod
-      hajimari.io/appName: NZBGet
+      hajimari.io/appName: SABnzbd
       hajimari.io/icon: file-arrow-up-down-outline
     hosts:
-      - host: &host nzbget.lajas.tech
+      - host: &host sabnzbd.lajas.tech
         paths:
           - path: /
             pathType: Prefix
     tls:
-      - secretName: nzbget-tls-certificate
+      - secretName: sabnzbd-tls-certificate
         hosts:
           - *host
+
 # -- Configure persistence settings for the chart under this key.
 # @default -- See values.yaml
 persistence:
@@ -47,12 +56,17 @@ persistence:
     enabled: true
 
   media:
-    enabled: false
+    enabled: true
     mountPath: /media
+    storageClass: smb
+    size: 63Ti
+    accessMode: ReadWriteOnce
+    volumeName: smb-pv-media
 
   downloads:
-    enabled: false
+    enabled: true
     mountPath: /downloads
-
-flexVolume:
-  enabled: false
+    storageClass: smb
+    size: 63Ti
+    accessMode: ReadWriteOnce
+    volumeName: smb-pv-downloads

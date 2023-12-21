@@ -1,14 +1,14 @@
-# nzbget
+# sabnzbd
 
-![Version: 12.4.2](https://img.shields.io/badge/Version-12.4.2-informational?style=flat-square) ![AppVersion: v21.1](https://img.shields.io/badge/AppVersion-v21.1-informational?style=flat-square)
+![Version: 9.4.2](https://img.shields.io/badge/Version-9.4.2-informational?style=flat-square) ![AppVersion: v3.3.1](https://img.shields.io/badge/AppVersion-v3.3.1-informational?style=flat-square)
 
-NZBGet is a Usenet downloader client
+Free and easy binary newsreader
 
 **This chart is not maintained by the upstream project and any issues with the chart should be raised [here](https://github.com/k8s-at-home/charts/issues/new/choose)**
 
 ## Source Code
 
-* <https://nzbget.net/>
+* <https://sabnzbd.org/>
 * <https://github.com/k8s-at-home/container-images>
 
 ## Requirements
@@ -26,23 +26,23 @@ Kubernetes: `>=1.16.0-0`
 ```console
 helm repo add k8s-at-home https://k8s-at-home.com/charts/
 helm repo update
-helm install nzbget k8s-at-home/nzbget
+helm install sabnzbd k8s-at-home/sabnzbd
 ```
 
 ## Installing the Chart
 
-To install the chart with the release name `nzbget`
+To install the chart with the release name `sabnzbd`
 
 ```console
-helm install nzbget k8s-at-home/nzbget
+helm install sabnzbd k8s-at-home/sabnzbd
 ```
 
 ## Uninstalling the Chart
 
-To uninstall the `nzbget` deployment
+To uninstall the `sabnzbd` deployment
 
 ```console
-helm uninstall nzbget
+helm uninstall sabnzbd
 ```
 
 The command removes all the Kubernetes components associated with the chart **including persistent volumes** and deletes the release.
@@ -55,23 +55,22 @@ Other values may be used from the [values.yaml](https://github.com/k8s-at-home/l
 Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`.
 
 ```console
-helm install nzbget \
+helm install sabnzbd \
   --set env.TZ="America/New York" \
-    k8s-at-home/nzbget
+    k8s-at-home/sabnzbd
 ```
 
 Alternatively, a YAML file that specifies the values for the above parameters can be provided while installing the chart.
 
 ```console
-helm install nzbget k8s-at-home/nzbget -f values.yaml
+helm install sabnzbd k8s-at-home/sabnzbd -f values.yaml
 ```
 
 ## Custom configuration
 
-The default login details (change ASAP) are:
+**IMPORTANT NOTE:** when installing this chart for the first time you will get the follow message in your browser when trying to access Sabnzbd: `Access denied - Hostname verification failed: sabnzbd.org/hostname-check`
 
-* login:nzbget
-* password:tegbzn6789
+To address this issue, you can set an environment variable named `HOST_WHITELIST_ENTRIES` with the host(s) you would like added to the `host_whitelist` in the `sabnzbd.ini`
 
 ## Values
 
@@ -79,16 +78,18 @@ The default login details (change ASAP) are:
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| env | object | See below | environment variables. |
+| env.TZ | string | `"UTC"` | Set the container timezone |
 | image.pullPolicy | string | `"IfNotPresent"` | image pull policy |
-| image.repository | string | `"ghcr.io/k8s-at-home/nzbget"` | image repository |
-| image.tag | string | `"v21.1"` | image tag |
+| image.repository | string | `"ghcr.io/k8s-at-home/sabnzbd"` | image repository |
+| image.tag | string | `"v3.3.1"` | image tag |
 | ingress.main | object | See values.yaml | Enable and configure ingress settings for the chart under this key. |
 | persistence | object | See values.yaml | Configure persistence settings for the chart under this key. |
 | service | object | See values.yaml | Configures service settings for the chart. |
 
 ## Changelog
 
-### Version 12.4.2
+### Version 9.4.2
 
 #### Added
 
@@ -104,7 +105,7 @@ N/A
 
 ### Older versions
 
-A historical overview of changes can be found on [ArtifactHUB](https://artifacthub.io/packages/helm/k8s-at-home/nzbget?modal=changelog)
+A historical overview of changes can be found on [ArtifactHUB](https://artifacthub.io/packages/helm/k8s-at-home/sabnzbd?modal=changelog)
 
 ## Support
 
