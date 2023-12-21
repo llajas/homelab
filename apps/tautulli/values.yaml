@@ -132,7 +132,7 @@ persistence:
   logs:
     enabled: true
     mountPath: /plexlogs
-    accessMode: ReadWriteOnce
+    accessModes: ReadWriteOnce
     size: 63Ti
     storageClassName: smb
     volumeName: smb-pv-logs
