@@ -1,4 +1,0 @@
-apiVersion: v2
-name: cifs-flexVol-install
-description: A Helm chart for Kubernetes to install the 'fstab~CIFS' flexVolume plugin to nodes in a kubernetes cluster.
-version: 0.1.0

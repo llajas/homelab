@@ -1,5 +1,0 @@
-# Patterns to ignore when building packages.
-*.pyc
-*.swp
-*.idea
-*.DS_Store
