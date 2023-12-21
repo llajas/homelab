@@ -87,7 +87,7 @@ persistence:
     accessMode: ReadWriteOnce
     size: "63Ti"
     storageClass: "smb"
-    volumeName: smb-pv-media
+    volumeName: smb-pv-media-sonarr
 
 metrics:
   # -- Enable and configure Exportarr sidecar and Prometheus serviceMonitor.
@@ -129,15 +129,3 @@ metrics:
       additionalMetrics: false
       # -- Set to true to enable gathering unknown queue items
       unknownQueueItems: false
-
-        #flexVolume:
-        #  enabled: true
-        #  name: flexvolume
-        #  mountPath: /plexmedia
-        #  driver: fstab/cifs
-        #  fsType: cifs
-        #  options:
-        #    mountOptions: dir_mode=0755,file_mode=0644,noperm,nobrl
-        #    networkPath: \\plex.lajas.tech\media
-        #  secretRef:
-        #    name: smbcreds
