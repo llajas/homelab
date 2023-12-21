@@ -25,9 +25,11 @@ gitea:
       webhook:
         ALLOWED_HOST_LIST: private
   persistence:
+    storageClass: longhorn
   postgresql:
     enabled: true
     persistence:
+      storageClass: longhorn
   postgresql-ha:
     enabled: false
   redis-cluster:
