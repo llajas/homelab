@@ -15,8 +15,8 @@ spec:
   mountOptions:
     - dir_mode=0777
     - file_mode=0777
-    - cache=strict
-    - noserverino
+    - noperm
+    - nobrl
   csi:
     driver: smb.csi.k8s.io
     volumeHandle: {{ .Release.Namespace }}-world-backup
