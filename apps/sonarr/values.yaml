@@ -81,6 +81,13 @@ persistence:
     existingClaim: ""
     storageClassName: "longhorn"
     size: "5Gi"
+  media:
+    enabled: true
+    mountPath: /plexmedia
+    accessMode: ReadWriteOnce
+    size: "63Ti"
+    storageClass: "smb"
+    volumeName: smb-pv-media
 
 metrics:
   # -- Enable and configure Exportarr sidecar and Prometheus serviceMonitor.
