@@ -58,6 +58,3 @@ persistence:
     enabled: true
     mountPath: /app/config
     size: "5Gi"
-
-flexVolume:
-  enabled: false
