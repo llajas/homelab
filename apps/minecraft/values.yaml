@@ -132,7 +132,7 @@ initContainers:
     volumeMounts:
       - name: datadir
         mountPath: /data
-      - name: backup-volume
+      - name: backupdir
         mountPath: /backups
 
 # sidecarContainers:
