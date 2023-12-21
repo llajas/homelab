@@ -24,7 +24,7 @@ spec:
     volumeHandle: {{ .Release.Namespace }}-world-backup
     volumeAttributes:
       source: "//storage.lajas.tech/"
-      subDir: "/minecraft-worlds"
+      subDir: "minecraft-worlds/"
     nodeStageSecretRef:
       name: smbcreds
       namespace: {{ .Release.Namespace }}
