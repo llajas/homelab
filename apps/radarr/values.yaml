@@ -81,11 +81,18 @@ persistence:
     existingClaim: ""
     storageClassName: "longhorn"
     size: "5Gi"
+  media:
+    enabled: true
+    mountPath: /plexmedia
+    accessMode: ReadWriteOnce
+    size: "63Ti"
+    storageClass: "smb"
+    volumeName: smb-pv-media-radarr
 
 metrics:
   # -- Enable and configure Exportarr sidecar and Prometheus serviceMonitor.
   # @default -- See values.yaml
-  enabled: false
+  enabled: true
   serviceMonitor:
     interval: 3m
     scrapeTimeout: 1m
@@ -93,20 +100,20 @@ metrics:
   # -- Enable and configure Prometheus Rules for the chart under this key.
   # @default -- See values.yaml
   prometheusRule:
-    enabled: false
+    enabled: true
     labels: {}
     # -- Configure additionial rules for the chart under this key.
     # @default -- See prometheusrules.yaml
-    rules: []
-      # - alert: RadarrDown
-      #   annotations:
-      #     description: Radarr service is down.
-      #     summary: Radarr is down.
-      #   expr: |
-      #     radarr_system_status == 0
-      #   for: 5m
-      #   labels:
-      #     severity: critical
+    rules:
+      - alert: RadarrDown
+        annotations:
+          description: Radarr service is down.
+          summary: Radarr is down.
+        expr: |
+          radarr_system_status == 0
+        for: 5m
+        labels:
+          severity: critical
   exporter:
     image:
       # -- image repository
@@ -122,15 +129,3 @@ metrics:
       additionalMetrics: false
       # -- Set to true to enable gathering unknown queue items
       unknownQueueItems: false
-
-flexVolume:
-  enabled: true
-  name: flexvolume
-  mountPath: /plexmedia
-  driver: fstab/cifs
-  fsType: cifs
-  options:
-    mountOptions: dir_mode=0755,file_mode=0644,noperm,nobrl
-    networkPath: \\plex.lajas.tech\media
-  secretRef:
-    name: smbcreds
