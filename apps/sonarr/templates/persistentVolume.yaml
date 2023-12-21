@@ -23,7 +23,7 @@ spec:
     driver: smb.csi.k8s.io
     volumeHandle: {{ .Release.Namespace }}-media
     volumeAttributes:
-      source: "//plex.lajas.tech/"
+      source: "//storage.lajas.tech/"
       subDir: "media"
     nodeStageSecretRef:
       name: smbcreds
