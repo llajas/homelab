@@ -121,22 +121,18 @@ persistence:
   ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
   ##   GKE, AWS & OpenStack)
   ##
+  size: 2Gi
   existingClaim: ""
   storageClassName: "longhorn"
   accessModes:
     - ReadWriteOnce
-  size: 2Gi
   ## persistence.skipuninstall -- Do not delete the pvc upon helm uninstall
   skipuninstall: false
-
-flexVolume:
-  enabled: true
-  name: flexvolume
-  mountPath: /plexmedia
-  driver: fstab/cifs
-  fsType: cifs
-  options:
-    mountOptions: dir_mode=0755,file_mode=0644,noperm,nobrl
-    networkPath: \\plex.lajas.tech\plexLogs
-  secretRef:
-    name: smbcreds
+  ## Logging
+  logs:
+    enabled: true
+    mountPath: /plexlogs
+    accessMode: ReadWriteOnce
+    size: 63Ti
+    storageClassName: smb
+    volumeName: smb-pv-logs

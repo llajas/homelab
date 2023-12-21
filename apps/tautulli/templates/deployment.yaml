@@ -119,10 +119,8 @@ spec:
             mountPath: /config
           - name: etc-timezone
             mountPath: /etc/timezone:ro
-          {{- if .Values.flexVolume.enabled }}
-          - name: {{ .Values.flexVolume.name }}
-            mountPath: {{ .Values.flexVolume.mountPath }}
-          {{- end}}
+          - name: logs
+            mountPath: /plexlogs
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
@@ -141,17 +139,9 @@ spec:
       {{- else }}
         emptyDir: {}
       {{- end }}
-      {{- if .Values.flexVolume.enabled }}
-      - name: {{ .Values.flexVolume.name }}
-        flexVolume:
-          driver: {{ .Values.flexVolume.driver }}
-          fsType: {{ .Values.flexVolume.fsType }}
-          options:
-            mountOptions: {{ .Values.flexVolume.options.mountOptions | quote }}
-            networkPath: {{ .Values.flexVolume.options.networkPath | quote }}
-          secretRef:
-            name: {{ .Values.flexVolume.secretRef.name }}
-      {{- end }}
+      - name: logs
+        persistentVolumeClaim:
+          claimName: {{ template "tautulli.fullname" . }}-logs
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
