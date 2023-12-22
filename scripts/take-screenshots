@@ -26,10 +26,6 @@ apps = [
         'url': 'https://argocd.lajas.tech/applications/root'
     },
     {
-        'name': 'vault',
-        'url': 'https://vault.lajas.tech/ui/vault/secrets'
-    },
-    {
         'name': 'tekton',
         'url': 'https://tekton.lajas.tech/#/namespaces/tekton-pipelines/pipelineruns/homelab?pipelineTask=external&step=plan'
     },
