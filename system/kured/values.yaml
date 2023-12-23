@@ -13,7 +13,7 @@ kured:
       image: alpine:latest
       command: ["/bin/sh", "-c"]
       args:
-        - >
+        - |
           REBOOTER_SCRIPT_BASE64="IyEvYmluL2Jhc2gKTE9HX0ZJTEU9Ii92YXIvbG9nL3JlYm9vdGVyX2NoZWNrLmxvZyIKbG9nX21lc3NhZ2UoKSB7CiAgICBlY2hvICIkKFRaPSdBbWVyaWNhL0NoaWNhZ28nIGRhdGUgJyslWS0lbS0lZCAlSDolTTolUyAlWicpOiAkMSIgPj4gIiRMT0dfRklMRSIKfQppZiBbIC1mICIvdmFyL3J1bi9yZWJvb3QtcmVxdWlyZWQiIF07IHRoZW4KICAgIGxvZ19tZXNzYWdlICJSZWJvb3QgcmVxdWlyZWQgZHVlIHRvIC92YXIvcnVuL3JlYm9vdC1yZXF1aXJlZCBmaWxlLiIKICAgIGV4aXQgMApmaQppZiAhIG5lZWRzLXJlc3RhcnRpbmcgLS1yZWJvb3RoaW50OyB0aGVuCiAgICBsb2dfbWVzc2FnZSAiTm8gcmVib290IG5lZWRlZCBhY2NvcmRpbmcgdG8gbmVlZHMtcmVzdGFydGluZy4iCiAgICBleGl0IDAKZmkKbG9nX21lc"
           if [ ! -f /host/usr/local/bin/rebooter.sh ]; then
             echo "Deploying rebooter script..."
