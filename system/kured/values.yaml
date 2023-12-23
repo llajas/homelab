@@ -16,7 +16,7 @@ kured:
         - >
           if [ ! -f /host/usr/local/bin/rebooter.sh ]; then
             echo "Deploying rebooter script...";
-            echo '#!/bin/bash\n\nLOG_FILE="/var/log/rebooter_check.log"\n\nlog_message() {\n    echo "$(TZ='"'"'America/Chicago'"'"' date '"'"'+%Y-%m-%d %H:%M:%S %Z'"'"'): $1" >> "$LOG_FILE"\n}\n\nif [ -f "/var/run/reboot-required" ]; then\n    log_message "Reboot required due to /var/run/reboot-required file."\n    exit 0\nfi\n\nif ! needs-restarting --reboothint; then\n    log_message "No reboot needed according to needs-restarting."\n    exit 0\nfi\n\nlog_message "No reboot required."\nexit 1' > /host/usr/local/bin/rebooter.sh &&
+            echo -e '#!/bin/bash\n\nLOG_FILE="/var/log/rebooter_check.log"\n\nlog_message() {\n    echo "$(TZ=\'America/Chicago\' date \'+%Y-%m-%d %H:%M:%S %Z\'): $1" >> "$LOG_FILE"\n}\n\nif [ -f "/var/run/reboot-required" ]; then\n    log_message "Reboot required due to /var/run/reboot-required file."\n    exit 0\nfi\n\nif ! needs-restarting --reboothint; then\n    log_message "No reboot needed according to needs-restarting."\n    exit 0\nfi\n\nlog_message "No reboot required."\nexit 1' > /host/usr/local/bin/rebooter.sh &&
             chmod +x /host/usr/local/bin/rebooter.sh
           else
             echo "rebooter.sh script already exists. Skipping deployment.";
