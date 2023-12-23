@@ -400,7 +400,7 @@ hostname: ""
 hostNetwork: "false"
 
 # -- should container run in privileged mode
-privileged: "false"
+privileged: "true"
 
 customVolumes:
   # -- set this to true to enable custom volumes
@@ -456,10 +456,10 @@ extraObjects: []
   #       }
 
 # -- Additional annotations for pods
-podAnnotations: {}
+podAnnotations:
   # Example below allows Prometheus to scape on metric port (requires pihole-exporter sidecar enabled)
-  # prometheus.io/port: '9617'
-  # prometheus.io/scrape: 'true'
+  prometheus.io/port: '9617'
+  prometheus.io/scrape: 'true'
 
 monitoring:
   # -- Preferably adding prometheus scrape annotations rather than enabling podMonitor.
@@ -469,7 +469,7 @@ monitoring:
   # -- Sidecar configuration
   sidecar:
     # -- set this to true to enable podMonitor as sidecar
-    enabled: false
+    enabled: true
     port: 9617
     image:
       repository: ekofr/pihole-exporter
