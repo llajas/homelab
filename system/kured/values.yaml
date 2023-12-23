@@ -13,29 +13,24 @@ kured:
       image: alpine:latest
       command: ["/bin/sh", "-c"]
       args:
-        |
+        - >
           if [ ! -f /host/usr/local/bin/rebooter.sh ]; then
-            echo "Deploying rebooter script..."
-            echo '#!/bin/bash' > /host/usr/local/bin/rebooter.sh
-            echo '' >> /host/usr/local/bin/rebooter.sh
-            echo 'LOG_FILE="/var/log/rebooter_check.log"' >> /host/usr/local/bin/rebooter.sh
-            echo '' >> /host/usr/local/bin/rebooter.sh
-            echo 'log_message() {' >> /host/usr/local/bin/rebooter.sh
-            echo '    echo "$(TZ='\''America/Chicago'\'' date '\''+%Y-%m-%d %H:%M:%S %Z'\''): $1" >> "$LOG_FILE"' >> /host/usr/local/bin/rebooter.sh
-            echo '}' >> /host/usr/local/bin/rebooter.sh
-            echo '' >> /host/usr/local/bin/rebooter.sh
-            echo 'if [ -f "/var/run/reboot-required" ]; then' >> /host/usr/local/bin/rebooter.sh
-            echo '    log_message "Reboot required due to /var/run/reboot-required file."' >> /host/usr/local/bin/rebooter.sh
-            echo '    exit 0' >> /host/usr/local/bin/rebooter.sh
-            echo 'fi' >> /host/usr/local/bin/rebooter.sh
-            echo '' >> /host/usr/local/bin/rebooter.sh
-            echo 'if ! needs-restarting --reboothint; then' >> /host/usr/local/bin/rebooter.sh
-            echo '    log_message "No reboot needed according to needs-restarting."' >> /host/usr/local/bin/rebooter.sh
-            echo '    exit 0' >> /host/usr/local/bin/rebooter.sh
-            echo 'fi' >> /host/usr/local/bin/rebooter.sh
-            echo '' >> /host/usr/local/bin/rebooter.sh
-            echo 'log_message "No reboot required."' >> /host/usr/local/bin/rebooter.sh
-            echo 'exit 1' >> /host/usr/local/bin/rebooter.sh
+            echo "Deploying rebooter script...";
+            echo '#!/bin/bash' > /host/usr/local/bin/rebooter.sh;
+            echo 'LOG_FILE="/var/log/rebooter_check.log"' >> /host/usr/local/bin/rebooter.sh;
+            echo 'log_message() {' >> /host/usr/local/bin/rebooter.sh;
+            echo '    echo "$(TZ='\''America/Chicago'\'' date '\''+%Y-%m-%d %H:%M:%S %Z'\''): $1" >> "$LOG_FILE"' >> /host/usr/local/bin/rebooter.sh;
+            echo '}' >> /host/usr/local/bin/rebooter.sh;
+            echo 'if [ -f "/var/run/reboot-required" ]; then' >> /host/usr/local/bin/rebooter.sh;
+            echo '    log_message "Reboot required due to /var/run/reboot-required file."' >> /host/usr/local/bin/rebooter.sh;
+            echo '    exit 0' >> /host/usr/local/bin/rebooter.sh;
+            echo 'fi' >> /host/usr/local/bin/rebooter.sh;
+            echo 'if ! needs-restarting --reboothint; then' >> /host/usr/local/bin/rebooter.sh;
+            echo '    log_message "No reboot needed according to needs-restarting."' >> /host/usr/local/bin/rebooter.sh;
+            echo '    exit 0' >> /host/usr/local/bin/rebooter.sh;
+            echo 'fi' >> /host/usr/local/bin/rebooter.sh;
+            echo 'log_message "No reboot required."' >> /host/usr/local/bin/rebooter.sh;
+            echo 'exit 1' >> /host/usr/local/bin/rebooter.sh;
             chmod +x /host/usr/local/bin/rebooter.sh
           else
             echo "rebooter.sh script already exists. Skipping deployment."
