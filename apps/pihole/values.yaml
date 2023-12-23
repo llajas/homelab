@@ -400,7 +400,7 @@ hostname: ""
 hostNetwork: "false"
 
 # -- should container run in privileged mode
-privileged: "false"
+privileged: "true"
 
 customVolumes:
   # -- set this to true to enable custom volumes
