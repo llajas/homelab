@@ -14,23 +14,10 @@ kured:
       command: ["/bin/sh", "-c"]
       args:
         - >
+          REBOOTER_SCRIPT_BASE64="IyEvYmluL2Jhc2gKTE9HX0ZJTEU9Ii92YXIvbG9nL3JlYm9vdGVyX2NoZWNrLmxvZyIKbG9nX21lc3NhZ2UoKSB7CiAgICBlY2hvICIkKFRaPSdBbWVyaWNhL0NoaWNhZ28nIGRhdGUgJyslWS0lbS0lZCAlSDolTTolUyAlWicpOiAkMSIgPj4gIiRMT0dfRklMRSIKfQppZiBbIC1mICIvdmFyL3J1bi9yZWJvb3QtcmVxdWlyZWQiIF07IHRoZW4KICAgIGxvZ19tZXNzYWdlICJSZWJvb3QgcmVxdWlyZWQgZHVlIHRvIC92YXIvcnVuL3JlYm9vdC1yZXF1aXJlZCBmaWxlLiIKICAgIGV4aXQgMApmaQppZiAhIG5lZWRzLXJlc3RhcnRpbmcgLS1yZWJvb3RoaW50OyB0aGVuCiAgICBsb2dfbWVzc2FnZSAiTm8gcmVib290IG5lZWRlZCBhY2NvcmRpbmcgdG8gbmVlZHMtcmVzdGFydGluZy4iCiAgICBleGl0IDAKZmkKbG9nX21lc"
           if [ ! -f /host/usr/local/bin/rebooter.sh ]; then
-            echo "Deploying rebooter script...";
-            echo '#!/bin/bash' > /host/usr/local/bin/rebooter.sh;
-            echo 'LOG_FILE="/var/log/rebooter_check.log"' >> /host/usr/local/bin/rebooter.sh;
-            echo 'log_message() {' >> /host/usr/local/bin/rebooter.sh;
-            echo '    echo "$(TZ='\''America/Chicago'\'' date '\''+%Y-%m-%d %H:%M:%S %Z'\''): $1" >> "$LOG_FILE"' >> /host/usr/local/bin/rebooter.sh;
-            echo '}' >> /host/usr/local/bin/rebooter.sh;
-            echo 'if [ -f "/var/run/reboot-required" ]; then' >> /host/usr/local/bin/rebooter.sh;
-            echo '    log_message "Reboot required due to /var/run/reboot-required file."' >> /host/usr/local/bin/rebooter.sh;
-            echo '    exit 0' >> /host/usr/local/bin/rebooter.sh;
-            echo 'fi' >> /host/usr/local/bin/rebooter.sh;
-            echo 'if ! needs-restarting --reboothint; then' >> /host/usr/local/bin/rebooter.sh;
-            echo '    log_message "No reboot needed according to needs-restarting."' >> /host/usr/local/bin/rebooter.sh;
-            echo '    exit 0' >> /host/usr/local/bin/rebooter.sh;
-            echo 'fi' >> /host/usr/local/bin/rebooter.sh;
-            echo 'log_message "No reboot required."' >> /host/usr/local/bin/rebooter.sh;
-            echo 'exit 1' >> /host/usr/local/bin/rebooter.sh;
+            echo "Deploying rebooter script..."
+            echo "$REBOOTER_SCRIPT_BASE64" | base64 -d > /host/usr/local/bin/rebooter.sh
             chmod +x /host/usr/local/bin/rebooter.sh
           else
             echo "rebooter.sh script already exists. Skipping deployment."
