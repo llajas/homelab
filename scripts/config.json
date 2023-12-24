@@ -1,0 +1,8 @@
+{
+    "seed_repo": "https://github.com/brimdor/homelab-llajas",
+    "domain": "falconpunch.org",
+    "timezone": "America/Chicago",
+    "terraform_organization": "brimdor2",
+    "loadbalancer_ip_range": "10.150.0.200/27",
+    "storage_type": "nfs"
+}

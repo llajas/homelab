@@ -8,7 +8,7 @@ jellyfin:
         hajimari.io/appName: Jellyfin
         hajimari.io/icon: filmstrip
       hosts:
-        - host: &host jellyfin.lajas.tech
+        - host: &host jellyfin.falconpunch.org
           paths:
             - path: /
               pathType: Prefix

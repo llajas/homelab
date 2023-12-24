@@ -40,7 +40,7 @@ spec:
         - name: DOCKERFILE
           value: ./Dockerfile.tools
         - name: IMAGE
-          value: &toolsImage registry.lajas.tech/homelab-tools:$(params.git_revision)
+          value: &toolsImage registry.falconpunch.org/homelab-tools:$(params.git_revision)
         - name: EXTRA_ARGS
           value:
             - --cache=true

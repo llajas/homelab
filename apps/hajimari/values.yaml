@@ -9,7 +9,7 @@ hajimari:
         cert-manager.io/cluster-issuer: letsencrypt-prod
         hajimari.io/enable: 'false'
       hosts:
-        - host: &host home.lajas.tech
+        - host: &host home.falconpunch.org
           paths:
             - path: /
               pathType: Prefix
@@ -25,7 +25,7 @@ hajimari:
       - group: Homelab
         bookmarks:
           - name: Documentation
-            url: https://homelab.lajas.tech
+            url: https://homelab.falconpunch.org
           - name: Public GitHub repository
             url: https://github.com/llajas/homelab
       - group: Managed services

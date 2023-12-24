@@ -58,11 +58,11 @@ ingress:
     hajimari.io/appName: Homebridge
     hajimari.io/icon: home-automation
   hosts:
-    - homebridge.lajas.tech
+    - homebridge.falconpunch.org
   tls:
     - secretName: homebridge-tls-certificate
       hosts:
-        - homebridge.lajas.tech
+        - homebridge.falconpunch.org
 persistence:
   # persistence.enabled - Should disk persistence be enabled
   enabled: true

@@ -25,7 +25,7 @@ argo-cd:
         hajimari.io/appName: ArgoCD
         hajimari.io/icon: robot
       hosts:
-        - &host argocd.lajas.tech
+        - &host argocd.falconpunch.org
       tls:
         - secretName: argocd-tls-certificate
           hosts:

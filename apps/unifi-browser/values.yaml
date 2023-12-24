@@ -35,9 +35,9 @@ ingress:
     ingressclassName: nginx
     annotations:
       certManagerClusterIssuer: letsencrypt-prod
-    host: unifi-browser.lajas.tech
+    host: unifi-browser.falconpunch.org
     path: /
     pathType: Prefix
     tls:
       secretName: unifibrowser-tls
-      host: unifi-browser.lajas.tech
+      host: unifi-browser.falconpunch.org

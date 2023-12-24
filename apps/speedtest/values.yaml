@@ -8,7 +8,7 @@ openspeedtest:
       hajimari.io/appName: Speedtest
       hajimari.io/icon: speedometer
     hosts:
-      - host: &host speedtest.lajas.tech
+      - host: &host speedtest.falconpunch.org
         paths:
           - path: /
             pathType: Prefix

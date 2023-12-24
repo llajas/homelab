@@ -40,7 +40,7 @@ ingress:
       hajimari.io/appName: Radarr
       hajimari.io/icon: radar
     hosts:
-      - host: &host radarr.lajas.tech
+      - host: &host radarr.falconpunch.org
         paths:
           - path: /
             pathType: Prefix
@@ -131,6 +131,6 @@ flexVolume:
   fsType: cifs
   options:
     mountOptions: dir_mode=0755,file_mode=0644,noperm,nobrl
-    networkPath: \\plex.lajas.tech\media
+    networkPath: \\plex.falconpunch.org\media
   secretRef:
     name: smbcreds

@@ -1,6 +1,6 @@
 dex:
   config:
-    issuer: https://dex.lajas.tech
+    issuer: https://dex.falconpunch.org
     storage:
       type: kubernetes
       config:
@@ -14,13 +14,13 @@ dex:
         config:
           clientID: $GITEA_CLIENT_ID
           clientSecret: $GITEA_CLIENT_SECRET
-          redirectURI: https://dex.lajas.tech/callback
-          baseURL: https://git.lajas.tech
+          redirectURI: https://dex.falconpunch.org/callback
+          baseURL: https://git.falconpunch.org
     staticClients:
       - id: grafana-sso
         name: Grafana
         redirectURIs:
-          - 'https://grafana.lajas.tech/login/generic_oauth'
+          - 'https://grafana.falconpunch.org/login/generic_oauth'
         secretEnv: GRAFANA_SSO_CLIENT_SECRET
   envFrom:
     - secretRef:
@@ -32,7 +32,7 @@ dex:
       cert-manager.io/cluster-issuer: letsencrypt-prod
       hajimari.io/enable: 'false'
     hosts:
-      - host: &host dex.lajas.tech
+      - host: &host dex.falconpunch.org
         paths:
           - path: /
             pathType: ImplementationSpecific

@@ -10,7 +10,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: longhorn.lajas.tech
+  - host: longhorn.falconpunch.org
     http:
       paths:
       - pathType: Prefix
@@ -22,7 +22,7 @@ spec:
               number: 80
   tls:
   - hosts:
-    - longhorn.lajas.tech
+    - longhorn.falconpunch.org
     secretName: longhorn-tls-certificate
 status:
   loadBalancer:
