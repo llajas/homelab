@@ -48,12 +48,12 @@ def load_config():
     except FileNotFoundError:
         # Return a default configuration if the file is not found
         return {
-            "seed_repo": "https://github.com/<username>/<repo>",
-            "domain": "<domain>",
+            "seed_repo": "https://github.com/llajas/homelab",
+            "domain": "lajas.tech",
             "timezone": "America/Chicago",
-            "terraform_organization": "<org_name>",
+            "terraform_organization": "llajas",
             "loadbalancer_ip_range": "10.137.0.224/27",
-            "storage_type": "None",
+            "storage_type": "cifs",
         }
 
 # Function to save the configuration to a JSON file
