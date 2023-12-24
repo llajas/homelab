@@ -51,7 +51,7 @@ containers:
         - "fe80::/10"
 
       privateDomains:
-        - "lajas.tech"
+        - "falconpunch.org"
 
       # You can set as many forward zones as needed by specifying the zone name
       # and forward hosts. Forward hosts can be set by hostname or ip.

@@ -40,7 +40,7 @@ ingress:
       hajimari.io/appName: Sonarr
       hajimari.io/icon: television-classic
     hosts:
-      - host: &host sonarr.lajas.tech
+      - host: &host sonarr.falconpunch.org
         paths:
           - path: /
             pathType: Prefix
@@ -131,6 +131,6 @@ flexVolume:
   fsType: cifs
   options:
     mountOptions: dir_mode=0755,file_mode=0644,noperm,nobrl
-    networkPath: \\plex.lajas.tech\media
+    networkPath: \\plex.falconpunch.org\media
   secretRef:
     name: smbcreds

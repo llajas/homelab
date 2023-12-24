@@ -4,12 +4,12 @@ elementweb:
     className: nginx
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-prod
-      external-dns.alpha.kubernetes.io/target: "homelab-tunnel.lajas.tech"
+      external-dns.alpha.kubernetes.io/target: "homelab-tunnel.falconpunch.org"
       external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
       hajimari.io/appName: Chat
       hajimari.io/icon: chat
     hosts:
-      - host: &frontend_host chat.lajas.tech
+      - host: &frontend_host chat.falconpunch.org
         paths:
           - path: /
             pathType: Prefix
@@ -19,8 +19,8 @@ elementweb:
           - *frontend_host
   config:
     default:
-      base_url: https://matrix.lajas.tech
-      server_name: lajas.tech
+      base_url: https://matrix.falconpunch.org
+      server_name: falconpunch.org
 
 dendrite:
   polylith: false
@@ -29,7 +29,7 @@ dendrite:
     pullPolicy: IfNotPresent
   configuration:
     version: 2
-    servername: &backend_host matrix.lajas.tech
+    servername: &backend_host matrix.falconpunch.org
     database:
       host: matrix-postgresql:5432
       user: dendrite
@@ -70,7 +70,7 @@ dendrite:
     className: nginx
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-prod
-      external-dns.alpha.kubernetes.io/target: "homelab-tunnel.lajas.tech"
+      external-dns.alpha.kubernetes.io/target: "homelab-tunnel.falconpunch.org"
       external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
       nginx.ingress.kubernetes.io/proxy-body-size: 32m
       hajimari.io/enable: 'false'

@@ -74,7 +74,7 @@ spec:
     spec:
       ingressClassName: nginx
       rules:
-        - host: &host vault.lajas.tech
+        - host: &host vault.falconpunch.org
           http:
             paths:
               - backend:

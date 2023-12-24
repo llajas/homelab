@@ -1,4 +1,4 @@
-module git.lajas.tech/ops/homelab/gitea/config
+module git.falconpunch.org/ops/homelab/gitea/config
 
 go 1.19
 

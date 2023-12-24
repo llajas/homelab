@@ -83,11 +83,11 @@ ingress:
     hajimari.io/icon: movie-cog
     # kubernetes.io/tls-acme: "true"
   hosts:
-    - tautulli.lajas.tech
+    - tautulli.falconpunch.org
   tls:
     - secretName: tautulli-tls-certificate
       hosts:
-        - tautulli.lajas.tech
+        - tautulli.falconpunch.org
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
@@ -137,6 +137,6 @@ flexVolume:
   fsType: cifs
   options:
     mountOptions: dir_mode=0755,file_mode=0644,noperm,nobrl
-    networkPath: \\plex.lajas.tech\plexLogs
+    networkPath: \\plex.falconpunch.org\plexLogs
   secretRef:
     name: smbcreds

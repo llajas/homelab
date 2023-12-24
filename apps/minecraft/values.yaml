@@ -169,7 +169,7 @@ extraVolumes:
           fsType: "cifs"
           options:
             mountOptions: "dir_mode=0755,file_mode=0644,noperm,nobrl"
-            networkPath: \\storage.lajas.tech\minecraft-worlds
+            networkPath: \\storage.falconpunch.org\minecraft-worlds
           secretRef:
             name: smbcreds
 
@@ -468,7 +468,7 @@ deploymentAnnotations: {}
 deploymentLabels: {}
 
 serviceAnnotations:
-  external-dns.alpha.kubernetes.io/hostname: "bluffcraft.lajas.tech"
+  external-dns.alpha.kubernetes.io/hostname: "bluffcraft.falconpunch.org"
 serviceLabels: {}
 
 rconServiceAnnotations: {}

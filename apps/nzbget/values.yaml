@@ -32,7 +32,7 @@ ingress:
       hajimari.io/appName: NZBGet
       hajimari.io/icon: file-arrow-up-down-outline
     hosts:
-      - host: &host nzbget.lajas.tech
+      - host: &host nzbget.falconpunch.org
         paths:
           - path: /
             pathType: Prefix

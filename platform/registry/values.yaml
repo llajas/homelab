@@ -3,7 +3,7 @@ docker-registry:
     enabled: true
     className: nginx
     hosts:
-      - &host registry.lajas.tech
+      - &host registry.falconpunch.org
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-prod
       nginx.ingress.kubernetes.io/ssl-redirect: "true"

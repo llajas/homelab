@@ -40,7 +40,7 @@ ingress:
       hajimari.io/appName: Prowlarr
       hajimari.io/icon: paw
     hosts:
-      - host: &host prowlarr.lajas.tech
+      - host: &host prowlarr.falconpunch.org
         paths:
           - path: /
             pathType: Prefix

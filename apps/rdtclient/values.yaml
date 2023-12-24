@@ -24,12 +24,12 @@ ingress:
       certManagerClusterIssuer: letsencrypt-prod
       hajimariAppName: RDT-Client
       hajimariIcon: cloud-download
-    host: rdclient.lajas.tech
+    host: rdclient.falconpunch.org
     path: /
     pathType: Prefix
     tls:
       secretName: rdtclient-tls-certificate
-      host: rdclient.lajas.tech
+      host: rdclient.falconpunch.org
 
 volumes:
   downloads:
@@ -41,7 +41,7 @@ volumes:
       fsType: cifs
       options:
         mountOptions: dir_mode=0755,file_mode=0644,noperm,nobrl
-        networkPath: \\plex.lajas.tech\downloads
+        networkPath: \\plex.falconpunch.org\downloads
       secretRef:
         name: smbcreds
   db:

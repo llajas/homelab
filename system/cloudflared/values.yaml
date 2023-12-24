@@ -4,7 +4,7 @@ cloudflared:
   config:
     tunnel: homelab
     ingress:
-      - hostname: '*.lajas.tech'
+      - hostname: '*.falconpunch.org'
         service: https://ingress-nginx-controller.ingress-nginx
         originRequest:
           noTLSVerify: true

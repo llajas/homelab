@@ -39,7 +39,7 @@ ingress:
       hajimari.io/appName: Home-Assistant
       hajimari.io/icon: home-assistant
     hosts:
-      - host: &host home-assistant.lajas.tech
+      - host: &host home-assistant.falconpunch.org
         paths:
           - path: /
             pathType: Prefix

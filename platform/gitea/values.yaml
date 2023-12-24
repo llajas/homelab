@@ -7,7 +7,7 @@ gitea:
       hajimari.io/appName: Gitea
       hajimari.io/icon: git
     hosts:
-      - host: &host git.lajas.tech
+      - host: &host git.falconpunch.org
         paths:
           - path: /
             pathType: Prefix
@@ -21,7 +21,7 @@ gitea:
     config:
       server:
         LANDING_PAGE: explore
-        ROOT_URL: https://git.lajas.tech
+        ROOT_URL: https://git.falconpunch.org
       webhook:
         ALLOWED_HOST_LIST: private
   persistence:

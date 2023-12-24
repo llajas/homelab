@@ -1,4 +1,4 @@
-module git.lajas.tech/ops/homelab/vault/init
+module git.falconpunch.org/ops/homelab/vault/init
 
 go 1.19
 

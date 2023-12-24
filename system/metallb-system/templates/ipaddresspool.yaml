@@ -5,4 +5,4 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   addresses:
-    - 10.137.0.224/27
+    - 10.150.0.200/27

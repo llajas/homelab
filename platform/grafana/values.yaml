@@ -7,7 +7,7 @@ grafana:
       hajimari.io/appName: Grafana
       hajimari.io/icon: chart-bar
     hosts:
-      - &host grafana.lajas.tech
+      - &host grafana.falconpunch.org
     tls:
       - secretName: grafana-general-tls
         hosts:
@@ -22,7 +22,7 @@ grafana:
   envFromSecret: grafana-secrets
   grafana.ini:
     server:
-      root_url: https://grafana.lajas.tech
+      root_url: https://grafana.falconpunch.org
     auth.generic_oauth:
       enabled: true
       allow_sign_up: true
@@ -30,8 +30,8 @@ grafana:
       client_id: grafana-sso
       client_secret: $__env{GRAFANA_SSO_CLIENT_SECRET}
       scopes: openid profile email groups
-      auth_url: https://dex.lajas.tech/auth
-      token_url: https://dex.lajas.tech/token
-      api_url: https://dex.lajas.tech/userinfo
+      auth_url: https://dex.falconpunch.org/auth
+      token_url: https://dex.falconpunch.org/token
+      api_url: https://dex.falconpunch.org/userinfo
   persistence:
     enabled: true

@@ -55,7 +55,7 @@ ingress:
       hajimari.io/appName: node-RED
       hajimari.io/icon: resistor-nodes
     hosts:
-      - host: &host node-red.lajas.tech
+      - host: &host node-red.falconpunch.org
         paths:
           - path: /
             pathType: Prefix

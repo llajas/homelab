@@ -10,7 +10,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: &host tekton.lajas.tech
+    - host: &host tekton.falconpunch.org
       http:
         paths:
           - pathType: ImplementationSpecific
