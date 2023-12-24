@@ -1,0 +1,28 @@
+apiVersion: v2
+name: plex-apps
+description: A Helm chart for Plex apps & automations
+type: application
+version: 0.1.0
+appVersion: 1.16.0
+dependencies:
+  - name: overseerr
+    version: 5.4.2
+    repository: "file://./charts/overseerr"
+  - name: prowlarr
+    version: 4.5.2
+    repository: "file://./charts/prowlarr"
+  - name: radarr
+    version: 16.3.2
+    repository: "file://./charts/radarr"
+  - name: rdtclient
+    version: 0.1.0
+    repository: "file://./charts/rdtclient"
+  - name: sabnzbd
+    version: 9.4.2
+    repository: "file://./charts/sabnzbd"
+  - name: sonarr
+    version: 16.3.2
+    repository: "file://./charts/sonarr"
+  - name: tautulli
+    version: 1.1.5
+    repository: "file://./charts/tautulli"
