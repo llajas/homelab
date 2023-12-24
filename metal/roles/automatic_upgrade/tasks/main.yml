@@ -3,6 +3,7 @@
     name:
       - dnf-automatic
       - dnf-utils
+      - jq
 
 - name: Copy automatic upgrade config file
   ansible.builtin.copy:
