@@ -21,7 +21,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ template "tautulli.fullname" . }}plex-logs
+  name: {{ template "tautulli.fullname" . }}-plex-logs
   labels:
 {{ include "tautulli.labels" . | indent 4 }}
   annotations:
