@@ -87,7 +87,7 @@ persistence:
     accessMode: ReadWriteOnce
     size: "63Ti"
     storageClass: "smb"
-    volumeName: smb-pv-media-radarr
+    volumeName: plex-apps-radarr-cifs-share
 
 metrics:
   # -- Enable and configure Exportarr sidecar and Prometheus serviceMonitor.

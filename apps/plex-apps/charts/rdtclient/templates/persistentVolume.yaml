@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: smb-pv-media-rdtclient
+  name: {{ .Values.volumes.downloads.pvc.volumeName }}
   namespace: {{ .Release.Namespace }}
   annotations:
     pv.kubernetes.io/provisioned-by: smb.csi.k8s.io

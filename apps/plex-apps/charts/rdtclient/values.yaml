@@ -39,7 +39,7 @@ volumes:
       accessModes: ReadWriteOnce
       storageSize: "63Ti"
       storageClassName: "smb"
-      volumeName: smb-pv-media-rdtclient
+      volumeName: plex-apps-rdtclient-cifs-share
 
   db:
     pvc:

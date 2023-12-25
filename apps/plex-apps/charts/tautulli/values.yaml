@@ -136,4 +136,4 @@ persistence:
       - ReadWriteOnce
     size: 63Ti
     storageClassName: smb
-    volumeName: smb-pv-logs
+    volumeName: plex-apps-tautulli-cifs-share

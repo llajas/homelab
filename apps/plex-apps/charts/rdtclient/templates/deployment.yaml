@@ -21,7 +21,7 @@ spec:
         - containerPort: 6500
           name: http
         volumeMounts:
-        - name: "{{ template "rdtclient.fullname" . }}-media"
+        - name: "{{ template "rdtclient.fullname" . }}-downloads"
           mountPath: "{{ .Values.volumes.downloads.pvc.mountPath }}"
         - name: "{{ template "rdtclient.fullname" . }}-config"
           mountPath: "{{ .Values.volumes.db.pvc.mountPath }}"
