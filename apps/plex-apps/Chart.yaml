@@ -26,3 +26,6 @@ dependencies:
   - name: tautulli
     version: 1.1.5
     repository: "file://./charts/tautulli"
+  - name: common
+    version: 4.5.2
+    repository: "file://./charts/common"

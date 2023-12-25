@@ -26,5 +26,5 @@ spec:
       source: "//storage.lajas.tech/"
       subDir: "media"
     nodeStageSecretRef:
-      name: smbcreds
+      name: smb-credentials
       namespace: {{ .Release.Namespace }}

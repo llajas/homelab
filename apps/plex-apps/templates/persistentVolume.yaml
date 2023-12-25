@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: smb-pv-logs
+  name: plex-cifs
   namespace: {{ .Release.Namespace }}
   annotations:
     pv.kubernetes.io/provisioned-by: smb.csi.k8s.io
@@ -21,10 +21,9 @@ spec:
     - noserverino
   csi:
     driver: smb.csi.k8s.io
-    volumeHandle: {{ .Release.Namespace }}-plex-logs
+    volumeHandle: {{ .Release.Namespace }}-cifs
     volumeAttributes:
       source: "//storage.lajas.tech/"
-      subDir: "plexLogs"
     nodeStageSecretRef:
-      name: smb-credentials
+      name: smb-creds
       namespace: {{ .Release.Namespace }}

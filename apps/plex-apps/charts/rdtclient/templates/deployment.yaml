@@ -21,14 +21,14 @@ spec:
         - containerPort: 6500
           name: http
         volumeMounts:
-        - name: "{{ .Values.volumes.downloads.pvc.name }}"
+        - name: "{{ template "rdtclient.fullname" . }}-media"
           mountPath: "{{ .Values.volumes.downloads.pvc.mountPath }}"
-        - name: "{{ .Values.volumes.db.pvc.name }}"
+        - name: "{{ template "rdtclient.fullname" . }}-config"
           mountPath: "{{ .Values.volumes.db.pvc.mountPath }}"
       volumes:
-      - name: "{{ .Values.volumes.downloads.pvc.name }}"
+      - name: "{{ template "rdtclient.fullname" . }}-media"
         persistentVolumeClaim:
           claimName: "{{ .Values.volumes.downloads.pvc.name }}"
-      - name: "{{ .Values.volumes.db.pvc.name }}"
+      - name: "{{ template "rdtclient.fullname" . }}-media"
         persistentVolumeClaim:
           claimName: "{{ .Values.volumes.db.pvc.name }}"
