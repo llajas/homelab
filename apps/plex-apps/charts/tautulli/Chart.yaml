@@ -16,8 +16,8 @@ maintainers:
     email: helm@gavinmogan.com
 annotations:
   artifacthub.io/changes: |
-    - update to tautulli 2.12.5
+    - update to tautulli 2.13.4
   artifacthub.io/containsSecurityUpdates: "false"
   artifacthub.io/images: |
     - name: tautulli
-      image: tautulli/tautulli:v2.13.1
+      image: tautulli/tautulli:v2.13.4
