@@ -23,7 +23,6 @@ When creating a new PVC using the SMB CSI Driver without any existing backing PV
 !!! example
 
     ```yaml
-    ---
     apiVersion: v1
     kind: PersistentVolume
     metadata:
@@ -56,4 +55,4 @@ When creating a new PVC using the SMB CSI Driver without any existing backing PV
         nodeStageSecretRef:
           name: smbcreds
           namespace: default
-      ```
+    ```
