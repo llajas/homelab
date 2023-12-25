@@ -6,10 +6,18 @@ Configuration for the backup can be seen below:
 
 !!! example
 
-    ```yaml title="system/longhorn-system/templates/backup.yaml"
-    --8<--
-    system/longhorn-system/templates/backup.yaml
-    --8<--
+    ```yaml
+    apiVersion: longhorn.io/v1beta2
+    kind: Setting
+    metadata:
+      name: backup-target
+    value: smb-server.default.svc.cluster.local/share
+    ---
+    apiVersion: longhorn.io/v1beta2
+    kind: Setting
+    metadata:
+      name: backup-target-credential-secret
+    value: longhorn-backup-creds
     ```
 
 Future implementations may include a different approach using Minio.
