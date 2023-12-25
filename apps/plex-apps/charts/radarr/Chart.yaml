@@ -19,7 +19,7 @@ maintainers:
     email: jeff@billimek.com
 dependencies:
   - name: common
-    repository: file://../common/
+    repository: file://../../common
     version: 4.5.2
 annotations:
   artifacthub.io/changes: |-
