@@ -21,7 +21,7 @@ spec:
     - noserverino
   csi:
     driver: smb.csi.k8s.io
-    volumeHandle: {{ .Release.Namespace }}-logs
+    volumeHandle: {{ .Release.Namespace }}-plex-logs
     volumeAttributes:
       source: "//storage.lajas.tech/"
       subDir: "plexLogs"
