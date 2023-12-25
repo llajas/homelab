@@ -141,7 +141,7 @@ spec:
       {{- end }}
       - name: logs
         persistentVolumeClaim:
-          claimName: {{ template "tautulli.fullname" . }}-logs
+          claimName: {{ template "tautulli.fullname" . }}-plex-logs
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
