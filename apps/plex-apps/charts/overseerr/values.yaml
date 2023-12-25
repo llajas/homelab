@@ -58,3 +58,14 @@ persistence:
     enabled: true
     mountPath: /app/config
     size: "5Gi"
+      #    accessMode: "ReadWriteOnce"
+      #
+      #addons:
+      #  codeserver:
+      #    enabled: false
+      #  vpn:
+      #    enabled: false
+      #  promtail:
+      #    enabled: false
+      #  netshoot:
+      #    enabled: false
