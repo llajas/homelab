@@ -92,7 +92,7 @@ persistence:
 metrics:
   # -- Enable and configure Exportarr sidecar and Prometheus serviceMonitor.
   # @default -- See values.yaml
-  enabled: true
+  enabled: false
   serviceMonitor:
     interval: 3m
     scrapeTimeout: 1m
