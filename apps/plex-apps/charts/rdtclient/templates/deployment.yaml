@@ -26,9 +26,9 @@ spec:
         - name: "{{ template "rdtclient.fullname" . }}-config"
           mountPath: "{{ .Values.volumes.db.pvc.mountPath }}"
       volumes:
-      - name: "{{ template "rdtclient.fullname" . }}-media"
+      - name: "{{ template "rdtclient.fullname" . }}-downloads"
         persistentVolumeClaim:
-          claimName: "{{ template "rdtclient.fullname" . }}-media"
+          claimName: "{{ template "rdtclient.fullname" . }}-downloads"
       - name: "{{ template "rdtclient.fullname" . }}-config"
         persistentVolumeClaim:
           claimName: "{{ template "rdtclient.fullname" . }}-config"
