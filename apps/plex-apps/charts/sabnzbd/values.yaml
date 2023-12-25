@@ -61,4 +61,4 @@ persistence:
     storageClass: smb
     size: 63Ti
     accessMode: ReadWriteOnce
-    volumeName: plex-apps-sabnzbd-downloads
+    volumeName: plex-apps-sabnzbd-cifs-share
