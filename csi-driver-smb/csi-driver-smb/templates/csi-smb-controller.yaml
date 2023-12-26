@@ -6,6 +6,8 @@ metadata:
   namespace: {{ .Release.Namespace }}
 {{ include "smb.labels" . | indent 2 }}
 spec:
+  strategy:
+    type: Recreate
   replicas: {{ .Values.controller.replicas }}
   selector:
     matchLabels:
@@ -35,10 +37,10 @@ spec:
 {{- end }}
         kubernetes.io/os: linux
         {{- if .Values.controller.runOnMaster}}
-        node-role.kubernetes.io/master: 'true'
+        node-role.kubernetes.io/master: ""
         {{- end}}
         {{- if .Values.controller.runOnControlPlane}}
-        node-role.kubernetes.io/control-plane: 'true'
+        node-role.kubernetes.io/control-plane: ""
         {{- end}}
       priorityClassName: {{ .Values.priorityClassName | quote }}
       {{- if .Values.securityContext }}

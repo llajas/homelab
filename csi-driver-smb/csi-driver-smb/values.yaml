@@ -1,24 +1,28 @@
 image:
   baseRepo: registry.k8s.io/sig-storage
   smb:
-    repository: registry.k8s.io/sig-storage/smbplugin
-    tag: v1.11.0
+    repository: gcr.io/k8s-staging-sig-storage/smbplugin
+    tag: canary
     pullPolicy: IfNotPresent
   csiProvisioner:
     repository: registry.k8s.io/sig-storage/csi-provisioner
-    tag: v3.5.0
+    tag: v3.6.2
     pullPolicy: IfNotPresent
   livenessProbe:
     repository: registry.k8s.io/sig-storage/livenessprobe
-    tag: v2.10.0
+    tag: v2.11.0
     pullPolicy: IfNotPresent
   nodeDriverRegistrar:
     repository: registry.k8s.io/sig-storage/csi-node-driver-registrar
-    tag: v2.8.0
+    tag: v2.9.1
+    pullPolicy: IfNotPresent
+  csiproxy:
+    repository: ghcr.io/kubernetes-sigs/sig-windows/csi-proxy
+    tag: v1.1.2
     pullPolicy: IfNotPresent
 
 serviceAccount:
-  create: true
+  create: true # When true, service accounts will be created for you. Set to false if you want to use your own.
   controller: csi-smb-controller-sa
   node: csi-smb-node-sa
 
@@ -35,7 +39,7 @@ feature:
 controller:
   name: csi-smb-controller
   replicas: 1
-  dnsPolicy: ClusterFirstWithHostNet
+  dnsPolicy: ClusterFirstWithHostNet  # available values: Default, ClusterFirstWithHostNet, ClusterFirst
   metricsPort: 29644
   livenessProbe:
     healthPort: 29642
@@ -85,9 +89,11 @@ node:
 
 linux:
   enabled: true
-  dsName: csi-smb-node
-  dnsPolicy: ClusterFirstWithHostNet
+  dsName: csi-smb-node # daemonset name
+  dnsPolicy: ClusterFirstWithHostNet  # available values: Default, ClusterFirstWithHostNet, ClusterFirst
   kubelet: /var/lib/kubelet
+  krb5CacheDirectory: "" # directory for kerberos credential cache, empty string means default(/var/lib/kubelet/kerberos/)
+  krb5Prefix: "" # prefix for kerberos credential cache, empty string means default(krb5cc_)
   tolerations:
     - operator: "Exists"
   resources:
@@ -111,8 +117,8 @@ linux:
         memory: 20Mi
 
 windows:
-  enabled: false
-  dsName: csi-smb-node-win
+  enabled: false # Unless you already had csi proxy installed, windows.csiproxy.enabled=true is required
+  dsName: csi-smb-node-win # daemonset name
   kubelet: 'C:\var\lib\kubelet'
   removeSMBMappingDuringUnmount: true
   tolerations:
@@ -138,6 +144,14 @@ windows:
       requests:
         cpu: 10m
         memory: 40Mi
+  csiproxy:
+    enabled: false # required if windows.enabled is true, but may be installed manually also
+    dsName: csi-proxy-win # daemonset name
+    tolerations: {}
+    affinity: {}
+    username: "NT AUTHORITY\\SYSTEM"
+    nodeSelector:
+      "kubernetes.io/os": windows
 
 customLabels: {}
 ## Collection of annotations to add to all the pods
