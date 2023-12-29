@@ -10,11 +10,13 @@ spec:
         secret:
           secretName: webhook-secret
           secretKey: token
+        source: {}
       bindings:
         - name: git_url
           value: $(body.repository.clone_url)
         - name: git_revision
           value: $(body.pull_request.head.sha)
+      name: '0'
   params:
     - name: git_url
       # TODO don't need default, but invalid mem address if remove this
@@ -35,9 +37,12 @@ spec:
   workspaces:
     - name: shared-data
       volumeClaimTemplate:
+        metadata:
+          creationTimestamp: null
         spec:
           accessModes:
             - ReadWriteOnce
           resources:
             requests:
               storage: 128Mi
+        status: {}

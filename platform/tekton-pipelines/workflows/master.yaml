@@ -10,6 +10,7 @@ spec:
         secret:
           secretName: webhook-secret
           secretKey: token
+        source: {}
       filters:
         # TODO Gitea doesn't have refs/head/ prefix, use gitRef after this is fixed
         # https://github.com/tektoncd/experimental/blob/3644c43377239bb639ec4191acc04fcf3aafb3f2/workflows/pkg/filters/filters.go#L44-L46
@@ -22,6 +23,7 @@ spec:
           value: $(body.repository.clone_url)
         - name: git_revision
           value: $(body.after)
+      name: '0'
   params:
     - name: git_url
       # TODO don't need default, but invalid mem address if remove this
@@ -48,3 +50,6 @@ spec:
           resources:
             requests:
               storage: 128Mi
+        metadata:
+          creationTimestamp: null
+        status: {}
