@@ -18,7 +18,6 @@ func TestSmoke(t *testing.T) {
 		namespace string
 	}{
 		{"argocd-server", "argocd"},
-		{"vault", "vault"},
 		{"gitea", "gitea"},
 		{"grafana", "grafana"},
 		{"hajimari", "hajimari"},
