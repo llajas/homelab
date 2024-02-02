@@ -8,6 +8,7 @@ external-dns:
           key: adminPassword
   extraArgs:
     - --pihole-server=http://10.0.0.3
+    - --registry=noop
   interval: 24h
   triggerLoopOnEvent: true
   metrics:
