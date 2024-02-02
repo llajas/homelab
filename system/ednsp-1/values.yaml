@@ -14,3 +14,4 @@ external-dns:
     enabled: true
     serviceMonitor:
       enabled: true
+  registry: "noop"
