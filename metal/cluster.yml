@@ -3,5 +3,5 @@
   roles:
     - k3s
     - automatic_upgrade
-    #- nfs_utils
+    - nfs_utils
     - cronjobs
