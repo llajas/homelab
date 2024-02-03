@@ -4,12 +4,12 @@ elementweb:
     className: nginx
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-prod
-      external-dns.alpha.kubernetes.io/target: "homelab-tunnel.falconpunch.org"
+      external-dns.alpha.kubernetes.io/target: "homelab-tunnel.eaglepass.io"
       external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
       hajimari.io/appName: Chat
       hajimari.io/icon: chat
     hosts:
-      - host: &frontend_host chat.falconpunch.org
+      - host: &frontend_host chat.eaglepass.io
         paths:
           - path: /
             pathType: Prefix
@@ -19,8 +19,8 @@ elementweb:
           - *frontend_host
   config:
     default:
-      base_url: https://matrix.falconpunch.org
-      server_name: falconpunch.org
+      base_url: https://matrix.eaglepass.io
+      server_name: eaglepass.io
 
 dendrite:
   polylith: false
@@ -29,7 +29,7 @@ dendrite:
     pullPolicy: IfNotPresent
   configuration:
     version: 2
-    servername: &backend_host matrix.falconpunch.org
+    servername: &backend_host matrix.eaglepass.io
     database:
       host: matrix-postgresql:5432
       user: dendrite
@@ -44,6 +44,7 @@ dendrite:
       addresses:
         - nats://matrix-nats:4222
   persistence:
+    storageClass: longhorn
     logs:
       capacity: 1Gi
     media:
@@ -62,6 +63,7 @@ dendrite:
         postgresqlPassword: dendrite
     persistence:
       enabled: true
+      storageClass: longhorn
       accessModes:
         - ReadWriteOnce
       size: 5Gi
@@ -70,7 +72,7 @@ dendrite:
     className: nginx
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-prod
-      external-dns.alpha.kubernetes.io/target: "homelab-tunnel.falconpunch.org"
+      external-dns.alpha.kubernetes.io/target: "homelab-tunnel.eaglepass.io"
       external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
       nginx.ingress.kubernetes.io/proxy-body-size: 32m
       hajimari.io/enable: 'false'

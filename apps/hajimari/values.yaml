@@ -9,7 +9,7 @@ hajimari:
         cert-manager.io/cluster-issuer: letsencrypt-prod
         hajimari.io/enable: 'false'
       hosts:
-        - host: &host home.falconpunch.org
+        - host: &host home.eaglepass.io
           paths:
             - path: /
               pathType: Prefix
@@ -25,9 +25,9 @@ hajimari:
       - group: Homelab
         bookmarks:
           - name: Documentation
-            url: https://homelab.falconpunch.org
+            url: https://homelab.eaglepass.io
           - name: Public GitHub repository
-            url: https://github.com/llajas/homelab
+            url: https://github.com/khuedoan/homelab
       - group: Managed services
         bookmarks:
           - name: Terraform Cloud
@@ -36,4 +36,4 @@ hajimari:
             url: https://dash.cloudflare.com
   persistence:
     data:
-      enabled: true
+      enabled: false

@@ -1,0 +1,144 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: emby-ingress
+  labels:
+    app: emby
+    app.kubernetes.io/name: emby
+    app.kubernetes.io/instance: emby
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    external-dns.alpha.kubernetes.io/target: "homelab-tunnel.eaglepass.io"
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+    hajimari.io/appName: Emby
+    hajimari.io/icon: movie-roll
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - emby.eaglepass.io
+        - emby-health.eaglepass.io
+      secretName: emby-tls-certificate
+  rules:
+    - host: emby.eaglepass.io
+      http:
+        paths:
+          - path: /
+            backend:
+              service:
+                name: emby-service
+                port:
+                  name: http
+            pathType: Prefix
+    - host: emby-health.eaglepass.io
+      http:
+        paths:
+          - path: /
+            backend:
+              service:
+                name: emby-service
+                port:
+                  name: http2
+            pathType: Prefix
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: emby-service
+  labels:
+    app: emby
+    app.kubernetes.io/name: emby
+    app.kubernetes.io/instance: emby
+spec:
+  type: ClusterIP
+  externalTrafficPolicy:
+  ports:
+    - name: http
+      port: 8920
+      targetPort: http
+      protocol: TCP
+    - name: http2
+      port: 8096
+      targetPort: http
+      protocol: TCP
+  selector:
+    app: emby
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: emby-deployment
+  labels:
+    app: emby
+  namespace: emby
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: emby
+  template:
+    metadata:
+      labels:
+        app: emby
+    spec:
+      nodeName: charmander
+      containers:
+        - name: emby
+          image: lscr.io/linuxserver/emby
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: transcode
+              mountPath: /transcode
+            - name: dev-dri
+              mountPath: /dev/dri
+            - name: movies
+              mountPath: /data/movies
+            - name: tv
+              mountPath: /data/tv
+            - name: music
+              mountPath: /data/music
+            - name: backup
+              mountPath: /backups
+          env:
+            - name: PUID
+              value: "99"
+            - name: PGID
+              value: "100"
+            - name: TZ
+              value: America/Chicago
+          ports:
+            - name: http
+              containerPort: 8096
+            - name: http2
+              containerPort: 8920
+      volumes:
+        - name: config
+          hostPath:
+            path: /emby/config
+        - name: backup
+          nfs:
+            server: 10.0.50.3
+            path: /mnt/user/emby_backups
+        - name: transcode
+          hostPath:
+            path: /emby/transcode
+        - name: dev-dri
+          hostPath:
+            path: /dev/dri
+        - name: movies
+          nfs:
+            server: 10.0.50.3
+            path: /mnt/user/movies
+        - name: tv
+          nfs:
+            server: 10.0.50.3
+            path: /mnt/user/tv
+        - name: music
+          nfs:
+            server: 10.0.50.3
+            path: /mnt/user/music

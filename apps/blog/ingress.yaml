@@ -1,24 +1,24 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: excalidraw
+  name: blog
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    external-dns.alpha.kubernetes.io/target: "homelab-tunnel.eaglepass.io"
-    external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+    external-dns.alpha.kubernetes.io/target: homelab-tunnel.eaglepass.io
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: 'true'
 spec:
   ingressClassName: nginx
   rules:
-    - host: &host draw.eaglepass.io
+    - host: &host www.eaglepass.io
       http:
         paths:
           - pathType: ImplementationSpecific
             backend:
               service:
-                name: excalidraw
+                name: blog
                 port:
                   name: http
   tls:
-    - secretName: excalidraw-tls-certificate
-      hosts:
+    - hosts:
         - *host
+      secretName: blog-tls-certificate

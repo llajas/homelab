@@ -1,0 +1,139 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sonarr-ingress
+  labels:
+    app: sonarr
+    app.kubernetes.io/name: sonarr
+    app.kubernetes.io/instance: sonarr
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    hajimari.io/appName: Sonarr
+    hajimari.io/icon: surround-sound
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - sonarr.eaglepass.io
+      secretName: sonarr-tls-certificate
+  rules:
+    - host: sonarr.eaglepass.io
+      http:
+        paths:
+          - path: /
+            backend:
+              service:
+                name: sonarr-service
+                port:
+                  name: http
+            pathType: Prefix
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sonarr-service
+  labels:
+    app: sonarr
+    app.kubernetes.io/name: sonarr
+    app.kubernetes.io/instance: sonarr
+spec:
+  type: ClusterIP
+  externalTrafficPolicy:
+  ports:
+    - name: http
+      port: 8989
+      targetPort: http
+      protocol: TCP
+  selector:
+    app: sonarr
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sonarr-connect
+  labels:
+    app: sonarr
+    app.kubernetes.io/name: sonarr
+    app.kubernetes.io/instance: sonarr
+spec:
+  clusterIP: 10.43.10.215
+  ports:
+    - name: http
+      port: 8989
+      targetPort: 8989
+      protocol: TCP
+  selector:
+    app: sonarr
+  type: ClusterIP
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonarr-deployment
+  labels:
+    app: sonarr
+  namespace: sonarr
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: sonarr
+  template:
+    metadata:
+      labels:
+        app: sonarr
+    spec:
+      nodeName: bulbasaur
+      containers:
+        - name: sonarr
+          image: ghcr.io/linuxserver/sonarr:latest
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: backup-config
+              mountPath: /config/Backups
+            - name: downloads
+              mountPath: /downloads
+            - name: tv
+              mountPath: /tv
+          env:
+            - name: PUID
+              value: "99"
+            - name: PGID
+              value: "100"
+            - name: PATH
+              value: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+            - name: HOME
+              value: /root
+            - name: LANGUAGE
+              value: en_US.UTF-8
+            - name: TERM
+              value: xterm
+            - name: XDG_CONFIG_HOME
+              value: /config/xdg
+            - name: TZ
+              value: America/Chicago
+          ports:
+            - name: http
+              containerPort: 8989
+      volumes:
+        - name: backup-config
+          nfs:
+            server: 10.0.50.3
+            path: /mnt/user/sonarr_backups
+        - name: config
+          hostPath:
+            path: /sonarr/config
+        - name: downloads
+          nfs:
+            server: 10.0.50.3
+            path: /mnt/user/downloads
+        - name: tv
+          nfs:
+            server: 10.0.50.3
+            path: /mnt/user/tv

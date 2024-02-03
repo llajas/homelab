@@ -1,0 +1,141 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: lidarr-ingress
+  labels:
+    app: lidarr
+    app.kubernetes.io/name: lidarr
+    app.kubernetes.io/instance: lidarr
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    hajimari.io/appName: Lidarr
+    hajimari.io/icon: surround-sound
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - lidarr.eaglepass.io
+      secretName: lidarr-tls-certificate
+  rules:
+    - host: lidarr.eaglepass.io
+      http:
+        paths:
+          - path: /
+            backend:
+              service:
+                name: lidarr-service
+                port:
+                  name: http
+            pathType: Prefix
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lidarr-service
+  labels:
+    app: lidarr
+    app.kubernetes.io/name: lidarr
+    app.kubernetes.io/instance: lidarr
+spec:
+  type: ClusterIP
+  externalTrafficPolicy:
+  ports:
+    - name: http
+      port: 8686
+      targetPort: http
+      protocol: TCP
+  selector:
+    app: lidarr
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lidarr-connect
+  labels:
+    app: lidarr
+    app.kubernetes.io/name: lidarr
+    app.kubernetes.io/instance: lidarr
+spec:
+  clusterIP: 10.43.10.216
+  ports:
+    - name: http
+      port: 8686
+      targetPort: 8686
+      protocol: TCP
+  selector:
+    app: lidarr
+  type: ClusterIP
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lidarr-deployment
+  labels:
+    app: lidarr
+  namespace: lidarr
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: lidarr
+  template:
+    metadata:
+      labels:
+        app: lidarr
+    spec:
+      nodeName: pikachu
+      containers:
+        - name: lidarr
+          image: lscr.io/linuxserver/lidarr:latest
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: backup-config
+              mountPath: /config/Backups
+            - name: downloads
+              mountPath: /downloads
+            - name: music
+              mountPath: /music
+          env:
+            - name: PUID
+              value: "99"
+            - name: PGID
+              value: "100"
+            # - name: PATH
+            #   value: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+            # - name: HOME
+            #   value: /root
+            - name: LANGUAGE
+              value: en_US.UTF-8
+            - name: DOCKER_MODS
+              value: linuxserver/mods:lidarr-flac2mp3
+            # - name: TERM
+            #   value: xterm
+            # - name: XDG_CONFIG_HOME
+            #   value: /config/xdg
+            - name: TZ
+              value: America/Chicago
+          ports:
+            - name: http
+              containerPort: 8686
+      volumes:
+        - name: backup-config
+          nfs:
+            server: 10.0.50.3
+            path: /mnt/user/lidarr_backups
+        - name: config
+          hostPath:
+            path: /lidarr/config
+        - name: downloads
+          nfs:
+            server: 10.0.50.3
+            path: /mnt/user/downloads
+        - name: music
+          nfs:
+            server: 10.0.50.3
+            path: /mnt/user/music

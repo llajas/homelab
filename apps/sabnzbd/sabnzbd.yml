@@ -1,0 +1,134 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sabnzbd-ingress
+  labels:
+    app: sabnzbd
+    app.kubernetes.io/name: sabnzbd
+    app.kubernetes.io/instance: sabnzbd
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    hajimari.io/appName: Sabnzbd
+    hajimari.io/icon: download-network-outline
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - sabnzbd.eaglepass.io
+      secretName: sabnzbd-tls-certificate
+  rules:
+    - host: sabnzbd.eaglepass.io
+      http:
+        paths:
+          - path: /
+            backend:
+              service:
+                name: sabnzbd-service
+                port:
+                  name: http
+            pathType: Prefix
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sabnzbd-service
+  labels:
+    app: sabnzbd
+    app.kubernetes.io/name: sabnzbd
+    app.kubernetes.io/instance: sabnzbd
+spec:
+  type: ClusterIP
+  externalTrafficPolicy:
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+      protocol: TCP
+  selector:
+    app: sabnzbd
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sabnzbd-downloader
+  labels:
+    app: sabnzbd
+    app.kubernetes.io/name: sabnzbd
+    app.kubernetes.io/instance: sabnzbd
+spec:
+  clusterIP: 10.43.10.13
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+  selector:
+    app: sabnzbd
+  type: ClusterIP
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sabnzbd-deployment
+  labels:
+    app: sabnzbd
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: sabnzbd
+  template:
+    metadata:
+      labels:
+        app: sabnzbd
+    spec:
+      nodeName: pikachu
+      containers:
+        - name: sabnzbd
+          image: linuxserver/sabnzbd:latest
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: backups
+              mountPath: /backups
+            - name: downloads
+              mountPath: /downloads
+            - name: intermediate
+              mountPath: /incomplete-downloads
+            - name: apps
+              mountPath: /apps
+          env:
+            - name: PUID
+              value: "99"
+            - name: PGID
+              value: "100"
+            - name: TZ
+              value: America/Chicago
+          ports:
+            - name: http
+              containerPort: 8080
+      volumes:
+        - name: config
+          hostPath:
+            path: /sabnzbd/config
+        - name: intermediate
+          nfs:
+            server: 10.0.50.3
+            path: /mnt/user/sabnzbd_inter
+        - name: backups
+          nfs:
+            server: 10.0.50.3
+            path: /mnt/user/sabnzbd_backups
+        - name: downloads
+          nfs:
+            server: 10.0.50.3
+            path: /mnt/user/downloads
+        - name: apps
+          nfs:
+            server: 10.0.50.3
+            path: /mnt/user/apps

@@ -1,0 +1,166 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: plex-ingress
+  labels:
+    app: plex
+    app.kubernetes.io/name: plex
+    app.kubernetes.io/instance: plex
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    external-dns.alpha.kubernetes.io/target: "homelab-tunnel.eaglepass.io"
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+    hajimari.io/appName: Plex
+    hajimari.io/icon: movie-roll
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - plex.eaglepass.io
+      secretName: plex-tls-certificate
+  rules:
+    - host: plex.eaglepass.io
+      http:
+        paths:
+          - path: /
+            backend:
+              service:
+                name: plex-service
+                port:
+                  name: http
+            pathType: Prefix
+    # - host: plex-api.eaglepass.io
+    #   http:
+    #     paths:
+    #       - path: /
+    #         backend:
+    #           service:
+    #             name: plex-service
+    #             port:
+    #               name: http2
+    #         pathType: Prefix
+    # - host: plex-udp.eaglepass.io
+    #   http:
+    #     paths:
+    #       - path: /
+    #         backend:
+    #           service:
+    #             name: plex-service
+    #             port:
+    #               name: http3
+    #         pathType: Prefix
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: plex-service
+  labels:
+    app: plex
+    app.kubernetes.io/name: plex
+    app.kubernetes.io/instance: plex
+spec:
+  type: ClusterIP
+  externalTrafficPolicy:
+  ports:
+    - name: http
+      port: 32400
+      targetPort: http
+      protocol: TCP
+    - name: http2
+      port: 32469
+      targetPort: 32469
+      protocol: TCP
+    - name: http3
+      port: 1900
+      targetPort: 1900
+      protocol: UDP
+  selector:
+    app: plex
+
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plex-deployment
+  labels:
+    app: plex
+  namespace: plex
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: plex
+  template:
+    metadata:
+      labels:
+        app: plex
+    spec:
+      nodeName: pikachu
+      containers:
+        - name: plex
+          image: lscr.io/linuxserver/plex:latest
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: transcode
+              mountPath: /transcode
+            - name: dev-dri
+              mountPath: /dev/dri
+            - name: movies
+              mountPath: /movies
+            - name: tv
+              mountPath: /tv
+            - name: music
+              mountPath: /music
+            - name: backup
+              mountPath: /backups
+          env:
+            - name: PUID
+              value: "99"
+            - name: PGID
+              value: "100"
+            - name: VERSION
+              value: docker
+            - name: TZ
+              value: "America/Chicago"
+            - name: PLEX_CLAIM
+              value: claim-hgifdvmeMsw5pJ4t_f1u
+          ports:
+            - name: http
+              containerPort: 32400
+            - name: http2
+              containerPort: 32469
+            - name: http3
+              containerPort: 1900
+      volumes:
+        - name: config
+          hostPath:
+            path: /plex/config
+        - name: backup
+          nfs:
+            server: 10.0.50.3
+            path: /mnt/user/plex_backups
+        - name: transcode
+          hostPath:
+            path: /plex/transcode
+        - name: dev-dri
+          hostPath:
+            path: /dev/dri
+        - name: movies
+          nfs:
+            server: 10.0.50.3
+            path: /mnt/user/movies
+        - name: tv
+          nfs:
+            server: 10.0.50.3
+            path: /mnt/user/tv
+        - name: music
+          nfs:
+            server: 10.0.50.3
+            path: /mnt/user/music

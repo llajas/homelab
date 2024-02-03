@@ -8,7 +8,7 @@ seafile:
         hajimari.io/appName: Seafile
         hajimari.io/icon: google-drive
       hosts:
-        - host: &host seafile.falconpunch.org
+        - host: &host seafile.eaglepass.io
           paths:
             - path: /
               pathType: Prefix

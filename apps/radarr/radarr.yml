@@ -1,0 +1,139 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: radarr-ingress
+  labels:
+    app: radarr
+    app.kubernetes.io/name: radarr
+    app.kubernetes.io/instance: radarr
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    hajimari.io/appName: Radarr
+    hajimari.io/icon: radar
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - radarr.eaglepass.io
+      secretName: radarr-tls-certificate
+  rules:
+    - host: radarr.eaglepass.io
+      http:
+        paths:
+          - path: /
+            backend:
+              service:
+                name: radarr-service
+                port:
+                  name: http
+            pathType: Prefix
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: radarr-service
+  labels:
+    app: radarr
+    app.kubernetes.io/name: radarr
+    app.kubernetes.io/instance: radarr
+spec:
+  type: ClusterIP
+  externalTrafficPolicy:
+  ports:
+    - name: http
+      port: 7878
+      targetPort: http
+      protocol: TCP
+  selector:
+    app: radarr
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: radarr-connect
+  labels:
+    app: radarr
+    app.kubernetes.io/name: radarr
+    app.kubernetes.io/instance: radarr
+spec:
+  clusterIP: 10.43.10.214
+  ports:
+    - name: http
+      port: 7878
+      targetPort: 7878
+      protocol: TCP
+  selector:
+    app: radarr
+  type: ClusterIP
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: radarr-deployment
+  labels:
+    app: radarr
+  namespace: radarr
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: radarr
+  template:
+    metadata:
+      labels:
+        app: radarr
+    spec:
+      nodeName: squirtle
+      containers:
+        - name: radarr
+          image: ghcr.io/linuxserver/radarr:latest
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: backup-config
+              mountPath: /config/Backups
+            - name: downloads
+              mountPath: /downloads
+            - name: movies
+              mountPath: /movies
+          env:
+            - name: PUID
+              value: "99"
+            - name: PGID
+              value: "100"
+            - name: PATH
+              value: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+            - name: LANGUAGE
+              value: en_US.UTF-8
+            - name: TERM
+              value: xterm
+            - name: XDG_CONFIG_HOME
+              value: /config/xdg
+            - name: TZ
+              value: America/Chicago
+          ports:
+            - name: http
+              containerPort: 7878
+
+      volumes:
+        - name: backup-config
+          nfs:
+            server: 10.0.50.3
+            path: /mnt/user/radarr_backups
+        - name: config
+          hostPath:
+            path: /radarr/config
+        - name: downloads
+          nfs:
+            server: 10.0.50.3
+            path: /mnt/user/downloads
+        - name: movies
+          nfs:
+            server: 10.0.50.3
+            path: /mnt/user/movies
+
