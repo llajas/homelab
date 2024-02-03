@@ -51,7 +51,7 @@ def load_config():
             "seed_repo": "https://github.com/llajas/homelab",
             "domain": "lajas.tech",
             "timezone": "America/Chicago",
-            "terraform_organization": "llajas",
+            "terraform_organization": "lajas-tech",
             "loadbalancer_ip_range": "10.137.0.224/27",
             "storage_type": "cifs",
         }

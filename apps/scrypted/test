@@ -1,2 +1,0 @@
-#!/bin/bash
-helm upgrade --install -n scrypted scryted -f test.yaml .
