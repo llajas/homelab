@@ -430,6 +430,7 @@ spec:
         persistentVolumeClaim:
           claimName: {{ template "minecraft.fullname" . }}-datadir
       {{- end -}}
+      {{/* if persistence enabled in stateful set without existing claim, a volume claim template will be defined */}}
       {{- else }}
       - name: datadir
         emptyDir: {}
@@ -448,9 +449,6 @@ spec:
       - name: backupdir
         emptyDir: {}
       {{- end }}
-      {{- else }}
-      - name: backupdir
-        emptyDir: {}
       {{- end }}
       {{- if or (eq .Values.mcbackup.backupMethod "rclone") (eq (include "isResticWithRclone" $) "true") }}
       - name: rclone-config
