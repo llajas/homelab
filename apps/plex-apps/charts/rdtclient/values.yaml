@@ -39,7 +39,7 @@ volumes:
       accessModes: ReadWriteOnce
       storageSize: "63Ti"
       storageClassName: "nfs"
-      volumeName: plex-apps-rdtclient-cifs-share
+      volumeName: plex-apps-rdtclient-nfs-share
     nfs:
       server: "nas-01.storage.lajas.tech"
       path: "/mnt/user/media"
