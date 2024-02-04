@@ -559,8 +559,6 @@ mcbackup:
       cpu: 500m
 
   persistence:
-    annotations:
-      pv.kubernetes.io/provisioned-by: smb.csi.k8s.io
     ## minecraft data Persistent Volume Storage Class
     ## If defined, storageClassName: <storageClass>
     ## If set to "-", storageClassName: "", which disables dynamic provisioning
@@ -572,7 +570,22 @@ mcbackup:
     backupDir:
       # Set this to false if you don't care to persist state between restarts.
       enabled: true
-      Size: 63Ti
-      # existingClaim: nil
-    storageClass: smb
-    volumeName: smb-pv-world-backup
+      size: 63Ti
+      existingClaim: false
+    # Switch between "smb" and "nfs" as needed
+    storageType: "nfs"
+    # Can be empty for NFS or 'smb' as appropriate
+    storageClass: ""
+    # Optional: Specify a volume name if using smb - Default it 'smb-pv-world-backup-hc'
+    volumeName: ""
+    annotations: {}
+
+    # SMB Configuration
+    smb:
+      server: "//storage.lajas.tech/"
+      share: "minecraft-worlds/"
+
+    # NFS Configuration
+    nfs:
+      server: "nas-01.storage.lajas.tech"
+      path: "/mnt/user/minecraft-worlds"
