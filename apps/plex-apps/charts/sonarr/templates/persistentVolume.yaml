@@ -3,28 +3,16 @@ kind: PersistentVolume
 metadata:
   name: {{ .Values.persistence.media.volumeName }}
   namespace: {{ .Release.Namespace }}
-  annotations:
-    pv.kubernetes.io/provisioned-by: smb.csi.k8s.io
 spec:
   capacity:
-    storage: 63Ti
+    storage: {{ .Values.persistence.media.size }}
   accessModes:
-    - ReadWriteOnce
+    - {{ .Values.persistence.media.accessMode }}
   persistentVolumeReclaimPolicy: Retain
-  storageClassName: smb
+  storageClassName: nfs
+  nfs:
+    server: {{ .Values.persistence.media.nfs.server }}
+    path: {{ .Values.persistence.media.nfs.path }}
   mountOptions:
-    - dir_mode=0777
-    - file_mode=0777
-    - uid=568
-    - gid=568
-    - cache=strict
-    - noserverino
-  csi:
-    driver: smb.csi.k8s.io
-    volumeHandle: {{ .Release.Namespace }}-media
-    volumeAttributes:
-      source: "//storage.lajas.tech/"
-      subDir: "media"
-    nodeStageSecretRef:
-      name: smb-credentials
-      namespace: {{ .Release.Namespace }}
+    - hard
+    - nfsvers=4.1
