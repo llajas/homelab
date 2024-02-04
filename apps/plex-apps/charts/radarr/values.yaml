@@ -89,8 +89,8 @@ persistence:
     size: "63Ti"
     volumeName: "plex-apps-radarr-nfs-share"
     nfs:
-      server: nas-01.storage.lajas.tech
-      path: /mnt/user/media
+      server: "nas-01.storage.lajas.tech"
+      path: "/mnt/user/media"
 
 metrics:
   # -- Enable and configure Exportarr sidecar and Prometheus serviceMonitor.
