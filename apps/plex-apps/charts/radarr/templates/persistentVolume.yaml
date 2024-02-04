@@ -5,9 +5,9 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   capacity:
-    storage: 63Ti
+    storage: {{ .Values.persistence.media.size }}
   accessModes:
-    - ReadWriteMany  # NFS supports multiple writers
+    - {{ .Values.persistence.media.accessMode }}
   persistentVolumeReclaimPolicy: Retain
   storageClassName: nfs
   nfs:
