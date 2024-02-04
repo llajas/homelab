@@ -86,7 +86,7 @@ persistence:
     mountPath: /plexmedia
     accessMode: ReadWriteOnce
     size: "63Ti"
-    volumeName: "radarr-media-nfs-pv"
+    volumeName: "plex-apps-sonarr-cifs-share"
     nfs:
       server: nas-01.storage.lajas.tech
       path: /mnt/user/minecraft-worlds
