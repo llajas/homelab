@@ -83,7 +83,7 @@ persistence:
     size: "10Gi"
   media:
     enabled: true
-    storageClassName: ""
+    storageClassName: "nfs"
     mountPath: /plexmedia
     accessMode: ReadWriteOnce
     size: "63Ti"
