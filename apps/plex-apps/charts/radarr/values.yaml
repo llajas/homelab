@@ -86,8 +86,10 @@ persistence:
     mountPath: /plexmedia
     accessMode: ReadWriteOnce
     size: "63Ti"
-    storageClass: "smb"
-    volumeName: plex-apps-radarr-cifs-share
+    volumeName: "radarr-media-nfs-pv"
+    nfs:
+      server: nas-01.storage.lajas.tech
+      path: /mnt/user/minecraft-worlds
 
 metrics:
   # -- Enable and configure Exportarr sidecar and Prometheus serviceMonitor.
