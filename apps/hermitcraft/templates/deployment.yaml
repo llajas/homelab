@@ -430,22 +430,24 @@ spec:
         persistentVolumeClaim:
           claimName: {{ template "minecraft.fullname" . }}-datadir
       {{- end -}}
-      {{/* if persistence enabled in stateful set without existing claim, a volume claim template will be defined */}}
       {{- else }}
       - name: datadir
         emptyDir: {}
       {{- end }}
       {{- if and .Values.mcbackup.persistence.backupDir.enabled .Values.mcbackup.enabled }}
-      {{- if .Values.mcbackup.persistence.backupDir.existingClaim }}
-      - name: backupdir
-        persistentVolumeClaim:
-          claimName: {{ .Values.mcbackup.persistence.backupDir.existingClaim }}
-      {{- else if (not .Values.workloadAsStatefulSet) }}
+      {{- if eq .Values.mcbackup.persistence.storageType "smb" }}
       - name: backupdir
         persistentVolumeClaim:
           claimName: {{ template "minecraft.fullname" . }}-backupdir
-      {{- end -}}
-      {{/* if persistence enabled in stateful set without existing claim, a volume claim template will be defined */}}
+      {{- else if eq .Values.mcbackup.persistence.storageType "nfs" }}
+      - name: backupdir
+        nfs:
+          server: {{ .Values.mcbackup.persistence.nfs.server }}
+          path: {{ .Values.mcbackup.persistence.nfs.path }}
+      {{- else }}
+      - name: backupdir
+        emptyDir: {}
+      {{- end }}
       {{- else }}
       - name: backupdir
         emptyDir: {}

@@ -1,3 +1,4 @@
+{{- if eq .Values.mcbackup.persistence.storageType "smb" }}
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -7,7 +8,7 @@ metadata:
     pv.kubernetes.io/provisioned-by: smb.csi.k8s.io
 spec:
   capacity:
-    storage: 63Ti
+    storage: {{ .Values.mcbackup.persistence.backupDir.size }}
   accessModes:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
@@ -23,8 +24,9 @@ spec:
     driver: smb.csi.k8s.io
     volumeHandle: {{ .Release.Namespace }}-world-backup
     volumeAttributes:
-      source: "//storage.lajas.tech/"
-      subDir: "minecraft-worlds/"
+      source: {{ .Values.mcbackup.persistence.smb.server }}
+      subDir: {{ .Values.mcbackup.persistence.smb.shareName }}
     nodeStageSecretRef:
       name: smbcreds
       namespace: {{ .Release.Namespace }}
+{{- end}}

@@ -1,37 +1,35 @@
-{{- if and .Values.mcbackup.persistence.backupDir.enabled (not .Values.mcbackup.persistence.backupDir.existingClaim ) (not .Values.workloadAsStatefulSet) -}}
-kind: PersistentVolumeClaim
+{{- if and .Values.mcbackup.persistence.backupDir.enabled (not .Values.mcbackup.persistence.backupDir.existingClaim) (eq .Values.mcbackup.persistence.storageType "smb") }}
 apiVersion: v1
+kind: PersistentVolumeClaim
 metadata:
-  name: {{ template "minecraft.fullname" . }}-backupdir
+  name: {{ include "minecraft.fullname" . }}-backupdir
   labels:
-    app: {{ template "minecraft.fullname" . }}
+    app: {{ include "minecraft.fullname" . }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
     release: "{{ .Release.Name }}"
     heritage: "{{ .Release.Service }}"
     app.kubernetes.io/name: "{{ .Chart.Name }}"
-    app.kubernetes.io/instance: {{ template "minecraft.fullname" . }}
+    app.kubernetes.io/instance: {{ include "minecraft.fullname" . }}
     app.kubernetes.io/version: "{{ .Chart.Version }}"
   annotations:
-  {{- with .Values.mcbackup.persistence.annotations  }}
-  {{ toYaml . | nindent 4 }}
-  {{- end }}
-  {{- if .Values.mcbackup.persistence.storageClass }}
+    {{- with .Values.mcbackup.persistence.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- if .Values.mcbackup.persistence.storageClass }}
     volume.beta.kubernetes.io/storage-class: {{ .Values.mcbackup.persistence.storageClass | quote }}
-  {{- else }}
-    volume.alpha.kubernetes.io/storage-class: default
-  {{- end }}
+    {{- else }}
+    volume.alpha.kubernetes.io/storage-class: "default"
+    {{- end }}
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: {{ .Values.mcbackup.persistence.backupDir.Size | quote }}
-{{- if .Values.mcbackup.persistence.storageClass }}
-{{- if (eq "-" .Values.mcbackup.persistence.storageClass) }}
-  storageClassName: ""
-{{- else }}
-  storageClassName: "{{ .Values.mcbackup.persistence.storageClass }}"
+      storage: {{ .Values.mcbackup.persistence.backupDir.size | quote }}
+  {{- if .Values.mcbackup.persistence.storageClass }}
+  storageClassName: {{ if (eq "-" .Values.mcbackup.persistence.storageClass) }}""{{ else }}{{ .Values.mcbackup.persistence.storageClass | quote }}{{ end }}
+  {{- end }}
+  {{- if .Values.mcbackup.persistence.volumeName }}
+  volumeName: {{ .Values.mcbackup.persistence.volumeName | quote }}
+  {{- end }}
 {{- end }}
-  volumeName: "{{ .Values.mcbackup.persistence.volumeName }}"
-{{- end }}
-{{- end -}}
