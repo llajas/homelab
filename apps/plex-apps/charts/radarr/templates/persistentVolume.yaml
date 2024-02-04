@@ -9,6 +9,7 @@ spec:
   accessModes:
     - ReadWriteMany  # NFS supports multiple writers
   persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs
   nfs:
     server: {{ .Values.persistence.media.nfs.server }}
     path: {{ .Values.persistence.media.nfs.path }}
