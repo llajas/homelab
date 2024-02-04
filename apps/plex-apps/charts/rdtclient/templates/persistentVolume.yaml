@@ -3,28 +3,16 @@ kind: PersistentVolume
 metadata:
   name: {{ .Values.volumes.downloads.pvc.volumeName }}
   namespace: {{ .Release.Namespace }}
-  annotations:
-    pv.kubernetes.io/provisioned-by: smb.csi.k8s.io
 spec:
   capacity:
-    storage: 63Ti
+    storage: {{ .Values.volumes.downloads.pvc.storageSize }}
   accessModes:
-    - ReadWriteOnce
+    - {{ .Values.volumes.downloads.pvc.accessModes }}
   persistentVolumeReclaimPolicy: Retain
-  storageClassName: smb
+  nfs:
+    server: {{ .Values.volumes.downloads.nfs.server }}
+    path: {{ .Values.volumes.downloads.nfs.path }}
+  storageClassName: {{ .Values.volumes.downloads.pvc.storageClassName }}
   mountOptions:
-    - dir_mode=0777
-    - file_mode=0777
-    - uid=911
-    - gid=911
-    - cache=strict
-    - noserverino
-  csi:
-    driver: smb.csi.k8s.io
-    volumeHandle: {{ .Release.Namespace }}-rdtclient
-    volumeAttributes:
-      source: "//storage.lajas.tech/"
-      subDir: "downloads"
-    nodeStageSecretRef:
-      name: smb-credentials
-      namespace: {{ .Release.Namespace }}
+    - hard
+    - nfsvers=4.1
