@@ -80,7 +80,7 @@ persistence:
     enabled: true
     existingClaim: ""
     storageClassName: "longhorn"
-    size: "5Gi"
+    size: "10Gi"
   media:
     enabled: true
     mountPath: /plexmedia
