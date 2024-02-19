@@ -77,19 +77,19 @@ global:
       retain: true
 
     # -- Use this section to add additional media mounts if necessary. You can copy the contents of the above media
-    additionalMediaVolumes: {}
-      #  drivers:
-      #    enabled: true
-      #    size: "1Gi"
-      #    persistentVolumeClaim:
-      #    mountPath: /config/Library/Application Support/Plex Media Server/Drivers
-      #    retain: true
-      #  cache:
-      #    enabled: true
-      #    size: "1Gi"
-      #    persistentVolumeClaim:
-      #    mountPath: /config/Library/Application Support/Plex Media Server/Cache
-      #    retain: true
+    additionalMediaVolumes:
+      drivers:
+        enabled: true
+        size: "1Gi"
+        persistentVolumeClaim:
+        mountPath: /config/Library/Application Support/Plex Media Server/Drivers
+        retain: true
+      cache:
+        enabled: true
+        size: "1Gi"
+        persistentVolumeClaim:
+        mountPath: /config/Library/Application Support/Plex Media Server/Cache
+        retain: true
 
 # -- Configure the Plex Media Server component
 # @default -- See below
@@ -126,7 +126,7 @@ pms:
 
     # -- Set the transcode operating mode. Valid options are local (No workers), remote (only remote workers), both (default, remote first then local if remote fails).
     # If you disable the worker then this will be set to local automatically as that is the only valid option for that confguration.
-    transcodeOperatingMode: local
+    transcodeOperatingMode: remote
 
     # -- Set the Plex claim token obtained from https://plex.tv/claim
     plexClaimToken:
@@ -384,7 +384,7 @@ orchestrator:
 # @default -- See below
 worker:
   # -- Enable or disable the Worker component
-  enabled: false
+  enabled: true
 
   # -- Additional environment variables. Template enabled.
   # Syntax options:
