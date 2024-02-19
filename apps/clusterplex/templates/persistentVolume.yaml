@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Release.Name }}-media
+spec:
+  capacity:
+    storage: "63Ti"
+  accessModes:
+    - ReadWriteMany
+  nfs:
+    server: "nas-01.storage.lajas.tech"
+    path: "/mnt/user/media"
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs
