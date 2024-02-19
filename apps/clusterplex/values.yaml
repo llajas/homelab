@@ -83,11 +83,13 @@ global:
         size: "1Gi"
         persistentVolumeClaim:
         mountPath: /config/Library/Application Support/Plex Media Server/Drivers
+        retain: true
       cache:
         enabled: true
         size: "1Gi"
         persistentVolumeClaim:
         mountPath: /config/Library/Application Support/Plex Media Server/Cache
+        retain: true
 
 # -- Configure the Plex Media Server component
 # @default -- See below
