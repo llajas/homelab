@@ -407,6 +407,10 @@ worker:
   env:
     - name: FFMPEG_HWACCEL
       value: nvdec
+    - name: NVIDIA_VISIBLE_DEVICES
+      value: all
+    - name: NVIDIA_DRIVER_CAPABILITIES
+      value: all
 
   # -- Supply the configuration items used to configure the worker component
   # @default -- See below
