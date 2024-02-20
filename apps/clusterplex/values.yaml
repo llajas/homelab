@@ -96,8 +96,7 @@ global:
 pms:
   # -- Enable or disable the Plex Media Server component
   enabled: true
-
-
+  runtimeClassName: nvidia
   # -- Additional environment variables. Template enabled.
   # Syntax options:
   # A) TZ: UTC
@@ -294,7 +293,12 @@ orchestrator:
   # F) - name: TZ
   #      value: '{{ .Release.Name }}'
   env:
-
+    - name: FFMPEG_HWACCEL
+      value: nvdec
+    - name: NVIDIA_VISIBLE_DEVICES
+      value: all
+    - name: NVIDIA_DRIVER_CAPABILITIES
+      value: all
   # -- Supply the configuration items used to configure the Orchestrator component
   # @default -- See below
   config:
@@ -385,7 +389,7 @@ orchestrator:
 worker:
   # -- Enable or disable the Worker component
   enabled: true
-
+  runtimeClassName: nvidia
   # -- Additional environment variables. Template enabled.
   # Syntax options:
   # A) TZ: UTC
