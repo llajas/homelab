@@ -161,7 +161,7 @@ pms:
 
     # -- Specify the externalTrafficPolicy for the service. Options: Cluster, Local
     # [[ref](https://kubernetes.io/docs/tutorials/services/source-ip/)]
-    externalTrafficPolicy:
+    externalTrafficPolicy: Local
 
     # -- Provide additional annotations which may be required.
     annotations: {}
