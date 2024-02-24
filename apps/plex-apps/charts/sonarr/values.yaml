@@ -83,14 +83,11 @@ persistence:
     size: "10Gi"
   media:
     enabled: true
-    storageClass: "nfs"
     mountPath: /plexmedia
-    accessMode: ReadWriteOnce
+    accessMode: ReadWriteMany
     size: "63Ti"
-    volumeName: "plex-apps-sonarr-nfs-share"
-    nfs:
-      server: "nas-01.storage.lajas.tech"
-      path: "/mnt/user/media"
+    volumeName: "plex-apps-cifs-plex-media"
+    storageClass: "smb"
 
 metrics:
   # -- Enable and configure Exportarr sidecar and Prometheus serviceMonitor.
