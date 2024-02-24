@@ -26,5 +26,5 @@ spec:
       source: "//storage.lajas.tech/"
       subDir: "plexLogs"
     nodeStageSecretRef:
-      name: smb-credentials
+      name: cifs.creds.plex.windows
       namespace: {{ .Release.Namespace }}
