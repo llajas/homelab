@@ -38,11 +38,12 @@ volumes:
       mountPath: /data/downloads
       accessModes: ReadWriteOnce
       storageSize: "63Ti"
-      storageClassName: "nfs"
+      storageClassName: "smb"
       volumeName: plex-apps-rdtclient-nfs-share
-    nfs:
+    smb:
       server: "nas-01.storage.lajas.tech"
-      path: "/mnt/user/media"
+      path: "/torrents"
+      secretName: cifs.creds.plex.media
 
   db:
     pvc:

@@ -3,16 +3,29 @@ kind: PersistentVolume
 metadata:
   name: {{ .Values.volumes.downloads.pvc.volumeName }}
   namespace: {{ .Release.Namespace }}
+  annotations:
+    pv.kubernetes.io/provisioned-by: smb.csi.k8s.io
 spec:
   capacity:
     storage: {{ .Values.volumes.downloads.pvc.storageSize }}
   accessModes:
     - {{ .Values.volumes.downloads.pvc.accessModes }}
   persistentVolumeReclaimPolicy: Retain
-  nfs:
-    server: {{ .Values.volumes.downloads.nfs.server }}
-    path: {{ .Values.volumes.downloads.nfs.path }}
   storageClassName: {{ .Values.volumes.downloads.pvc.storageClassName }}
   mountOptions:
-    - hard
-    - nfsvers=4.1
+    - dir_mode=0777
+    - file_mode=0777
+    - uid=911
+    - gid=911
+    - cache=strict
+    - noserverino
+    - nobrl
+  csi:
+    driver: smb.csi.k8s.io
+    volumeHandle: {{ .Release.Namespace }}-rdtclient
+    volumeAttributes:
+      source: {{ .Values.volumes.downloads.smb.server }}
+      subDir: {{ .Values.volumes.downloads.smb.path }}
+    nodeStageSecretRef:
+      name: {{ .Values.volumes.downloads.smb.secretName }}
+      namespace: {{ .Release.Namespace }}
