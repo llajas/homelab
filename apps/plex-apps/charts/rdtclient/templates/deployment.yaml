@@ -28,7 +28,7 @@ spec:
       volumes:
       - name: "{{ template "rdtclient.fullname" . }}-downloads"
         persistentVolumeClaim:
-          claimName: "{{ template "rdtclient.fullname" . }}-downloads"
+          claimName: {{ .Values.volumes.downloads.pvc.existingClaim }}
       - name: "{{ template "rdtclient.fullname" . }}-config"
         persistentVolumeClaim:
           claimName: "{{ template "rdtclient.fullname" . }}-config"
