@@ -84,10 +84,7 @@ persistence:
   media:
     enabled: true
     mountPath: /plexmedia
-    accessMode: ReadWriteMany
-    size: "63Ti"
-    volumeName: "plex-apps-cifs-plex-media"
-    storageClass: "smb"
+    existingClaim: "plex-apps-cifs-plex-media"
 
 metrics:
   # -- Enable and configure Exportarr sidecar and Prometheus serviceMonitor.
