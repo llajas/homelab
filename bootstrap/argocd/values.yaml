@@ -20,16 +20,6 @@ argo-cd:
     ingress:
       enabled: true
       ingressClassName: nginx
-      rules:
-        - host: "argocd.lajas.tech"
-          http:
-            paths:
-              - path: /
-                pathType: Prefix
-                backend:
-                  service:
-                    port:
-                      number: 80
       annotations:
         cert-manager.io/cluster-issuer: letsencrypt-prod
         hajimari.io/appName: ArgoCD
@@ -99,3 +89,7 @@ argo-cd:
       #            subPath: argocd-vault-plugin
   redis:
     metrics: *metrics
+  global:
+    domain: argocd.lajas.tech
+  certificate:
+    enabled: true
