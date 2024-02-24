@@ -42,9 +42,9 @@ spec:
         - group: storage.k8s.io
           kind: CSIDriver
           jqPathExpressions:
-            - .spec.seLinuxMount
+            - '.spec.seLinuxMount'
         - group: apps
           kind: StatefulSet
           jqPathExpressions:
-            - .'.spec.volumeClaimTemplates[]?'
+            - '.spec.volumeClaimTemplates[]?'
 {{- end }}
