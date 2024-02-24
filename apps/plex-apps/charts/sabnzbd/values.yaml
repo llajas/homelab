@@ -58,10 +58,4 @@ persistence:
   downloads:
     enabled: true
     mountPath: /downloads
-    storageClass: nfs
-    size: 63Ti
-    accessMode: ReadWriteOnce
-    volumeName: plex-apps-sabnzbd-nfs-share
-    nfs:
-      server: "nas-01.storage.lajas.tech"
-      path: "/mnt/user/media"
+    existingClaim: "plex-apps-cifs-plex-media"
