@@ -606,6 +606,6 @@ mcbackup:
       shareName: "minecraft_world_backup/hermitcraft/"
 
     # NFS Configuration
-    nfs:
-      server: "nas-01.storage.lajas.tech"
-      path: "/mnt/user/minecraft-worlds"
+    # nfs:
+    #   server: "nas-01.storage.lajas.tech"
+    #   path: "/mnt/user/minecraft-worlds"
