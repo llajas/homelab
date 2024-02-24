@@ -27,6 +27,6 @@ spec:
       source: {{ .Values.mcbackup.persistence.smb.server }}
       subDir: {{ .Values.mcbackup.persistence.smb.shareName }}
     nodeStageSecretRef:
-      name: smbcreds
+      name: cifs.creds.bluffcraft
       namespace: {{ .Release.Namespace }}
 {{- end}}
