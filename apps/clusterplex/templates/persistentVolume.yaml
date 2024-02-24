@@ -2,13 +2,28 @@ apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: {{ .Release.Name }}-media
+  namespace: {{ .Release.Namespace }}
 spec:
   capacity:
-    storage: "63Ti"
+    storage: {{ .Values.global.sharedStorage.media.size }}
   accessModes:
     - ReadWriteMany
-  nfs:
-    server: "nas-01.storage.lajas.tech"
-    path: "/mnt/user/media"
+  csi:
+    driver: {{ .Values.global.sharedStorage.media.driver }}
+    volumeHandle: {{ .Release.name }}-media
+    volumeAttributes:
+      source: {{ .Values.global.sharedStorage.media.server }}
+      subDir: {{ .Values.global.sharedStorage.media.path }}
+    nodeStageSecretRef:
+      name: {{ .Values.global.sharedStorage.media.secretName }}
+      namespace: {{ .Release.Namespace }}
   persistentVolumeReclaimPolicy: Retain
-  storageClassName: nfs
+  storageClassName: {{ .Values.global.sharedStorage.media.storageClass }}
+  mountOptions:
+    - dir_mode=0777
+    - file_mode=0777
+    - uid=911
+    - gid=911
+    - cache=strict
+    - noserverino
+    - nobrl

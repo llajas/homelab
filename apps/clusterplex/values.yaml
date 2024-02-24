@@ -62,7 +62,7 @@ global:
       # If set to something else, the given storageClass is used.
       # If undefined (the default) or set to null, no storageClassName spec is set, choosing the default provisioner.
       # NOTE: This class must support ReadWriteMany otherwise you will encounter errors.
-      storageClass: "nfs"
+      storageClass: "smb"
 
       # -- If you want to reuse an existing claim, the name of the existing PVC can be passed here.
       existingClaim: "clusterplex-media"
@@ -75,6 +75,11 @@ global:
 
       # -- Set to true to retain the PVC upon `helm uninstall`
       retain: true
+
+      server: "//nas-01.storage.lajas.tech/"
+      path: "media/"
+      driver: "smb.csi.k8s.io"
+      secretName: cifs.creds.plex.media
 
     # -- Use this section to add additional media mounts if necessary. You can copy the contents of the above media
     additionalMediaVolumes:
@@ -116,12 +121,12 @@ pms:
   # F) - name: TZ
   #      value: '{{ .Release.Name }}'
   env:
-    #- name: FFMPEG_HWACCEL
-    #  value: nvdec
-    #- name: NVIDIA_VISIBLE_DEVICES
-    #  value: all
-    #- name: NVIDIA_DRIVER_CAPABILITIES
-    #  value: all
+    - name: FFMPEG_HWACCEL
+      value: nvdec
+    - name: NVIDIA_VISIBLE_DEVICES
+      value: all
+    - name: NVIDIA_DRIVER_CAPABILITIES
+      value: all
   # -- Supply the configuration items used to configure the PMS component
   # @default -- See below
   config:

@@ -7,5 +7,6 @@ spec:
     - ReadWriteMany
   resources:
     requests:
-      storage: "63Ti"
-  storageClassName: nfs
+      storage: {{ .Values.global.sharedStorage.media.size }}
+  storageClassName: {{ .Values.global.sharedStorage.media.storageClass }}
+  volumeName: {{ .Values.global.sharedStorage.media.existingClaim }}
