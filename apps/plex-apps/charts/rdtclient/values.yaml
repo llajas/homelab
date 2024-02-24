@@ -36,10 +36,10 @@ volumes:
     pvc:
       name: downloads-pvc
       mountPath: /data/downloads
-      accessModes: ReadWriteOnce
+      accessModes: ReadWriteMany
       storageSize: "63Ti"
       storageClassName: "smb"
-      volumeName: plex-apps-rdtclient-nfs-share
+      volumeName: plex-apps-cifs-plex-media
     smb:
       server: "//nas-01.storage.lajas.tech/"
       path: "media/"
