@@ -593,17 +593,17 @@ mcbackup:
       size: 63Ti
       existingClaim: false
     # Switch between "smb" and "nfs" as needed
-    storageType: "nfs"
+    storageType: "smb"
     # Can be empty for NFS or 'smb' as appropriate
-    storageClass: ""
+    storageClass: "smb"
     # Optional: Specify a volume name if using smb - Default it 'smb-pv-world-backup-hc'
     volumeName: ""
     annotations: {}
 
     # SMB Configuration
     smb:
-      server: "//storage.lajas.tech/"
-      share: "minecraft-worlds/"
+      server: "//nas-01.storage.lajas.tech/"
+      shareName: "minecraft_world_backup/hermitcraft/"
 
     # NFS Configuration
     nfs:
