@@ -583,7 +583,7 @@ mcbackup:
     # SMB Configuration
     smb:
       server: "//nas-01.storage.lajas.tech/"
-      share: "minecraft_world_backup/bluffcraft"
+      shareName: "minecraft_world_backup/bluffcraft"
 
     # NFS Configuration
     nfs:
