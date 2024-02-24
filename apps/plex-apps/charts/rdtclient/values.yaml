@@ -41,8 +41,8 @@ volumes:
       storageClassName: "smb"
       volumeName: plex-apps-rdtclient-nfs-share
     smb:
-      server: "nas-01.storage.lajas.tech"
-      path: "torrents"
+      server: "//nas-01.storage.lajas.tech/"
+      path: "torrents/"
       secretName: cifs.creds.plex.media
 
   db:
