@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "geysermc.fullname" . }}
+  name: {{ .Release.Name }}-geyser-config
   labels:
     {{- include "geysermc.labels" . | nindent 4 }}
 data:
