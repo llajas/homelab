@@ -21,8 +21,10 @@ spec:
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         volumeMounts:
         - name: geyser-config
-          mountPath: /app/config.yml
-          subPath: config.yml
+          mountPath: /app
+        env:
+          - name: GEYSER_CONFIG_PATH
+            value: "/app/geyser-config.yml"
       volumes:
       - name: geyser-config
         configMap:
