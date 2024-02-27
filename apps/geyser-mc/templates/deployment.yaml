@@ -20,10 +20,11 @@ spec:
       - name: geyser
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         workingDir: /app
-        command: ["java", "-jar", "Geyser.jar"]
+        command: ["java", "-jar", "Geyser.jar", "config.yaml"]
         volumeMounts:
         - name: geyser-config
-          mountPath: /app
+          mountPath: /app/config
+          readOnly: true
         env:
           - name: GEYSER_CONFIG_PATH
             value: "/app/geyser-config.yml"
