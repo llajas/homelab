@@ -22,13 +22,15 @@ spec:
         command: ['/bin/sh', '-c']
         args:
         - |
+          # Create the /app directory if it doesn't exist
+          mkdir -p /app
           # Copy config.yaml from ConfigMap to the shared volume
-          cp /config-map/config.yaml /app/config.yaml
+          cp /config-volume/config.yml /app/config.yaml
         volumeMounts:
         - name: app-volume
           mountPath: /app
         - name: config-volume
-          mountPath: /config-map
+          mountPath: /config
       containers:
       - name: geyser
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
