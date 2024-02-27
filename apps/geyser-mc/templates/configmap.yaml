@@ -5,7 +5,7 @@ metadata:
   labels:
     {{- include "geysermc.labels" . | nindent 4 }}
 data:
-  geyser-config.yml: |
+  config.yml: |
     bedrock:
       port: {{ .Values.geyser.config.bedrock.port }}
       motd1: "{{ .Values.geyser.config.bedrock.motd1 }}"
