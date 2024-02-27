@@ -30,7 +30,7 @@ spec:
         - name: app-volume
           mountPath: /app
         - name: config-volume
-          mountPath: /config
+          mountPath: /config-volume
       containers:
       - name: geyser
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
