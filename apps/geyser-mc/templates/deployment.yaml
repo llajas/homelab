@@ -19,6 +19,8 @@ spec:
       containers:
       - name: geyser
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        workingDir: /app
+        command: ["java", "-jar", "Geyser.jar"]
         volumeMounts:
         - name: geyser-config
           mountPath: /app
