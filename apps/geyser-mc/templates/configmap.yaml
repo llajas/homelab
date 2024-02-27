@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "geysermc.fullname" . }}
+  labels:
+    {{- include "geysermc.labels" . | nindent 4 }}
+data:
+  geyser-config.yml: |
+    bedrock:
+      port: {{ .Values.geyser.config.bedrock.port }}
+      motd1: "{{ .Values.geyser.config.bedrock.motd1 }}"
+      motd2: "{{ .Values.geyser.config.bedrock.motd2 }}"
+      server-name: "{{ .Values.geyser.config.bedrock.serverName }}"
+    remote:
+      address: "{{ .Values.geyser.config.remote.address }}"
+      port: {{ .Values.geyser.config.remote.port }}
+      auth-type: "{{ .Values.geyser.config.remote.authType }}"
+    max-players: {{ .Values.geyser.config.maxPlayers }}
+    debug-mode: {{ .Values.geyser.config.debugMode }}
