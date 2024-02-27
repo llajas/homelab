@@ -16,19 +16,30 @@ spec:
         app.kubernetes.io/name: {{ include "geysermc.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
+      initContainers:
+      - name: init-config
+        image: busybox
+        command: ['/bin/sh', '-c']
+        args:
+        - |
+          # Copy config.yaml from ConfigMap to the shared volume
+          cp /config-map/config.yaml /app/config.yaml
+        volumeMounts:
+        - name: app-volume
+          mountPath: /app
+        - name: config-volume
+          mountPath: /config-map
       containers:
       - name: geyser
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         workingDir: /app
-        command: ["java", "-jar", "Geyser.jar", "config.yaml"]
+        command: ["java", "-jar", "Geyser.jar"]
         volumeMounts:
-        - name: geyser-config
-          mountPath: /app/config
-          readOnly: true
-        env:
-          - name: GEYSER_CONFIG_PATH
-            value: "/app/geyser-config.yml"
+        - name: app-volume
+          mountPath: /app
       volumes:
-      - name: geyser-config
+      - name: app-volume
+        emptyDir: {}
+      - name: config-volume
         configMap:
           name: {{ .Release.Name }}-geyser-config
