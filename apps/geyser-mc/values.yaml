@@ -1,0 +1,26 @@
+image:
+  repository: registry.lajas.tech/geyser-mc
+  tag: latest
+replicaCount: 1
+config:
+  bedrock:
+    port: 19132
+geyser:
+  enabled: true
+  loadBalancerIP: "10.137.0.248"
+  port: 19132
+  # Additional Geyser-specific configurations as needed
+  config:
+    bedrock:
+      port: 19132
+      motd1: "A Super Secret JAVA Server"
+      motd2: "Brought to you by Geyser-MC!"
+      serverName: "Bluffcraft.lajas.tech"
+    remote:
+      address: "bluffcraft.lajas.tech"
+      port: 25565
+      authType: "online"
+    maxPlayers: 100
+    debugMode: false
+minecraft:
+  sharedIPKey: "minecraft"

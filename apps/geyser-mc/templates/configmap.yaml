@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-geyser-config
+  labels:
+    {{- include "geysermc.labels" . | nindent 4 }}
+data:
+  config.yml: |
+    bedrock:
+      port: {{ .Values.geyser.config.bedrock.port }}
+      clone-remote-port: false
+      motd1: "{{ .Values.geyser.config.bedrock.motd1 }}"
+      motd2: "{{ .Values.geyser.config.bedrock.motd2 }}"
+      server-name: "{{ .Values.geyser.config.bedrock.serverName }}"
+      compression-level: 6
+      enable-proxy-protocol: false
+    remote:
+      address: "{{ .Values.geyser.config.remote.address }}"
+      port: {{ .Values.geyser.config.remote.port }}
+      auth-type: "{{ .Values.geyser.config.remote.authType }}"
+      allow-password-authentication: true
+      use-proxy-protocol: false
+      forward-hostname: false
+    floodgate-key-file: "key.pem"
+    saved-user-logins:
+      - ThisExampleUsernameShouldBeLongEnoughToNeverBeAnXboxUsername
+      - ThisOtherExampleUsernameShouldAlsoBeLongEnough
+    pending-authentication-timeout: 120
+    command-suggestions: true
+    passthrough-motd: true
+    passthrough-player-counts: true
+    legacy-ping-passthrough: false
+    ping-passthrough-interval: 3
+    forward-player-ping: false
+    max-players: {{ .Values.geyser.config.maxPlayers }}
+    debug-mode: {{ .Values.geyser.config.debugMode }}
+    allow-third-party-capes: false
+    allow-third-party-ears: false
+    show-cooldown: title
+    show-coordinates: true
+    disable-bedrock-scaffolding: false
+    emote-offhand-workaround: "disabled"
+    cache-images: 0
+    allow-custom-skulls: true
+    max-visible-custom-skulls: 128
+    custom-skull-render-distance: 32
+    add-non-bedrock-items: true
+    above-bedrock-nether-building: false
+    force-resource-packs: true
+    xbox-achievements-enabled: false
+    log-player-ip-addresses: true
+    notify-on-new-bedrock-update: true
+    unusable-space-block: minecraft:barrier
+    metrics:
+      enabled: true
+      uuid: 73327a88-9777-4c8a-beac-3814607fe1dc
+    scoreboard-packet-threshold: 20
+    enable-proxy-connections: false
+    mtu: 1400
+    use-direct-connection: true
+    disable-compression: true
+    config-version: 4
