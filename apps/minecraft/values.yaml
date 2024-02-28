@@ -459,6 +459,7 @@ deploymentLabels: {}
 
 serviceAnnotations:
   external-dns.alpha.kubernetes.io/hostname: "bluffcraft.lajas.tech"
+  metallb.universe.tf/allow-shared-ip: "minecraft"
 serviceLabels: {}
 
 rconServiceAnnotations: {}
