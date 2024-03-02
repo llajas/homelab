@@ -130,7 +130,7 @@ persistence:
   skipuninstall: false
   ## Logging
   logs:
-    enabled: true
+    enabled: false
     mountPath: /plexlogs
     accessModes:
       - ReadWriteOnce
