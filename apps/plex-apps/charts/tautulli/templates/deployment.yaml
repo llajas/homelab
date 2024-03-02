@@ -119,8 +119,10 @@ spec:
             mountPath: /config
           - name: etc-timezone
             mountPath: /etc/timezone:ro
+          {{ if .Values.persistence.logs.enabled }}
           - name: logs
             mountPath: /plexlogs
+          {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
@@ -139,6 +141,7 @@ spec:
       {{- else }}
         emptyDir: {}
       {{- end }}
+      {{- if .Values.persistence.logs.enabled }}
       - name: logs
         persistentVolumeClaim:
           claimName: {{ template "tautulli.fullname" . }}-plex-logs
@@ -149,6 +152,7 @@ spec:
     {{- with .Values.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
+    {{- end }}
     {{- end }}
     {{- with .Values.tolerations }}
       tolerations:
