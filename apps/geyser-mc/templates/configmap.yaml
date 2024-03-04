@@ -7,59 +7,59 @@ metadata:
 data:
   config.yml: |
     bedrock:
-      port: {{ .Values.geyser.config.bedrock.port }}
-      clone-remote-port: false
-      motd1: "{{ .Values.geyser.config.bedrock.motd1 }}"
-      motd2: "{{ .Values.geyser.config.bedrock.motd2 }}"
+      port: {{ .Values.geyser.config.bedrock.port | default 19132 }}
+      clone-remote-port: {{ .Values.geyser.config.bedrock.cloneRemotePort | default false }}
+      motd1: "{{ .Values.geyser.config.bedrock.motd1 | default "Geyser" }}"
+      motd2: "{{ .Values.geyser.config.bedrock.motd2 | default "Another Geyser server." }}"
       server-name: "{{ .Values.geyser.config.bedrock.serverName }}"
-      compression-level: 6
-      enable-proxy-protocol: false
+      compression-level: {{ .Values.geyser.config.bedrock.compressionLevel | default 6 }}
+      enable-proxy-protocol: {{ .Values.geyser.config.bedrock.enableProxyProtocol | default false }}
     remote:
-      address: "{{ .Values.geyser.config.remote.address }}"
-      port: {{ .Values.geyser.config.remote.port }}
-      auth-type: "{{ .Values.geyser.config.remote.authType }}"
-      allow-password-authentication: true
-      use-proxy-protocol: false
-      forward-hostname: false
-    floodgate-key-file: "key.pem"
+      address: "{{ .Values.geyser.config.remote.address | default "auto" }}"
+      port: {{ .Values.geyser.config.remote.port | default 25565 }}
+      auth-type: "{{ .Values.geyser.config.remote.authType | default "online" }}"
+      allow-password-authentication: {{ .Values.geyser.config.remote.allowPasswordAuthentication | default true }}
+      use-proxy-protocol: {{ .Values.geyser.config.remote.useProxyProtocol | default false }}
+      forward-hostname: {{ .Values.geyser.config.remote.forwardHostname | default false }}
+    floodgate-key-file: "{{ .Values.geyser.config.floodgateKeyFile | default "key.pem" }}"
     saved-user-logins:
     {{- range .Values.geyser.config.savedUserLogins }}
       - {{ . }}
     {{- end }}
       - ThisExampleUsernameShouldBeLongEnoughToNeverBeAnXboxUsername
       - ThisOtherExampleUsernameShouldAlsoBeLongEnough
-    pending-authentication-timeout: 120
-    command-suggestions: true
-    passthrough-motd: true
-    passthrough-player-counts: true
-    legacy-ping-passthrough: false
-    ping-passthrough-interval: 3
-    forward-player-ping: false
-    max-players: {{ .Values.geyser.config.maxPlayers }}
-    debug-mode: {{ .Values.geyser.config.debugMode }}
-    allow-third-party-capes: false
-    allow-third-party-ears: false
-    show-cooldown: title
-    show-coordinates: true
-    disable-bedrock-scaffolding: false
-    emote-offhand-workaround: "disabled"
-    cache-images: 0
-    allow-custom-skulls: true
-    max-visible-custom-skulls: 128
-    custom-skull-render-distance: 32
-    add-non-bedrock-items: true
-    above-bedrock-nether-building: false
-    force-resource-packs: true
-    xbox-achievements-enabled: false
-    log-player-ip-addresses: true
-    notify-on-new-bedrock-update: true
-    unusable-space-block: minecraft:barrier
+    pending-authentication-timeout: {{ .Values.geyser.config.pendingAuthenticationTimeout | default 120 }}
+    command-suggestions: {{ .Values.geyser.config.commandSuggestions | default true }}
+    passthrough-motd: {{ .Values.geyser.config.passthroughMotd | default true }}
+    passthrough-player-counts: {{ .Values.geyser.config.passthroughPlayerCounts | default true }}
+    legacy-ping-passthrough: {{ .Values.geyser.config.legacyPingPassthrough | default false }}
+    ping-passthrough-interval: {{ .Values.geyser.config.pingPassthroughInterval | default 3 }}
+    forward-player-ping: {{ .Values.geyser.config.forwardPlayerPing | default false }}
+    max-players: {{ .Values.geyser.config.maxPlayers | default 100 }}
+    debug-mode: {{ .Values.geyser.config.debugMode | default false }}
+    allow-third-party-capes: {{ .Values.geyser.config.allowThirdPartyCapes | default false }}
+    allow-third-party-ears: {{ .Values.geyser.config.allowThirdPartyEars | default false }}
+    show-cooldown: "{{ .Values.geyser.config.showCooldown | default "title" }}"
+    show-coordinates: {{ .Values.geyser.config.showCoordinates | default true }}
+    disable-bedrock-scaffolding: {{ .Values.geyser.config.disableBedrockScaffolding | default false }}
+    emote-offhand-workaround: "{{ .Values.geyser.config.emoteOffhandWorkaround | default "disabled" }}"
+    cache-images: {{ .Values.geyser.config.cacheImages | default 0 }}
+    allow-custom-skulls: {{ .Values.geyser.config.allowCustomSkulls | default true }}
+    max-visible-custom-skulls: {{ .Values.geyser.config.maxVisibleCustomSkulls | default 128 }}
+    custom-skull-render-distance: {{ .Values.geyser.config.customSkullRenderDistance | default 32 }}
+    add-non-bedrock-items: {{ .Values.geyser.config.addNonBedrockItems | default true }}
+    above-bedrock-nether-building: {{ .Values.geyser.config.aboveBedrockNetherBuilding | default false }}
+    force-resource-packs: {{ .Values.geyser.config.forceResourcePacks | default true }}
+    xbox-achievements-enabled: {{ .Values.geyser.config.xboxAchievementsEnabled | default false }}
+    log-player-ip-addresses: {{ .Values.geyser.config.logPlayerIpAddresses | default true }}
+    notify-on-new-bedrock-update: {{ .Values.geyser.config.notifyOnNewBedrockUpdate | default true }}
+    unusable-space-block: "{{ .Values.geyser.config.unusableSpaceBlock | default "minecraft:barrier" }}"
     metrics:
-      enabled: false
-      uuid:
-    scoreboard-packet-threshold: 20
-    enable-proxy-connections: false
-    mtu: 1400
-    use-direct-connection: true
-    disable-compression: true
-    config-version: 4
+      enabled: {{ .Values.geyser.config.metrics.enabled | default false }}
+      uuid: "{{ .Values.geyser.config.metrics.uuid | default "" }}"
+    scoreboard-packet-threshold: {{ .Values.geyser.config.scoreboardPacketThreshold | default 20 }}
+    enable-proxy-connections: {{ .Values.geyser.config.enableProxyConnections | default false }}
+    mtu: {{ .Values.geyser.config.mtu | default 1400 }}
+    use-direct-connection: {{ .Values.geyser.config.useDirectConnection | default true }}
+    disable-compression: {{ .Values.geyser.config.disableCompression | default true }}
+    config-version: {{ .Values.geyser.config.configVersion | default 4 }}
