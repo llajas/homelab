@@ -23,7 +23,7 @@ geyser:
     maxPlayers: 100
     debugMode: false
     savedUserLogins:
-      - SpecOpEx
+      - SpecOp eX
       - Aliizsa
 minecraft:
   sharedIPKey: "minecraft"
