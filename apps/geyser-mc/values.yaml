@@ -22,5 +22,8 @@ geyser:
       authType: "online"
     maxPlayers: 100
     debugMode: false
+    savedUserLogins:
+      - SpecOpEx
+      - Aliizsa
 minecraft:
   sharedIPKey: "minecraft"

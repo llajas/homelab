@@ -23,6 +23,9 @@ data:
       forward-hostname: false
     floodgate-key-file: "key.pem"
     saved-user-logins:
+    {{- range .Values.geyser.config.savedUserLogins }}
+      - {{ . }}
+    {{- end }}
       - ThisExampleUsernameShouldBeLongEnoughToNeverBeAnXboxUsername
       - ThisOtherExampleUsernameShouldAlsoBeLongEnough
     pending-authentication-timeout: 120
@@ -52,8 +55,8 @@ data:
     notify-on-new-bedrock-update: true
     unusable-space-block: minecraft:barrier
     metrics:
-      enabled: true
-      uuid: 73327a88-9777-4c8a-beac-3814607fe1dc
+      enabled: false
+      uuid:
     scoreboard-packet-threshold: 20
     enable-proxy-connections: false
     mtu: 1400

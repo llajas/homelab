@@ -20,7 +20,7 @@ spec:
         workingDir: /app
         volumeMounts:
         - name: config-volume
-          mountPath: /app/config.yaml
+          mountPath: /app/config.yml
           subPath: config.yml
         ports:
           - name: geyser-mc
