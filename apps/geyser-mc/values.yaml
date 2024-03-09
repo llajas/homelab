@@ -87,7 +87,7 @@ geyser:
     # Whether to add any items and blocks which normally does not exist in Bedrock Edition.
     addNonBedrockItems: true
     # Bedrock prevents building and displaying blocks above Y127 in the Nether.
-    aboveBedrockNetherBuilding: false
+    aboveBedrockNetherBuilding: true
     # Force clients to load all resource packs if there are any.
     forceResourcePacks: true
     # Allows Xbox achievements to be unlocked.
