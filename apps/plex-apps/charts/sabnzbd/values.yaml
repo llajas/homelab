@@ -9,7 +9,7 @@ image:
   # -- image repository
   repository: quay.io/linuxserver.io/sabnzbd
   # -- image tag
-  tag: 4.1.0
+  tag: 4.2.2
   # -- image pull policy
   pullPolicy: IfNotPresent
 
@@ -58,7 +58,4 @@ persistence:
   downloads:
     enabled: true
     mountPath: /downloads
-    storageClass: smb
-    size: 63Ti
-    accessMode: ReadWriteOnce
-    volumeName: plex-apps-sabnzbd-cifs-share
+    existingClaim: "plex-apps-cifs-plex-media"

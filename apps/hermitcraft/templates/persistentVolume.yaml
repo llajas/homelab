@@ -1,0 +1,32 @@
+{{- if eq .Values.mcbackup.persistence.storageType "smb" }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: smb-pv-world-backup-hc
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    pv.kubernetes.io/provisioned-by: smb.csi.k8s.io
+spec:
+  capacity:
+    storage: {{ .Values.mcbackup.persistence.backupDir.size }}
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: smb
+  mountOptions:
+    - dir_mode=0777
+    - file_mode=0777
+    - uid=1000
+    - gid=1000
+    - cache=strict
+    - noserverino
+  csi:
+    driver: smb.csi.k8s.io
+    volumeHandle: {{ .Release.Namespace }}-world-backup
+    volumeAttributes:
+      source: {{ .Values.mcbackup.persistence.smb.server }}
+      subDir: {{ .Values.mcbackup.persistence.smb.shareName }}
+    nodeStageSecretRef:
+      name: cifs.creds.hermitcraft
+      namespace: {{ .Release.Namespace }}
+{{- end}}

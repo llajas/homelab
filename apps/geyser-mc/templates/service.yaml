@@ -1,0 +1,21 @@
+{{- if .Values.geyser.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "geysermc.fullname" . }}
+  labels:
+    {{- include "geysermc.labels" . | nindent 4 }}
+  annotations:
+    metallb.universe.tf/allow-shared-ip: "{{ .Values.minecraft.sharedIPKey }}"
+spec:
+  type: LoadBalancer
+  loadBalancerIP: {{ .Values.geyser.loadBalancerIP }}
+  externalTrafficPolicy: Cluster
+  ports:
+  - name: geyser-mc
+    protocol: UDP
+    port: {{ .Values.geyser.port }}
+    targetPort: geyser-mc
+  selector:
+    app: {{ include "geysermc.name" . }}
+{{- end }}

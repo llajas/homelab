@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    {{- include "geysermc.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "geysermc.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "geysermc.name" . }}
+    spec:
+      containers:
+      - name: geyser
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        workingDir: /app
+        volumeMounts:
+        - name: config-volume
+          mountPath: /app/config.yml
+          subPath: config.yml
+        ports:
+          - name: geyser-mc
+            containerPort: 19132
+            protocol: UDP
+      volumes:
+      - name: config-volume
+        configMap:
+          name: {{ .Release.Name }}-geyser-config

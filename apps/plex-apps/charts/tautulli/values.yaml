@@ -121,7 +121,7 @@ persistence:
   ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
   ##   GKE, AWS & OpenStack)
   ##
-  size: 2Gi
+  size: 10Gi
   existingClaim: ""
   storageClassName: "longhorn"
   accessModes:
@@ -130,7 +130,7 @@ persistence:
   skipuninstall: false
   ## Logging
   logs:
-    enabled: true
+    enabled: false
     mountPath: /plexlogs
     accessModes:
       - ReadWriteOnce

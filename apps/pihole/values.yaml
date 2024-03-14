@@ -199,7 +199,7 @@ persistentVolumeClaim:
   accessModes:
     - ReadWriteOnce
 
-  size: "1Gi"
+  size: "2Gi"
 
   ## If defined, storageClassName: <storageClass>
   ## If set to "-", storageClassName: "", which disables dynamic provisioning

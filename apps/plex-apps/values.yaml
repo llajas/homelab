@@ -11,3 +11,14 @@ sabnzbd: {}
 sonarr: {}
 
 tautulli: {}
+
+volumes:
+  media:
+    volumeName: cifs-plex-media
+    storageSize: "63Ti"
+    accessModes: ReadWriteMany
+    storageClassName: "smb"
+  smb:
+    server: "//nas-01.storage.lajas.tech/"
+    path: "media/"
+    secretName: cifs.creds.plex.media

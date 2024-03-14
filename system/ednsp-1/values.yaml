@@ -8,3 +8,10 @@ external-dns:
           key: adminPassword
   extraArgs:
     - --pihole-server=http://pihole-web.pihole.svc.cluster.local
+  interval: 24h
+  triggerLoopOnEvent: true
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+  registry: "noop"

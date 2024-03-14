@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Release.Name }}-media
+  namespace: {{ .Release.Namespace }}
+spec:
+  capacity:
+    storage: {{ .Values.global.sharedStorage.media.size }}
+  accessModes:
+    - ReadWriteMany
+  csi:
+    driver: {{ .Values.global.sharedStorage.media.driver }}
+    volumeHandle: {{ .Release.name }}-media
+    volumeAttributes:
+      source: {{ .Values.global.sharedStorage.media.server }}
+      subDir: {{ .Values.global.sharedStorage.media.path }}
+    nodeStageSecretRef:
+      name: {{ .Values.global.sharedStorage.media.secretName }}
+      namespace: {{ .Release.Namespace }}
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: {{ .Values.global.sharedStorage.media.storageClass }}
+  mountOptions:
+    - dir_mode=0777
+    - file_mode=0777
+    - uid=1000
+    - gid=1000
+    - cache=strict
+    - noserverino
+    - nobrl

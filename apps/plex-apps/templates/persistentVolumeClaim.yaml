@@ -1,0 +1,12 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: plex-apps-cifs-plex-media
+spec:
+  accessModes:
+    - {{ .Values.volumes.media.accessModes }}
+  resources:
+    requests:
+      storage: {{ .Values.volumes.media.storageSize }}
+  storageClassName: {{ .Values.volumes.media.storageClassName }}
+  volumeName: "plex-apps-cifs-plex-media"

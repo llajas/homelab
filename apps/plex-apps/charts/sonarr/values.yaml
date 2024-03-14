@@ -18,8 +18,8 @@ image:
 env:
   # -- Set the container timezone
   TZ: America/Chicago
-  PUID: "568"
-  PGID: "568"
+  PUID: "911"
+  PGID: "911"
 
 # -- Configures service settings for the chart.
 # @default -- See values.yaml
@@ -80,14 +80,11 @@ persistence:
     enabled: true
     existingClaim: ""
     storageClassName: "longhorn"
-    size: "5Gi"
+    size: "10Gi"
   media:
     enabled: true
+    existingClaim: "plex-apps-cifs-plex-media"
     mountPath: /plexmedia
-    accessMode: ReadWriteOnce
-    size: "63Ti"
-    storageClass: "smb"
-    volumeName: plex-apps-sonarr-cifs-share
 
 metrics:
   # -- Enable and configure Exportarr sidecar and Prometheus serviceMonitor.
@@ -119,7 +116,7 @@ metrics:
       # -- image repository
       repository: ghcr.io/onedr0p/exportarr
       # -- image tag
-      tag: v1.6.0
+      tag: v2.0.0
       # -- image pull policy
       pullPolicy: IfNotPresent
     env:

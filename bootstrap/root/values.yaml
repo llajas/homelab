@@ -7,4 +7,3 @@ stacks:
   - name: system
   - name: platform
   - name: apps
-  - name: csi-driver-smb

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Release.Name }}-media
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: {{ .Values.global.sharedStorage.media.size }}
+  storageClassName: {{ .Values.global.sharedStorage.media.storageClass }}
+  volumeName: {{ .Values.global.sharedStorage.media.existingClaim }}

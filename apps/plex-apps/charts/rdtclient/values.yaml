@@ -6,7 +6,7 @@ image:
   repository: rogerfar/rdtclient
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: 2.0.54
+  tag: 2.0.62
 
 service:
   type: ClusterIP
@@ -34,13 +34,8 @@ ingress:
 volumes:
   downloads:
     pvc:
-      name: downloads-pvc
       mountPath: /data/downloads
-      accessModes: ReadWriteOnce
-      storageSize: "63Ti"
-      storageClassName: "smb"
-      volumeName: plex-apps-rdtclient-cifs-share
-
+      existingClaim: "plex-apps-cifs-plex-media"
   db:
     pvc:
       name: db-pvc
