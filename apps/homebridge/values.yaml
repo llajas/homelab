@@ -48,7 +48,10 @@ securityContext:
   #runAsUser: 1000
 
 service:
+  type: loadBalancer
+  loadBalancerIP: 10.137.0.230
   port: 8090
+  externalTrafficPolicy: Cluster
 
 ingress:
   enabled: true

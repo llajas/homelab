@@ -384,7 +384,7 @@ minecraftServer:
         annotations: {}
         type: LoadBalancer
         port: 24454
-        loadBalancerIP: 10.137.0.227
+        loadBalancerIP: 10.137.0.249
         loadBalancerSourceRanges: []
         externalTrafficPolicy: Cluster
       ingress:
