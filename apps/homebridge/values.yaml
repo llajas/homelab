@@ -52,7 +52,7 @@ service:
 
 extraServices:
   - name: plex-webhook
-    type: ClusterIP
+    type: LoadBalancer
     port: 32401
     externalTrafficPolicy: Cluster
     targetPort: 32401
