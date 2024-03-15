@@ -35,7 +35,7 @@ app-template:
             - path: /
               pathType: Prefix
               service:
-                name: main
+                name: paperless
                 port: 8000
       tls:
         - hosts:
