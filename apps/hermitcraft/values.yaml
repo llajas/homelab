@@ -289,7 +289,8 @@ minecraftServer:
   # see https://github.com/itzg/docker-minecraft-server#server-configuration
   overrideServerProperties: false
   # DEPRECATED: use top-level rconServiceAnnotations instead
-  serviceAnnotations: {}
+  serviceAnnotations:
+    metallb.universe.tf/allow-shared-ip: hermitcraft
   serviceType: LoadBalancer
   ## Set the port used if the serviceType is NodePort
   #nodePort:
@@ -381,7 +382,8 @@ minecraftServer:
       service:
         enabled: true
         embedded: false
-        annotations: {}
+        annotations:
+          metallb.universe.tf/allow-shared-ip: hermitcraft
         type: LoadBalancer
         port: 24454
         loadBalancerIP: 10.137.0.249
@@ -478,6 +480,7 @@ deploymentAnnotations: {}
 deploymentLabels: {}
 
 serviceAnnotations:
+  metallb.universe.tf/allow-shared-ip: hermitcraft
   external-dns.alpha.kubernetes.io/hostname: "hermitcraft-9.lajas.tech"
 serviceLabels: {}
 
