@@ -22,7 +22,7 @@ app-template:
         http:
           port: 8000
           protocol: HTTP
-      controller: main
+      controller: paperless
   ingress:
     main:
       enabled: true
