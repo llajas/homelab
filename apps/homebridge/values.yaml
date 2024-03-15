@@ -48,10 +48,15 @@ securityContext:
   #runAsUser: 1000
 
 service:
-  type: loadBalancer
-  loadBalancerIP: 10.137.0.230
   port: 8090
-  externalTrafficPolicy: Cluster
+
+extraServices:
+  - name: plex-webhook
+    type: ClusterIP
+    port: 32401
+    externalTrafficPolicy: Cluster
+    targetPort: 32401
+    protocol: TCP
 
 ingress:
   enabled: true

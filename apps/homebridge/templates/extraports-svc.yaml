@@ -1,0 +1,22 @@
+{{- range .Values.extraServices }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "homebridge.fullname" $ }}-{{ .name }}
+  labels:
+{{ include "homebridge.labels" $ | indent 4 }}
+spec:
+  type: {{ .type }}
+  {{- if .loadBalancerIP }}
+  loadBalancerIP: {{ .loadBalancerIP }}
+  {{- end }}
+  externalTrafficPolicy: {{ .externalTrafficPolicy }}
+  ports:
+    - port: {{ .port }}
+      targetPort: {{ .targetPort }}
+      protocol: {{ .protocol }}
+      name: {{ .name }}
+  selector:
+    {{- include "homebridge.selectorLabels" $ | nindent 4 }}
+---
+{{- end }}
