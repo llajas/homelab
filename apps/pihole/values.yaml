@@ -301,9 +301,9 @@ dnsmasq:
   # -- Add upstream dns servers. All lines will be added to the pihole dnsmasq configuration
   upstreamServers: [
     server=/mgmt.lajas.tech/10.0.0.1
-    server=/0.10.in-addr.arpa/10.0.0.1
-    server=/lauren.lajas.tech/10.0.0.1
-    server=/37.3.10.in-addr.arpa/10.0.0.1
+    server=/0.33.10.in-addr.arpa/10.0.0.1
+    server=/home.lajas.tech/10.0.0.1
+    server=/33.13.10.in-addr.arpa/10.0.0.1
     server=/camera.lajas.tech/10.0.0.1
     server=/20.20.10.in-addr.arpa/10.0.0.1
     server=/guest.lajas.tech/10.0.0.1
@@ -315,13 +315,13 @@ dnsmasq:
     server=/ibm.lajas.tech/10.0.0.1
     server=/1.16.172.in-addr.arpa/10.0.0.1
     server=/net.lajas.tech/10.0.0.1
-    server=/0.33.10.in-addr.arpa/10.0.0.1
-    server=/candace.lajas.tech/10.0.0.1
-    server=/37.3.10.in-addr.arpa/10.0.0.1
+    server=/10.in-addr.arpa/10.0.0.1
     server=/johto.lajas.tech/10.0.0.1
     server=/137.10.in-addr.arpa/10.0.0.1
     server=/kanto.lajas.tech/10.0.0.1
     server=/51.10.in-addr.arpa/10.0.0.1
+    server=/storage.lajas.tech/10.0.0.1
+    server/0.8.10.in-addr.arpa/10.0.0.1
   ]
   # - server=/foo.bar/192.168.178.10
   # - server=/bar.foo/192.168.178.11
