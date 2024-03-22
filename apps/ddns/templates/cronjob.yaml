@@ -16,21 +16,21 @@ spec:
               - name: CLOUDFLARE_API_KEY
                 valueFrom:
                   secretKeyRef:
-                    name: ddns.config
+                    name: ddns-updater-secrets
                     key: cloudflareApiKey
               - name: CLOUDFLARE_EMAIL
                 valueFrom:
                   secretKeyRef:
-                    name: ddns.config
+                    name: ddns-updater-secrets
                     key: cloudflareEmail
               - name: DOMAIN_NAME
                 valueFrom:
                   secretKeyRef:
-                    name: ddns.config
+                    name: ddns-updater-secrets
                     key: domainName
               - name: DNS_RECORD
                 valueFrom:
                   secretKeyRef:
-                    name: ddns.config
+                    name: ddns-updater-secrets
                     key: dnsRecord
           restartPolicy: OnFailure
