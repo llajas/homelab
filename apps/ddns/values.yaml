@@ -1,0 +1,15 @@
+# Image configuration
+image:
+  repository: registry.lajas.tech/ddns
+  tag: latest
+  pullPolicy: IfNotPresent
+
+# Schedule for the CronJob
+schedule: "*/15 * * * *"
+
+# Placeholder for environment variables - these will be populated from the Kubernetes Secret at runtime
+env:
+  CLOUDFLARE_API_KEY: ""
+  CLOUDFLARE_EMAIL: ""
+  DOMAIN_NAME: ""
+  DNS_RECORD: ""

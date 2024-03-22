@@ -1,15 +1,36 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: ddns-cronjob
+  name: {{ include "ddns.fullname" . }}
 spec:
-  schedule: "*/15 * * * *"
+  schedule: {{ .Values.schedule | quote }}
   jobTemplate:
     spec:
       template:
         spec:
           containers:
-            - name: ddns-container
-              image: llajas/ddns:latest
-              imagePullPolicy: IfNotPresent
+          - name: ddns-container
+            image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+            imagePullPolicy: {{ .Values.image.pullPolicy }}
+            env:
+              - name: CLOUDFLARE_API_KEY
+                valueFrom:
+                  secretKeyRef:
+                    name: ddns.config
+                    key: cloudflareApiKey
+              - name: CLOUDFLARE_EMAIL
+                valueFrom:
+                  secretKeyRef:
+                    name: ddns.config
+                    key: cloudflareEmail
+              - name: DOMAIN_NAME
+                valueFrom:
+                  secretKeyRef:
+                    name: ddns.config
+                    key: domainName
+              - name: DNS_RECORD
+                valueFrom:
+                  secretKeyRef:
+                    name: ddns.config
+                    key: dnsRecord
           restartPolicy: OnFailure
