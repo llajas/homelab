@@ -321,7 +321,7 @@ dnsmasq:
     server=/kanto.lajas.tech/10.0.0.1
     server=/51.10.in-addr.arpa/10.0.0.1
     server=/storage.lajas.tech/10.0.0.1
-    server/0.8.10.in-addr.arpa/10.0.0.1
+    server=/0.8.10.in-addr.arpa/10.0.0.1
   ]
   # - server=/foo.bar/192.168.178.10
   # - server=/bar.foo/192.168.178.11
