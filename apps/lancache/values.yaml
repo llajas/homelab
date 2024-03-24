@@ -27,6 +27,8 @@ env:
 # @default -- See values.yaml
 service:
   main:
+    type: LoadBalancer
+    loadBalancerIP: 10.137.0.229
     ports:
       http:
         port: 80
@@ -36,6 +38,7 @@ service:
   dns:
     enabled: true
     type: LoadBalancer
+    loadBalancerIP: 10.137.0.230
     ports:
       dns:
         port: 53
@@ -44,7 +47,7 @@ service:
 dnsPolicy: None
 dnsConfig:
   nameservers:
-    - 127.0.0.1
+    - 10.137.0.253
 
 dns:
   # -- Enable and configure LanCache DNS sidecar and service.
@@ -92,14 +95,19 @@ probes:
 persistence:
   data:
     enabled: true
+    existingClaim: lancache-data-cache-pvc
     mountPath: /data/cache
     accessMode: ReadWriteOnce
-    size: 1Gi
+    storageClassName: nfs
+    size: 1Ti
+    nfs:
+      path: /mnt/user/lancache
+      server: nas-01.storage.lajas.tech
   logs:
     enabled: true
     mountPath: /data/logs
     accessMode: ReadWriteOnce
-    size: 1Gi
+    size: 2Gi
 
 # -- The official LanCache image is only available for x86_64.
 nodeSelector:

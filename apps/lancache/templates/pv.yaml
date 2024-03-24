@@ -1,0 +1,17 @@
+{{- if .Values.persistence.data.existingClaim }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Values.persistence.data.existingClaim }}-pv
+spec:
+  capacity:
+    storage: {{ .Values.persistence.data.size }}
+  volumeMode: Filesystem
+  accessModes:
+    - {{ .Values.persistence.data.accessMode }}
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: {{ .Values.persistence.data.storageClassName }}
+  nfs:
+    path: {{ required "A valid .Values.persistence.data.nfs.path is required!" .Values.persistence.data.nfs.path }}
+    server: {{ required "A valid .Values.persistence.data.nfs.server is required!" .Values.persistence.data.nfs.server }}
+{{- end }}
