@@ -1,0 +1,21 @@
+{{- if and .Values.persistence.data.enabled .Values.persistence.data.existingClaim }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.persistence.data.existingClaim }}
+  {{- if .Values.persistence.data.namespace }}
+  namespace: {{ .Values.persistence.data.namespace }}
+  {{- end }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.data.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.data.size }}
+  volumeName: {{ .Values.persistence.data.existingClaim }}-pv
+  {{- if .Values.persistence.data.storageClassName }}
+  storageClassName: {{ .Values.persistence.data.storageClassName }}
+  {{- else }}
+  storageClassName: ""
+  {{- end }}
+{{- end }}
