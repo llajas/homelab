@@ -34,7 +34,8 @@ service:
         enabled: true
         port: 443
   dns:
-    enabled: false
+    enabled: true
+    type: LoadBalancer
     ports:
       dns:
         port: 53
@@ -90,11 +91,15 @@ probes:
 # @default -- See values.yaml
 persistence:
   data:
-    enabled: false
+    enabled: true
     mountPath: /data/cache
+    accessMode: ReadWriteOnce
+    size: 1Gi
   logs:
-    enabled: false
+    enabled: true
     mountPath: /data/logs
+    accessMode: ReadWriteOnce
+    size: 1Gi
 
 # -- The official LanCache image is only available for x86_64.
 nodeSelector:
