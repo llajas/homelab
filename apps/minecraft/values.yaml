@@ -294,7 +294,7 @@ minecraftServer:
   ## Set the port used if the serviceType is NodePort
   #nodePort:
   # Set the external port of the service, usefull when using the LoadBalancer service type
-  servicePort: 25565
+  servicePort: 25566
   clusterIP:
   loadBalancerIP: 10.137.0.248
   # loadBalancerSourceRanges: []
