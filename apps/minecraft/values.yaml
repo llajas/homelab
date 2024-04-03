@@ -376,7 +376,7 @@ minecraftServer:
 
   extraPorts:
     - name: internet-ingress
-      containerPort: 25565
+      containerPort: 25566
       protocol: TCP
       service:
         enabled: true
@@ -384,7 +384,7 @@ minecraftServer:
         annotations:
           metallb.universe.tf/allow-shared-ip: minecraft
         type: LoadBalancer
-        port: 25565
+        port: 25566
         loadBalancerIP: 10.137.0.239
         loadBalancerSourceRanges: []
         externalTrafficPolicy: Cluster
