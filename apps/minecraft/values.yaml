@@ -289,12 +289,12 @@ minecraftServer:
   # see https://github.com/itzg/docker-minecraft-server#server-configuration
   overrideServerProperties: false
   # DEPRECATED: use top-level rconServiceAnnotations instead
-  serviceAnnotations:
+  serviceAnnotations: {}
   serviceType: LoadBalancer
   ## Set the port used if the serviceType is NodePort
   #nodePort:
   # Set the external port of the service, usefull when using the LoadBalancer service type
-  servicePort: 25566
+  servicePort: 25565
   clusterIP:
   loadBalancerIP: 10.137.0.248
   # loadBalancerSourceRanges: []
@@ -375,29 +375,7 @@ minecraftServer:
     # externalTrafficPolicy: Cluster
 
   extraPorts:
-    - name: tunnel
-      containerPort: 25566
-      protocol: TCP
-      service:
-        enabled: true
-        embedded: false
-        annotations:
-          metallb.universe.tf/allow-shared-ip: minecraft
-        type: LoadBalancer
-        port: 25566
-        loadBalancerIP: 10.137.0.239
-        loadBalancerSourceRanges: []
-        externalTrafficPolicy: Cluster
-      ingress:
-        ingressClassName: nginx
-        enabled: true
-        annotations:
-          external-dns.alpha.kubernetes.io/target: "homelab-tunnel.lajas.tech"
-          external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
-        hosts:
-          - name: bluffcraft.lajas.tech
-            path: /
-        tls: {}
+    []
 
     # These options allow you to expose another port from the Minecraft server, plugins such
     # as dynmap (8123) and bluemap (8100) will require this for access to their web interfaces
@@ -480,7 +458,7 @@ deploymentAnnotations: {}
 deploymentLabels: {}
 
 serviceAnnotations:
-  external-dns.alpha.kubernetes.io/hostname: "bluffcraft-local.lajas.tech"
+  external-dns.alpha.kubernetes.io/hostname: "bluffcraft.lajas.tech"
   metallb.universe.tf/allow-shared-ip: "minecraft"
 serviceLabels: {}
 
