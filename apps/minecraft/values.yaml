@@ -289,7 +289,9 @@ minecraftServer:
   # see https://github.com/itzg/docker-minecraft-server#server-configuration
   overrideServerProperties: false
   # DEPRECATED: use top-level rconServiceAnnotations instead
-  serviceAnnotations: {}
+  serviceAnnotations:
+    external-dns.alpha.kubernetes.io/target: "homelab-tunnel.lajas.tech"
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
   serviceType: LoadBalancer
   ## Set the port used if the serviceType is NodePort
   #nodePort:
