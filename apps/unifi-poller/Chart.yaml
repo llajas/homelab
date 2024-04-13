@@ -21,7 +21,7 @@ dependencies:
     repository: https://library-charts.k8s-at-home.com
     version: 4.5.2
   - name: influxdb
-    version: 6.0.2
+    version: 6.0.6
     repository: https://charts.bitnami.com/bitnami
     condition: influxdb.enabled
 annotations:
