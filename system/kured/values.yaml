@@ -3,9 +3,9 @@ kured:
     annotateNodes: true
     rebootSentinelCommand: sh -c "/usr/local/bin/rebooter.sh"
     period: 5m
-    rebootDays: [mo, fr]
-    startTime: 21:00
-    endTime: 5:00
+    rebootDays: [mo, tu, we, th]
+    startTime: 5:00
+    endTime: 7:30
     timeZone: America/Chicago
 
   initContainers:
