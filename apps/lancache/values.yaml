@@ -11,7 +11,7 @@ image:
   # -- image tag
   tag: latest
   # -- image pull policy
-  pullPolicy: Always
+  pullPolicy: IfNotPresent
 
 # -- environment variables. See more environment variables in the [LanCache Monolithic documentation](https://lancache.net/docs/containers/monolithic/variables/).
 # @default -- See below
@@ -68,7 +68,7 @@ dns:
     # -- image tag
     tag: latest
     # -- image pull policy
-    pullPolicy: Always
+    pullPolicy: IfNotPresent
 
 probes:
   readiness:
@@ -117,7 +117,7 @@ additionalContainers:
   monolithic-logs:
     image: busybox
     args: [/bin/sh, -c, 'tail -n1 -F /data/logs/access.log']
-    imagePullPolicy: Always
+    imagePullPolicy: IfNotPresent
     volumeMounts:
       - name: logs
         mountPath: /data/logs
