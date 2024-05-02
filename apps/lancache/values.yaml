@@ -106,9 +106,18 @@ persistence:
   logs:
     enabled: true
     mountPath: /data/logs
-    accessMode: ReadWriteOnce
+    accessMode: ReadWriteMany
     size: 2Gi
 
 # -- The official LanCache image is only available for x86_64.
 nodeSelector:
   kubernetes.io/arch: amd64
+
+additionalContainers:
+  log:
+    image: busybox
+    args: [/bin/sh, -c, 'tail -n1 -F /data/logs/access.log']
+    imagePullPolicy: Always
+    volumeMounts:
+      - name: logs
+        mountPath: /data/logs
