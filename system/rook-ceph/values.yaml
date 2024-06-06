@@ -42,7 +42,7 @@ rook-ceph-cluster:
       storageClass:
         enabled: true
         name: standard-rwo
-        isDefault: true
+        isDefault: false
         allowVolumeExpansion: true
         parameters:
           imageFeatures: layering,fast-diff,object-map,deep-flatten,exclusive-lock
