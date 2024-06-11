@@ -36,6 +36,7 @@ volumes:
     pvc:
       mountPath: /data/downloads
       existingClaim: "plex-apps-cifs-plex-media"
+      storageClass: smb
   db:
     pvc:
       name: db-pvc
