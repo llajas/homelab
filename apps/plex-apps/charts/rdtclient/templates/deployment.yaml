@@ -2,6 +2,13 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "rdtclient.fullname" . }}
+  labels:
+    {{- if eq .Values.volumes.downloads.pvc.storageClass "smb" }}
+    smb-dependent: "true"
+    {{- end }}
+    {{- if eq .Values.volumes.downloads.pvc.storageClass "nfs" }}
+    nfs-dependent: "true"
+    {{- end }}
 spec:
   selector:
     matchLabels:

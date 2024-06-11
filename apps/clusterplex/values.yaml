@@ -101,6 +101,11 @@ global:
 pms:
   # -- Enable or disable the Plex Media Server component
   enabled: true
+
+  controller:
+    labels:
+      smb-dependent: "true"
+
   # runtimeClassName: nvidia
   # -- Additional environment variables. Template enabled.
   # Syntax options:
@@ -271,6 +276,10 @@ orchestrator:
   # -- Enable or disable the Orchestrator component
   enabled: true
 
+  controller:
+    labels:
+      smb-dependent: "true"
+
   image:
     # -- image repository
     repository: ghcr.io/pabloromeo/clusterplex_orchestrator
@@ -387,6 +396,11 @@ orchestrator:
 worker:
   # -- Enable or disable the Worker component
   enabled: true
+
+  controller:
+    labels:
+      smb-dependent: "true"
+
   runtimeClassName: nvidia
   # -- Additional environment variables. Template enabled.
   # Syntax options:

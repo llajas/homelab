@@ -455,7 +455,8 @@ podAnnotations: {}
 podLabels: {}
 
 deploymentAnnotations: {}
-deploymentLabels: {}
+deploymentLabels:
+  smb-dependent: "true"
 
 serviceAnnotations:
   external-dns.alpha.kubernetes.io/hostname: "bluffcraft-local.lajas.tech"

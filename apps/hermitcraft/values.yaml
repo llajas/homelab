@@ -477,7 +477,8 @@ podAnnotations: {}
 podLabels: {}
 
 deploymentAnnotations: {}
-deploymentLabels: {}
+deploymentLabels:
+  smb-dependent: "true"
 
 serviceAnnotations:
   metallb.universe.tf/allow-shared-ip: hermitcraft
