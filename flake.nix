@@ -2,14 +2,19 @@
   description = "Homelab";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
   outputs = { self, nixpkgs, flake-utils }:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        pkgs = nixpkgs.legacyPackages.${system};
+        # TODO remove unfree after removing Terraform
+        # (Source: https://xeiaso.net/blog/notes/nix-flakes-terraform-unfree-fix)
+        pkgs = import nixpkgs {
+          inherit system;
+          config.allowUnfree = true;
+        };
       in
       with pkgs;
       {
@@ -21,12 +26,14 @@
             diffutils
             docker
             docker-compose_1 # TODO upgrade to version 2
+            dyff
             git
             go
             gotestsum
             iproute2
             jq
             k9s
+            kanidm
             kube3d
             kubectl
             kubernetes-helm
@@ -45,6 +52,7 @@
               kubernetes
               mkdocs-material
               netaddr
+              pexpect
               rich
             ]))
           ];
