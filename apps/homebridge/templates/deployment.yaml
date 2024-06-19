@@ -29,13 +29,27 @@ spec:
             - sh
             - -c
             - |
-              if [ ! -f /homebridge/sleep_only_key ] ||
-                 [ "$(md5sum /homebridge/sleep_only_key | cut -d ' ' -f 1)" != "$(md5sum /secrets/sleepKey | cut -d ' ' -f 1)" ]; then
+              copy_and_chmod() {
                 cp /secrets/sleepKey /homebridge/sleep_only_key &&
                 chmod 600 /homebridge/sleep_only_key &&
-                echo "Copied sleepKey to /homebridge/sleep_only_key";
+                echo "Copied sleepKey to /homebridge/sleep_only_key and set permissions to 600";
+              }
+
+              set_chmod() {
+                chmod 600 /homebridge/sleep_only_key &&
+                echo "Set permissions to 600 for /homebridge/sleep_only_key";
+              }
+
+              if [ ! -f /homebridge/sleep_only_key ] ||
+                 [ "$(md5sum /homebridge/sleep_only_key | cut -d ' ' -f 1)" != "$(md5sum /secrets/sleepKey | cut -d ' ' -f 1)" ]; then
+                copy_and_chmod
               else
                 echo "The key already exists and matches the source.";
+                if [ "$(stat -c %a /homebridge/sleep_only_key)" != "600" ]; then
+                  set_chmod
+                else
+                  echo "Permissions are already set correctly.";
+                fi
               fi
           volumeMounts:
             - name: homebridge
