@@ -90,3 +90,22 @@ persistence:
 
     #nodeSelector:
     #  feature.node.kubernetes.io/bluetooth-ready-node: "true"
+
+initContainers:
+  enabled: true
+
+# Sleep Automation Key
+externalSecrets:
+  credentials:
+    name: homebridge.sleepkey
+    secretStoreRef:
+      kind: ClusterSecretStore
+      name: global-secrets
+    data:
+      - secretKey: sleepKey
+        remoteRef:
+          conversionStrategy: Default
+          decodingStrategy: None
+          key: homebridge.sleepkey
+          metadataPolicy: None
+          property: sleep_only_key

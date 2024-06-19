@@ -21,10 +21,36 @@ spec:
       labels:
         {{- include "homebridge.selectorLabels" . | nindent 8 }}
     spec:
+      {{- if .Values.initContainers.enabled }}
+      initContainers:
+        - name: copy-ssh-key
+          image: busybox
+          command:
+            - sh
+            - -c
+            - |
+              if [ ! -f /homebridge/sleep_only_key ] ||
+                 [ "$(md5sum /homebridge/sleep_only_key | cut -d ' ' -f 1)" != "$(md5sum /secrets/sleepKey | cut -d ' ' -f 1)" ]; then
+                cp /secrets/sleepKey /homebridge/sleep_only_key &&
+                chmod 600 /homebridge/sleep_only_key &&
+                echo "Copied sleepKey to /homebridge/sleep_only_key";
+              else
+                echo "The key already exists and matches the source.";
+              fi
+          volumeMounts:
+            - name: homebridge
+              mountPath: /homebridge
+            - name: ssh-key-secret
+              mountPath: /secrets
+              readOnly: true
+      {{- end }}
       volumes:
       - name: homebridge
         persistentVolumeClaim:
           claimName: homebridge
+      - name: ssh-key-secret
+        secret:
+          secretName: homebridge.sleepkey
       hostNetwork: true
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -80,3 +106,4 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+---
