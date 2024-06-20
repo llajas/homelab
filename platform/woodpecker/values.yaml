@@ -8,10 +8,10 @@ woodpecker:
       # the agent pod, so we can run many workflows per agent.
       WOODPECKER_MAX_WORKFLOWS: 10
     image:
-      tag: 2.6.0
+      tag: v2.6.0
   server:
     image:
-      tag: 2.6.0
+      tag: v2.6.0
     env:
       WOODPECKER_HOST: https://ci.lajas.tech
       WOODPECKER_WEBHOOK_HOST: http://woodpecker-server.woodpecker
