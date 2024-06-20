@@ -24,14 +24,14 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: {{ $.Values.externalSecrets.persistent.name }}
-                  key: {{ $value }}
+                  key: {{ $.Values.externalSecrets.persistent.name }}
             {{- end }}
             {{- range $key, $value := .Values.externalSecrets.rotating.data }}
             - name: {{ $value }}
               valueFrom:
                 secretKeyRef:
                   name: {{ $.Values.externalSecrets.rotating.name }}
-                  key: {{ $value }}
+                  key: {{ $.Values.externalSecrets.rotating.name }}
             {{- end }}
             - name: TZ
               value: {{ .Values.timezone | default "UTC" }}
