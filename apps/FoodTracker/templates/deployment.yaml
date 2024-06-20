@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-foodtrack
+  labels:
+    app: foodtrack
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: foodtrack
+  template:
+    metadata:
+      labels:
+        app: foodtrack
+    spec:
+      containers:
+        - name: foodtrack
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            {{- range $key, $value := .Values.externalSecrets.persistent.data }}
+            - name: {{ $value }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $.Values.externalSecrets.persistent.name }}
+                  key: {{ $value }}
+            {{- end }}
+            {{- range $key, $value := .Values.externalSecrets.rotating.data }}
+            - name: {{ $value }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $.Values.externalSecrets.rotating.name }}
+                  key: {{ $value }}
+            {{- end }}
+            - name: TZ
+              value: {{ .Values.timezone | default "UTC" }}
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi

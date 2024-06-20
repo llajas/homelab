@@ -1,0 +1,33 @@
+replicaCount: 1
+
+image:
+  repository: registry.lajas.tech/foodtrack
+  tag: latest
+  pullPolicy: IfNotPresent
+
+timezone: America/Chicago
+
+externalSecrets:
+  persistent:
+    name: foodtracker.persistent
+    secretStoreRef:
+      name: global-secrets
+      kind: ClusterSecretStore
+    data:
+      - DISCORD_BOT_TOKEN
+      - DISCORD_CHANNEL_ID
+      - GEOFENCE_LAT
+      - GEOFENCE_LON
+      - GEOFENCE_RADIUS
+      - HUE_BRIDGE_IP
+      - HUE_USER_TOKEN
+      - HUE_LIGHT_ID
+      - PHONE_NUMBER
+
+  rotating:
+    name: foodtracker.rotating
+    secretStoreRef:
+      name: global-secrets
+      kind: ClusterSecretStore
+    data:
+      - UBER_EATS_SESSION_ID

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: foodtrack
+description: A Helm chart for the FoodTrack application
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
