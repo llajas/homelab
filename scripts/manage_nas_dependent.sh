@@ -37,16 +37,23 @@ scale_down() {
   namespaces=()
   pvc_list=()
 
+  # Normalize NAS_ADDRESS to ensure it doesn't have a trailing slash
+  NAS_ADDRESS="${NAS_ADDRESS%/}"
+
   # Check each PV to see if it's using the NAS
   for pv in $pv_list; do
     source=$(kubectl get pv "$pv" -o json | jq -r '.spec.csi.volumeAttributes.source // .spec.nfs.server')
     echo "Checking PV: $pv with source: $source"  # Debug output
-    if [[ "$source" == "//$NAS_ADDRESS/" || "$source" == "$NAS_ADDRESS" ]]; then
+    normalized_source="${source%/}"
+    if [[ "$normalized_source" == "//$NAS_ADDRESS" || "$normalized_source" == "$NAS_ADDRESS" ]]; then
+      echo "Source matched: $normalized_source == //$NAS_ADDRESS or $NAS_ADDRESS"  # Debug output
       claim=$(kubectl get pv "$pv" -o json | jq -r '.spec.claimRef.name')
       namespace=$(kubectl get pv "$pv" -o json | jq -r '.spec.claimRef.namespace')
       echo "Identified NAS-dependent PV: $pv in namespace: $namespace with claim: $claim"  # Debug output
       pvc_list+=("${namespace}/${claim}")
       namespaces+=("$namespace")
+    else
+      echo "Source did not match: $normalized_source != //${NAS_ADDRESS} and $normalized_source != $NAS_ADDRESS"  # Debug output
     fi
   done
 
@@ -77,7 +84,8 @@ scale_down() {
 
     # Scale down deployments
     deployments=$(kubectl get deployment -n "$namespace" -o=json | jq -r ".items[] | select(.spec.template.spec.volumes[]?.persistentVolumeClaim.claimName == \"$claim\") | .metadata.name")
-    if [ -n "$deployments" ];then
+    echo "Deployments in namespace $namespace using PVC $claim: $deployments"  # Debug output
+    if [ -n "$deployments" ]; then
       echo "Found deployments using PVC $claim in namespace $namespace: $deployments"  # Debug output
       for deployment in $deployments; do
         echo "Scaling down deployment: $deployment in namespace: $namespace"  # Debug output
@@ -89,6 +97,7 @@ scale_down() {
 
     # Scale down statefulsets
     statefulsets=$(kubectl get statefulset -n "$namespace" -o=json | jq -r ".items[] | select(.spec.template.spec.volumes[]?.persistentVolumeClaim.claimName == \"$claim\") | .metadata.name")
+    echo "Statefulsets in namespace $namespace using PVC $claim: $statefulsets"  # Debug output
     if [ -n "$statefulsets" ]; then
       echo "Found statefulsets using PVC $claim in namespace $namespace: $statefulsets"  # Debug output
       for statefulset in $statefulsets; do
