@@ -10,6 +10,7 @@ metadata:
     nfs-dependent: "true"
     {{- end }}
 spec:
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ .Chart.Name }}

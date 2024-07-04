@@ -8,6 +8,8 @@ image:
   # Overrides the image tag whose default is the chart appVersion.
   tag: 2.0.78
 
+replicaCount: 1
+
 service:
   type: ClusterIP
   port: 6500
