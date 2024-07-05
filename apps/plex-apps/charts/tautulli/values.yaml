@@ -137,3 +137,5 @@ persistence:
     size: 63Ti
     storageClassName: smb
     volumeName: plex-apps-tautulli-cifs-share
+
+strategy: Recreate
