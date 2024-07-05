@@ -10,6 +10,12 @@ image:
 
 replicaCount: 1
 
+strategy:
+  type: Recereate # Change to Recreate if you want to use the Recreate strategy
+  rollingUpdate:
+    maxSurge: 25%
+    maxUnavailable: 25%
+
 service:
   type: ClusterIP
   port: 6500
