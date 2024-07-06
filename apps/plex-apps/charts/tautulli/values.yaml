@@ -138,4 +138,5 @@ persistence:
     storageClassName: smb
     volumeName: plex-apps-tautulli-cifs-share
 
-strategy: Recreate
+strategy:
+  type: Recreate
