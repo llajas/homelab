@@ -613,7 +613,7 @@ monitoring:
   # -- Preferably adding prometheus scrape annotations rather than enabling podMonitor.
   podMonitor:
     # -- set this to true to enable podMonitor
-    enabled: false
+    enabled: true
   # -- Sidecar configuration
   sidecar:
     # -- set this to true to enable podMonitor as sidecar
