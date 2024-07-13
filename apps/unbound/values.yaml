@@ -52,6 +52,7 @@ containers:
 
       privateDomains:
         - "lajas.tech"
+        - "myunraid.net"
 
       # You can set as many forward zones as needed by specifying the zone name
       # and forward hosts. Forward hosts can be set by hostname or ip.
