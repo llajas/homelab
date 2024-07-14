@@ -1,0 +1,89 @@
+# Default values for pihole-exporter.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: ekofr/pihole-exporter
+  tag: latest
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  port: 9617 #DefaultImagePort-CanBeChangedBelow
+
+ingress:
+  enabled: false
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+#    - host: pihole-host.local
+#      paths: {}
+
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+extraEnvVars:
+  INTERVAL: 10s,
+  PIHOLE_HOSTNAME: 10.0.0.3 #InsertYourValueHere
+#  PIHOLE_PORT: 8080 #Change the port the exporter tries to access your Pihole Service on
+  PORT: 80 #ChangeDefaultWebserverPort
+
+# secretEnvVars:
+#   PIHOLE_PASSWORD:
+#   PIHOLE_API_TOKEN:
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+securityContext: {}
+
+annotations: {}
+
+externalSecret:
+  name: pihole.metal
+  namespace: pihole-exporter
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: global-secrets
+  data:
+    - secretKey: PIHOLE_PASSWORD
+      remoteRef:
+        conversionStrategy: Default
+        decodingStrategy: None
+        key: pihole.metal
+        metadataPolicy: None
+        property: password
+
+        #externalSecrets:
+        #  piholeCreds:
+        #    name: pihole-exporter
+        #    secretName: PIHOLE_PASSWORD
+        #    secretStoreRef:
+        #      name: global-secrets
+        #      kind: ClusterSecretStore
+        #    data:
+        #      - password
