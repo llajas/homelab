@@ -34,10 +34,11 @@ ingress:
 extraEnvVars:
   INTERVAL: 10s,
   PIHOLE_HOSTNAME: 10.0.0.3 #InsertYourValueHere
-#  PIHOLE_PORT: 8080 #Change the port the exporter tries to access your Pihole Service on
-  PORT: 80 #ChangeDefaultWebserverPort
+  PIHOLE_PORT: 80 #Change the port the exporter tries to access your Pihole Service on
+  # PORT: 80 #ChangeDefaultWebserverPort
 
-# secretEnvVars:
+secretEnvVars:
+ TEST: VALUE
 #   PIHOLE_PASSWORD:
 #   PIHOLE_API_TOKEN:
 
