@@ -96,3 +96,7 @@ argo-cd:
     domain: argocd.lajas.tech
   certificate:
     enabled: true
+  configs:
+    params:
+      server.insecure: true
+      controller.diff.server.side: true
