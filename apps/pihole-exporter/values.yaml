@@ -15,7 +15,7 @@ fullnameOverride: ""
 
 service:
   type: ClusterIP
-  port: 80 #DefaultImagePort-CanBeChangedBelow
+  port: 9617 #DefaultImagePort-CanBeChangedBelow
 
 ingress:
   enabled: false
