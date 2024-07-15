@@ -78,3 +78,6 @@ externalSecret:
         key: pihole.metal
         metadataPolicy: None
         property: password
+
+podMonitor:
+  enabled: true

@@ -1,0 +1,23 @@
+{{- if .Values.podMonitor.enabled -}}
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: {{ include "pihole-exporter.fullname" . }}-podmonitor
+  namespace: {{ .Values.externalSecret.namespace }}
+  labels:
+    app: {{ .Chart.Name }}
+    release: {{ .Release.Name }}
+spec:
+  jobLabel: {{ .Chart.Name }}
+  namespaceSelector:
+    matchNames:
+      - {{ .Values.externalSecret.namespace }}
+  podMetricsEndpoints:
+    - path: /metrics
+      port: httpexporter
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Chart.Name }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
