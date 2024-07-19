@@ -6,7 +6,7 @@ global:
     repository: linuxserver/plex
 
     # -- The image tag to use
-    tag: latest
+    tag: 1.40.2
 
     # -- Defines when the image should be pulled. Options are Always (default), IfNotPresent, and Never
     imagePullPolicy: Always
@@ -187,8 +187,6 @@ pms:
     # -- Provide additional annotations which may be required.
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-prod
-      external-dns.alpha.kubernetes.io/target: "homelab-tunnel.lajas.tech"
-      external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
       # kubernetes.io/ingress.class: nginx
       # kubernetes.io/tls-acme: "true"
 
@@ -201,7 +199,7 @@ pms:
     ## Configure the hosts for the ingress
     hosts:
       - # -- Host address. Helm template can be passed.
-        host: &host plex.lajas.tech
+        host: &host pleks.lajas.tech
         ## Configure the paths for the host
         paths:
           - # -- Path.  Helm template can be passed.
