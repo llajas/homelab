@@ -3,7 +3,7 @@ appVersion: 1.4.12
 dependencies:
   - name: common
     repository: https://bjw-s.github.io/helm-charts
-    version: 3.1.0
+    version: 1.5.1
 description: ClusterPlex is basically an extended version of Plex, which supports
   distributed Workers across a cluster to handle transcoding requests.
 home: https://github.com/pabloromeo/clusterplex/charts/clusterplex

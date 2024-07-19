@@ -9,7 +9,7 @@ global:
     tag: 1.40.2
 
     # -- Defines when the image should be pulled. Options are Always (default), IfNotPresent, and Never
-    imagePullPolicy: IfNotPresent
+    imagePullPolicy: Always
 
   # -- The CluterPlex version of docker mod images to pull
   # @default -- The appVersion for this chart
