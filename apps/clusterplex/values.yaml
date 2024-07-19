@@ -544,3 +544,7 @@ worker:
                 operator: In
                 values:
                   - "true"
+
+opSecret:
+  vault: "z3emsr5qi5xqk33wthv5fpmfqa"
+  item: "rxttnci2h7lcpwoey5ih4wkwp4"
