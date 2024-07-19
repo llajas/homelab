@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "woodpecker-server.fullname" . }}-headless
+  labels:
+    {{- include "woodpecker-server.labels" . | nindent 4 }}
+spec:
+  clusterIP: None
+  ports:
+    - protocol: TCP
+      name: http
+      port: {{ .Values.service.port }}
+      targetPort: http
+    - protocol: TCP
+      name: grpc
+      port: 9000
+      targetPort: grpc
+    {{- if .Values.metrics.enabled }}
+    - protocol: TCP
+      name: metrics
+      port: {{ .Values.metrics.port }}
+      targetPort: metrics
+    {{- end }}
+  selector:
+    {{- include "woodpecker-server.selectorLabels" . | nindent 4 }}

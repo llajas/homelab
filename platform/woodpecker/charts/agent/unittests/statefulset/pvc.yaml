@@ -1,0 +1,40 @@
+suite: test deployment
+templates:
+  - templates/statefulset.yaml
+tests:
+  - it: persistence enabled
+    set:
+      persistence:
+        enabled: true
+    asserts:
+      - equal:
+          path: spec.volumeClaimTemplates[0].spec.accessModes[0]
+          value: 'ReadWriteOnce'
+  - it: persistence enabled with existingClaim
+    set:
+      persistence:
+        enabled: true
+        existingClaim: 'my-claim'
+    asserts:
+      - notExists:
+          path: spec.volumeClaimTemplates[0].spec.accessModes[0]
+      - equal:
+          path: spec.template.spec.volumes
+          value:
+            - name: agent-config
+              persistentVolumeClaim:
+                claimName: my-claim
+  - it: persistence disabled
+    set:
+      persistence:
+        enabled: false
+    asserts:
+      - notExists:
+          path: spec.template.spec.volumes
+      - notExists:
+          path: spec.template.spec.containers[0].volumeMounts
+          value:
+            - mountPath: /data
+              name: data
+      - notExists:
+          path: spec.volumeClaimTemplates

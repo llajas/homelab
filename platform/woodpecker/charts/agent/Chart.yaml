@@ -1,17 +1,12 @@
 apiVersion: v2
-name: woodpecker
-description: A Helm chart for Woodpecker CI
+name: agent
+description: A Helm chart for the Woodpecker agent
 type: application
-version: 1.5.0
+version: 0.3.0
 # renovate: datasource=github-releases depName=woodpecker-ci/woodpecker extractVersion=^v(?<version>.*)$
 appVersion: 2.7.0
 home: https://woodpecker-ci.org/
 icon: https://avatars.githubusercontent.com/u/84780935?s=200&v=4
-
-maintainers:
-  - name: Woodpecker Maintainers
-    email: owner@woodpecker-ci.org
-    url: https://github.com/woodpecker-ci
 
 keywords:
   - continuous-delivery
@@ -23,12 +18,8 @@ keywords:
 
 sources:
   - https://github.com/woodpecker-ci/woodpecker.git
-  - https://github.com/woodpecker-ci/helm.git
 
-dependencies:
-  - name: server
-    version: 1.0.0
-    condition: server.enabled
-  - name: agent
-    version: 0.3.0
-    condition: agent.enabled
+maintainers:
+  - name: Woodpecker Maintainers
+    email: owner@woodpecker-ci.org
+    url: https://github.com/woodpecker-ci

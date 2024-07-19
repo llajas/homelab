@@ -1,0 +1,158 @@
+# -- The number of replicas for the deployment
+replicaCount: 2
+
+image:
+  # -- The image registry
+  registry: docker.io
+  # -- The image repository
+  repository: woodpeckerci/woodpecker-agent
+  # -- The pull policy for the image
+  pullPolicy: IfNotPresent
+  # -- Overrides the image tag whose default is the chart appVersion.
+  tag: ''
+
+# -- Defines a custom command to start the container
+command: []
+
+# -- Defines a custom args to start the container
+args: []
+
+env:
+  # -- Add the environment variables for the agent component
+  WOODPECKER_SERVER: 'woodpecker-server:9000'
+  WOODPECKER_BACKEND: kubernetes
+  WOODPECKER_BACKEND_K8S_NAMESPACE: woodpecker
+  WOODPECKER_BACKEND_K8S_STORAGE_CLASS: ''
+  WOODPECKER_BACKEND_K8S_VOLUME_SIZE: 10G
+  WOODPECKER_BACKEND_K8S_STORAGE_RWX: true
+  WOODPECKER_BACKEND_K8S_POD_LABELS: ''
+  WOODPECKER_BACKEND_K8S_POD_ANNOTATIONS: ''
+  WOODPECKER_CONNECT_RETRY_COUNT: '1'
+
+# -- Add extra secret that is contains environment variables
+extraSecretNamesForEnvFrom:
+  - woodpecker-secret
+
+# -- Create an agent secret
+secrets: {}
+#  - name: woodpecker-secret
+#    data:
+#      WOODPECKER_AGENT_SECRET: ${WOODPECKER_AGENT_SECRET}
+
+# -- Additional volumes that can be mounted in containers
+extraVolumes: []
+# - name: docker-config
+#   configMap:
+#     name: docker-config
+# - name: data-volume
+#   persistentVolumeClaim:
+#     claimName: example
+
+# -- Additional volumes that will be attached to the agent container
+extraVolumeMounts: []
+# - name: ca-certs
+#   mountPath: /etc/ssl/certs/ca-certificates.crt
+
+# -- Add additional init containers to the pod (evaluated as a template)
+initContainers: []
+
+persistence:
+  # -- Enable the creation of the persistent volume
+  enabled: true
+  # -- Defines an existing claim to use
+  existingClaim:
+  # -- Defines the size of the persistent volume
+  size: 1Gi
+  # -- Defines the path where the volume should be mounted
+  mountPath: '/etc/woodpecker'
+  # -- Defines the storageClass of the persistent volume
+  storageClass: ''
+  # -- Defines the access mode of the persistent volume
+  accessModes:
+    - ReadWriteOnce
+
+# -- The image pull secrets
+imagePullSecrets: []
+# -- Overrides the name of the chart of the agent component
+nameOverride: ''
+# -- Overrides the full name of the chart of the agent component
+fullnameOverride: ''
+
+serviceAccount:
+  # -- Specifies whether a service account should be created (also see RBAC subsection)
+  create: true
+  # -- Annotations to add to the service account
+  annotations: {}
+  # -- The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ''
+  rbac:
+    # -- If your cluster has RBAC enabled and you're using the Kubernetes agent-
+    # backend you'll need this. (this is true for almost all production clusters)
+    # only change this if you have a non CNCF compliant cluster, missing the RBAC endpoints
+    # the Role and RoleBinding are only created if serviceAccount.create is also true
+    create: true
+    # Additional annotations and labels in role and roleBinding are only needed, if you
+    # are using additional tooling to manage / verify roles or roleBindings (OPA, etc.)
+    role:
+      annotations: {}
+      labels: {}
+    roleBinding:
+      annotations: {}
+      labels: {}
+
+# -- Add pod annotations for the agent component
+podAnnotations: {}
+
+# -- Add pod security context
+podSecurityContext:
+  {}
+  # fsGroup: 2000
+
+# -- Add security context
+securityContext:
+  {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+# -- Specifies the resources for the agent component
+resources:
+  {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+# -- Specifies the labels of the nodes that the agent component must be running
+nodeSelector: {}
+
+# -- Specifies the tolerations
+tolerations: []
+
+# -- Specifies the affinity
+affinity: {}
+
+# -- Overrides the default DNS configuration
+dnsConfig: {}
+
+# -- Using topology spread constraints, you can ensure that there is at least one agent
+# pod for each topology zone, e.g. one per arch for multi-architecture clusters
+# or one for each region for geographically distributed cloud-hosted clusters.
+# Ref: <https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/>
+topologySpreadConstraints: []
+# - maxSkew: 1
+#   topologyKey: "beta.kubernetes.io/arch"
+#   whenUnsatisfiable: "DoNotSchedule"
+#   labelSelector:
+#     matchLabels:
+#       "app.kubernetes.io/name": woodpecker-agent
