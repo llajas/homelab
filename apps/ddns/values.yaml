@@ -13,3 +13,7 @@ env:
   CLOUDFLARE_EMAIL: ""
   DOMAIN_NAME: ""
   DNS_RECORD: ""
+
+opSecret:
+  vault: "z3emsr5qi5xqk33wthv5fpmfqa"
+  item: "hciefqwwuauceblipya5jw4p5i"
