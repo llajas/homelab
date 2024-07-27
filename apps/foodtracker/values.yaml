@@ -3,7 +3,7 @@ replicaCount: 1
 image:
   repository: registry.lajas.tech/foodtrack
   tag: latest
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
 timezone: America/Chicago
 
