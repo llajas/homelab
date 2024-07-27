@@ -23,7 +23,7 @@ metadata:
     {{- end }}
   {{- end }}
 spec:
-  replicas: {{ default 1 .Values.replicaCount }}
+  replicas: {{ .Values.replicaCount }}
   {{- if .Values.workloadAsStatefulSet }}
   serviceName: {{ template "minecraft.fullname" . }}
   updateStrategy:
@@ -57,6 +57,13 @@ spec:
       {{- if .Values.image.pullSecret }}
       imagePullSecrets:
         - name: {{ .Values.image.pullSecret }}
+      {{- end }}
+      {{- if .Values.dnsPolicy }}
+      dnsPolicy: {{ .Values.dnsPolicy}}
+      {{- end }}
+      {{- if .Values.dnsConfig }}
+      dnsConfig: 
+        {{- toYaml .Values.dnsConfig | nindent 8 }}
       {{- end }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
@@ -96,11 +103,13 @@ spec:
 {{- template "minecraft.envMap" list "RCON_RETRY_INTERVAL" .Values.mcbackup.rconRetryInterval  }}
 {{- template "minecraft.envMap" list "EXCLUDES" .Values.mcbackup.excludes  }}
 {{- template "minecraft.envMap" list "BACKUP_METHOD" .Values.mcbackup.backupMethod  }}
-        {{- if or (eq .Values.mcbackup.backupMethod "tar") (eq .Values.mcbackup.backupMethod "rclone") }}
+        {{- if or (eq .Values.mcbackup.backupMethod "tar") (eq .Values.mcbackup.backupMethod "rclone") (eq .Values.mcbackup.backupMethod "rsync") }}
 {{- template "minecraft.envMap" list "DEST_DIR" .Values.mcbackup.destDir  }}
 {{- template "minecraft.envMap" list "LINK_LATEST" .Values.mcbackup.linkLatest  }}
+        {{- if ne .Values.mcbackup.backupMethod "rsync" }}
 {{- template "minecraft.envMap" list "TAR_COMPRESS_METHOD" .Values.mcbackup.compressMethod  }}
 {{- template "minecraft.envMap" list "ZSTD_PARAMETERS" .Values.mcbackup.zstdParameters  }}
+        {{- end }}    
         {{- if eq .Values.mcbackup.backupMethod "rclone" }}
 {{- template "minecraft.envMap" list "RCLONE_REMOTE" .Values.mcbackup.rcloneRemote  }}
 {{- template "minecraft.envMap" list "RCLONE_DEST_DIR" .Values.mcbackup.rcloneDestDir  }}
@@ -140,9 +149,16 @@ spec:
         volumeMounts:
         - name: tmp
           mountPath: /tmp
+        {{- if .Values.persistence.altDataVolumeName }}
+        - name: {{ .Values.persistence.altDataVolumeName }}
+          mountPath: /data
+        {{- else }}
         - name: datadir
           mountPath: /data
           readOnly: true
+        {{- end }}
+        - name: backupdir
+          mountPath: {{ default "/backups" .Values.mcbackup.destDir }}
         {{- if or (eq .Values.mcbackup.backupMethod "rclone") (eq (include "isResticWithRclone" $) "true") }}
         - name: rclone-config
           mountPath: /config/rclone
@@ -334,7 +350,7 @@ spec:
 {{- template "minecraft.envMap" list "QUERY_PORT" .Values.minecraftServer.query.port  }}
         {{- end }}
 
-    {{- if and .Values.minecraftServer.autoCurseForge (eq "AUTO_CURSEFORGE" .Values.minecraftServer.type) }}
+    {{- if .Values.minecraftServer.autoCurseForge }}
     {{- with .Values.minecraftServer.autoCurseForge }}
         - name: CF_API_KEY
           valueFrom:
@@ -402,11 +418,19 @@ spec:
         volumeMounts:
         - name: tmp
           mountPath: /tmp
+        {{- if .Values.persistence.altDataVolumeName }}
+        - name: {{ .Values.persistence.altDataVolumeName }}
+          mountPath: /data
+        {{- else }}
         - name: datadir
           mountPath: /data
           {{- if (and .Values.persistence.dataDir.enabled .Values.persistence.dataDir.subPath) }}
           subPath: {{ .Values.persistence.dataDir.subPath }}
           {{- end }}
+        {{- end }}
+        - name: backupdir
+          mountPath: {{ default "/backups" .Values.mcbackup.destDir }}
+          readOnly: true
         {{- range .Values.extraVolumes }}
         {{-   if .volumeMounts }}
         {{-     toYaml .volumeMounts | nindent 8 }}
@@ -416,6 +440,17 @@ spec:
             {{- toYaml .Values.securityContext | nindent 10 }}
       {{- if .Values.sidecarContainers }}
       {{- toYaml .Values.sidecarContainers | nindent 6 }}
+      {{- end }}
+      {{- if or (eq .Values.mcbackup.backupMethod "rclone") (eq (include "isResticWithRclone" $) "true") }}
+      initContainers:
+        - name: init-container
+          image: busybox
+          command: ['sh', '-c', 'cp /secret/rclone.conf /config/rclone/']
+          volumeMounts:
+          - name: rclone-secret
+            mountPath: /secret
+          - name: rclone-config
+            mountPath: /config/rclone
       {{- end }}
       volumes:
       - name: tmp
@@ -436,22 +471,22 @@ spec:
         emptyDir: {}
       {{- end }}
       {{- if and .Values.mcbackup.persistence.backupDir.enabled .Values.mcbackup.enabled }}
-      {{- if eq .Values.mcbackup.persistence.storageType "smb" }}
+      {{- if .Values.mcbackup.persistence.backupDir.existingClaim }}
+      - name: backupdir
+        persistentVolumeClaim:
+          claimName: {{ .Values.mcbackup.persistence.backupDir.existingClaim }}
+      {{- else if (not .Values.workloadAsStatefulSet) }}
       - name: backupdir
         persistentVolumeClaim:
           claimName: {{ template "minecraft.fullname" . }}-backupdir
-      {{- else if eq .Values.mcbackup.persistence.storageType "nfs" }}
-      - name: backupdir
-        nfs:
-          server: {{ .Values.mcbackup.persistence.nfs.server }}
-          path: {{ .Values.mcbackup.persistence.nfs.path }}
+      {{- end -}}
+      {{/* if persistence enabled in stateful set without existing claim, a volume claim template will be defined */}}
       {{- else }}
       - name: backupdir
         emptyDir: {}
       {{- end }}
-      {{- end }}
       {{- if or (eq .Values.mcbackup.backupMethod "rclone") (eq (include "isResticWithRclone" $) "true") }}
-      - name: rclone-config
+      - name: rclone-secret
         secret:
         {{- if .Values.mcbackup.rcloneConfigExistingSecret }}
           secretName: {{ .Values.mcbackup.rcloneConfigExistingSecret }}
@@ -461,11 +496,16 @@ spec:
           items:
           - key: rclone.conf
             path: rclone.conf
+      - name: rclone-config
+        emptyDir: {}
       {{- end }}
       {{- range .Values.extraVolumes }}
       {{-   if .volumes }}
       {{-     toYaml .volumes | nindent 6 }}
       {{-   end }}
+      {{- end }}
+      {{- range $key, $value := .Values.extraPodSpec }}
+      {{ $key }}: {{ tpl $value $ }}
       {{- end }}
     {{- if .Values.nodeSelector }}
       nodeSelector:
@@ -483,7 +523,7 @@ spec:
   volumeClaimTemplates:
     {{- if and .Values.persistence.dataDir.enabled (not .Values.persistence.dataDir.existingClaim) }}
     - metadata:
-        name: datadir
+        name: datadir   
         labels:
           app: {{ template "minecraft.fullname" . }}
           chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
@@ -491,7 +531,7 @@ spec:
           heritage: "{{ .Release.Service }}"
           app.kubernetes.io/name: "{{ .Chart.Name }}"
           app.kubernetes.io/instance: {{ template "minecraft.fullname" . }}
-          app.kubernetes.io/version: "{{ .Chart.Version }}"
+          app.kubernetes.io/version: "{{ .Chart.Version }}"  
         annotations:
         {{- with .Values.persistence.annotations  }}
         {{ toYaml . | nindent 10 }}
