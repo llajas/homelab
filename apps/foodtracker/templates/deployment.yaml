@@ -27,19 +27,14 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
-            {{- range $key, $value := .Values.externalSecrets.persistent.data }}
-            - name: {{ $value }}
+            {{- range $key, $value := .Values.secrets }}
+            {{- if $value }}
+            - name: {{ $key }}
               valueFrom:
                 secretKeyRef:
-                  name: {{ $.Values.externalSecrets.persistent.name }}
-                  key: {{ $value }}
+                  name: {{ $.Values.opSecret.secretName }}
+                  key: {{ $key }}
             {{- end }}
-            {{- range $key, $value := .Values.externalSecrets.rotating.data }}
-            - name: {{ $value }}
-              valueFrom:
-                secretKeyRef:
-                  name: {{ $.Values.externalSecrets.rotating.name }}
-                  key: {{ $value }}
             {{- end }}
             - name: TZ
               value: {{ .Values.timezone | default "UTC" }}

@@ -7,27 +7,19 @@ image:
 
 timezone: America/Chicago
 
-externalSecrets:
-  persistent:
-    name: foodtracker.persistent
-    secretStoreRef:
-      name: global-secrets
-      kind: ClusterSecretStore
-    data:
-      - DISCORD_BOT_TOKEN
-      - DISCORD_CHANNEL_ID
-      - GEOFENCE_LAT
-      - GEOFENCE_LON
-      - GEOFENCE_RADIUS
-      - HUE_BRIDGE_IP
-      - HUE_USER_TOKEN
-      - HUE_LIGHT_ID
-      - PHONE_NUMBER
+opSecret:
+  vault: "z3emsr5qi5xqk33wthv5fpmfqa"
+  item: "df5fpdjwattvubs6i6xglzjfpq"
+  secretName: "foodtracker-secrets"
 
-  rotating:
-    name: foodtracker.rotating
-    secretStoreRef:
-      name: global-secrets
-      kind: ClusterSecretStore
-    data:
-      - UBER_EATS_SESSION_ID
+secrets:
+  DISCORD_BOT_TOKEN: true
+  DISCORD_CHANNEL_ID: true
+  GEOFENCE_LAT: true
+  GEOFENCE_LON: true
+  GEOFENCE_RADIUS: true
+  HUE_BRIDGE_IP: true
+  HUE_USER_TOKEN: true
+  HUE_LIGHT_ID: true
+  PHONE_NUMBER: true
+  UBER_EATS_SESSION_ID: true
