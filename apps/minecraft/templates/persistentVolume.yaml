@@ -8,7 +8,7 @@ metadata:
     pv.kubernetes.io/provisioned-by: smb.csi.k8s.io
 spec:
   capacity:
-    storage: {{ .Values.mcbackup.persistence.backupDir.size }}
+    storage: {{ .Values.mcbackup.persistence.backupDir.Size }}
   accessModes:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
