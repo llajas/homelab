@@ -270,7 +270,7 @@ pms:
 
     limits:
       # -- CPU Limit amount
-      cpu:
+      cpu: []
 
       # -- Memory Limit amount
       memory: 6Gi
@@ -514,7 +514,7 @@ worker:
 
     limits:
       # -- CPU Limit amount
-      cpu:
+      cpu: []
 
       # -- Memory Limit amount
       memory: 6Gi
