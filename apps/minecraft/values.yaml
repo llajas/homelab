@@ -574,8 +574,10 @@ mcbackup:
     backupDir:
       # Set this to false if you don't care to persist state between restarts.
       enabled: true
-      size: 63Ti
+      Size: 63Ti
       existingClaim: false
+      accessModes:
+        - ReadWriteOnce
     # Switch between "smb" and "nfs" as needed
     storageType: "smb"
     # Can be empty for NFS or 'smb' as appropriate
