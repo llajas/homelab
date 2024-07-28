@@ -158,10 +158,10 @@ sidecarContainers: []
 #           - port=2049
 #           - hard
 #           - vers=4
-extraVolumes:
-  - volumeMounts:
-      - name: backupdir
-        mountPath: /backups
+extraVolumes: []
+#  - volumeMounts:
+#      - name: backupdir
+#        mountPath: /backups
 
 ## Array of extra objects to deploy with the release
 ##
@@ -435,8 +435,6 @@ envFrom:
 persistence:
   labels: {}
   annotations: {}
-  ## specify an alternative volume to be mounted to /data instead of datadir.
-  # altDataVolumeName: ""
   ## minecraft data Persistent Volume Storage Class
   ## If defined, storageClassName: <storageClass>
   ## If set to "-", storageClassName: "", which disables dynamic provisioning
@@ -449,8 +447,6 @@ persistence:
     # Set this to false if you don't care to persist state between restarts.
     enabled: true
     Size: 10Gi
-    accessModes:
-      - ReadWriteOnce
     # existingClaim: nil
     ## specify a subpath in the volume where the data is. Useful when sharing volumes with other apps.
     # subPath: /path/to/dataDir
@@ -578,8 +574,6 @@ mcbackup:
       enabled: true
       size: 63Ti
       existingClaim: false
-      accessModes:
-        - ReadWriteOnce
     # Switch between "smb" and "nfs" as needed
     storageType: "smb"
     # Can be empty for NFS or 'smb' as appropriate
