@@ -270,10 +270,10 @@ pms:
 
     limits:
       # -- CPU Limit amount
-      cpu: 4000m
+      cpu:
 
       # -- Memory Limit amount
-      memory: 4Gi
+      memory: 6Gi
 
 # -- Configure the orchestrator component
 # @default -- See below
@@ -514,7 +514,7 @@ worker:
 
     limits:
       # -- CPU Limit amount
-      cpu: 4000m
+      cpu:
 
       # -- Memory Limit amount
       memory: 6Gi
