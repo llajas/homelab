@@ -91,7 +91,7 @@ global:
         retain: true
       cache:
         enabled: true
-        size: "2Gi"
+        size: "5Gi"
         persistentVolumeClaim:
         mountPath: /config/Library/Application Support/Plex Media Server/Cache
         retain: true
