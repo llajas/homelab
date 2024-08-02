@@ -135,48 +135,111 @@ initContainers:
       - name: backupdir
         mountPath: /backups
 
-# sidecarContainers:
-#   - name: do-something
-#     image: busybox
-#     command: ['do', 'something']
-#     volumesMounts:
-#       - name: nfs
-#         mountPath: /mnt/volume
-#         readOnly: true
-sidecarContainers: []
+sidecarContainers:
+  - name: geyser
+    image: "registry.lajas.tech/geyser-mc:latest"
+    workingDir: /app
+    volumeMounts:
+      - name: geyser-config
+        mountPath: /app/config.yml
+        subPath: config.yml
+      - name: geyser-data
+        mountPath: /app
+    ports:
+      - name: geyser-mc
+        containerPort: 19132
+        protocol: UDP
 
-# extraVolumes:
-#   - volumeMounts:
-#       - name: nfs
-#         mountPath: /mnt/volume
-#         readOnly: true
-#     volumes:
-#       - name: nfs
-#         server: some.nfs.server.com
-#         path: /
-#         mountOptions:
-#           - port=2049
-#           - hard
-#           - vers=4
-extraVolumes: []
-#  - volumeMounts:
-#      - name: backupdir
-#        mountPath: /backups
+extraVolumes:
+  - volumeMounts:
+      - name: geyser-config
+        mountPath: /app/config.yml
+        subPath: config.yml
+      - name: geyser-data
+        mountPath: /app
+    volumes:
+      - name: geyser-config
+        configMap:
+          name: geyser-config
+      - name: geyser-data
+        persistentVolumeClaim:
+          claimName: geyser-data-pvc
 
-## Array of extra objects to deploy with the release
-##
-# extraDeploy:
-#   - |
-#     apiVersion: v1
-#     kind: ConfigMap
-#     metadata:
-#       name: {{ template "minecraft.fullname" . }}-extra-cm
-#     data:
-#       key: |-
-#         {
-#           "key": "value"
-#         }
-extraDeploy: []
+extraDeploy:
+  - |
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: geyser-config
+    data:
+      config.yml: |
+        bedrock:
+          port: 19132
+          clone-remote-port: false
+          motd1: "A Super Secret JAVA Server"
+          motd2: "Brought to you by Geyser-MC!"
+          server-name: "Bluffcraft.lajas.tech"
+          compression-level: 6
+          enable-proxy-protocol: false
+        remote:
+          address: "minecraft-minecraft.minecraft.svc.cluster.local"
+          port: 25565
+          auth-type: "online"
+          allow-password-authentication: true
+          use-proxy-protocol: false
+          forward-hostname: false
+        floodgate-key-file: "key.pem"
+        saved-user-logins:
+          - SpecOp eX
+          - Aliizsa
+          - ThisExampleUsernameShouldBeLongEnoughToNeverBeAnXboxUsername
+          - ThisOtherExampleUsernameShouldAlsoBeLongEnough
+        pending-authentication-timeout: 120
+        command-suggestions: true
+        passthrough-motd: true
+        passthrough-player-counts: true
+        legacy-ping-passthrough: false
+        ping-passthrough-interval: 3
+        forward-player-ping: false
+        max-players: 100
+        debug-mode: false
+        allow-third-party-capes: false
+        allow-third-party-ears: false
+        show-cooldown: "title"
+        show-coordinates: true
+        disable-bedrock-scaffolding: false
+        emote-offhand-workaround: "disabled"
+        cache-images: 0
+        allow-custom-skulls: true
+        max-visible-custom-skulls: 128
+        custom-skull-render-distance: 32
+        add-non-bedrock-items: true
+        above-bedrock-nether-building: true
+        force-resource-packs: true
+        xbox-achievements-enabled: false
+        log-player-ip-addresses: true
+        notify-on-new-bedrock-update: true
+        unusable-space-block: "minecraft:barrier"
+        metrics:
+          enabled: false
+          uuid: ""
+        scoreboard-packet-threshold: 20
+        enable-proxy-connections: false
+        mtu: 1400
+        use-direct-connection: true
+        disable-compression: true
+        config-version: 4
+  - |
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: geyser-data-pvc
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
 
 minecraftServer:
   # This must be overridden, since we can't accept this for the user.
@@ -311,7 +374,12 @@ minecraftServer:
   spigetResources: []
 
   # Additional service specs to be defined
-  extraServiceSpec: {}
+  extraServiceSpec:
+    ports:
+      - name: geyser-mc
+        port: 19132
+        targetPort: 19132
+        protocol: UDP
 
   # A list of Modrinth project slugs with optional version after colon
   modrinth:
