@@ -143,8 +143,6 @@ sidecarContainers:
       - name: geyser-config
         mountPath: /app/config.yml
         subPath: config.yml
-      - name: geyser-data
-        mountPath: /app
     ports:
       - name: geyser-mc
         containerPort: 19132
