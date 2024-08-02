@@ -137,6 +137,9 @@ initContainers:
 
 sidecarContainers:
   - name: geyser
+    securityContext:
+      runAsUser: 1000
+      runAsGroup: 1000
     image: "registry.lajas.tech/geyser-mc:latest"
     workingDir: /app
     volumeMounts:
