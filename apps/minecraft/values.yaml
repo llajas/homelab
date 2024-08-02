@@ -153,15 +153,10 @@ extraVolumes:
       - name: geyser-config
         mountPath: /app/config.yml
         subPath: config.yml
-      - name: geyser-data
-        mountPath: /app
     volumes:
       - name: geyser-config
         configMap:
           name: geyser-config
-      - name: geyser-data
-        persistentVolumeClaim:
-          claimName: geyser-data-pvc
 
 extraDeploy:
   - |
