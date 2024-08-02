@@ -6,6 +6,10 @@ metadata:
     argocd.argoproj.io/instance: foodtracker
   name: {{ .Release.Name }}-foodtrack
   namespace: {{ .Release.Namespace }}
+    {{- if .Values.onePassword.enabled }}
+  annotations:
+    operator.1password.io/auto-restart: "true"
+    {{- end }}
 spec:
   replicas: {{ .Values.replicaCount }}
   revisionHistoryLimit: 10

@@ -23,3 +23,6 @@ secrets:
   HUE_LIGHT_ID: true
   PHONE_NUMBER: true
   UBER_EATS_SESSION_ID: true
+
+onePassword:
+  enabled: true
