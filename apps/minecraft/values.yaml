@@ -135,13 +135,27 @@ initContainers:
       - name: backupdir
         mountPath: /backups
 
+  - name: init-geyser
+    image: "registry.lajas.tech/geyser-mc:latest"
+    command:
+      - sh
+      - -c
+      - |
+        if [ -z "$(ls -A /data)" ]; then
+          echo "Initializing Geyser data directory..."
+          cp -R /app/* /data/
+        else
+          echo "Geyser data directory already initialized."
+        fi
+    volumeMounts:
+      - name: geyser-data
+        mountPath: /data
+
 sidecarContainers:
   - name: geyser
-    securityContext:
-      runAsUser: 1000
-      runAsGroup: 1000
     image: "registry.lajas.tech/geyser-mc:latest"
     workingDir: /app
+    command: ["java", "-Xms512M", "-Xmx1024M", "-jar", "Geyser.jar", "nogui"]
     volumeMounts:
       - name: geyser-config
         mountPath: /app/config.yml
