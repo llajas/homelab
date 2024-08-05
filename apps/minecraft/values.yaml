@@ -157,15 +157,30 @@ sidecarContainers:
     workingDir: /app
     command: ["java", "-Xms512M", "-Xmx1024M", "-jar", "Geyser.jar", "nogui"]
     volumeMounts:
-      - name: geyser-config
-        mountPath: /app/config.yml
-        subPath: config.yml
       - name: geyser-data
         mountPath: /app
     ports:
       - name: geyser-mc
         containerPort: 19132
         protocol: UDP
+  - name: copy-geyser-config
+    image: alpine:latest
+    command: ["sh", "-c"]
+    args:
+      - |
+        # Perform hash comparison to determine if files are different
+        if [ "$(md5sum /config.yml | awk '{print $1}')" != "$(md5sum /app/config.yml | awk '{print $1}')" ]; then
+          echo "Copying Geyser config..."
+          cp /config.yml /app/config.yml
+        else
+          echo "Geyser config already copied."
+        fi
+    volumeMounts:
+      - name: geyser-config
+        mountPath: /config.yml
+        subPath: config.yml
+      - name: geyser-data
+        mountPath: /app
 
 extraVolumes:
   - volumeMounts:
