@@ -19,7 +19,9 @@ docker-registry:
     - mountPath: /auth
       name: auth
   # TODO uncomment to enable auth
-  # extraEnvVars:
+  extraEnvVars:
+    - name: REGISTRY_STORAGE_DELETE_ENABLED
+      value: "true"
   #   - name: REGISTRY_AUTH
   #     value: "htpasswd"
   #   - name: REGISTRY_AUTH_HTPASSWD_REALM
