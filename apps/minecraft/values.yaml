@@ -135,21 +135,25 @@ initContainers:
       - name: backupdir
         mountPath: /backups
 
-  - name: init-geyser
+  - name: init-and-copy-geyser
     image: "registry.lajas.tech/geyser-mc:latest"
     command:
       - sh
       - -c
       - |
-        if [ -z "$(ls -A /data)" ]; then
-          echo "Initializing Geyser data directory..."
-          cp -R /app/* /data/
+        # Copy config if it has changed
+        if [ "$(md5sum /config.yml | awk '{print $1}')" != "$(md5sum /data/config.yml | awk '{print $1}')" ]; then
+          echo "Copying Geyser config..."
+          cp /config.yml /data/config.yml
         else
-          echo "Geyser data directory already initialized."
+          echo "Geyser config already copied."
         fi
     volumeMounts:
       - name: geyser-data
         mountPath: /data
+      - name: geyser-config
+        mountPath: /config.yml
+        subPath: config.yml
 
 sidecarContainers:
   - name: geyser
@@ -163,24 +167,6 @@ sidecarContainers:
       - name: geyser-mc
         containerPort: 19132
         protocol: UDP
-  - name: copy-geyser-config
-    image: alpine:latest
-    command: ["sh", "-c"]
-    args:
-      - |
-        # Perform hash comparison to determine if files are different
-        if [ "$(md5sum /config.yml | awk '{print $1}')" != "$(md5sum /app/config.yml | awk '{print $1}')" ]; then
-          echo "Copying Geyser config..."
-          cp /config.yml /app/config.yml
-        else
-          echo "Geyser config already copied."
-        fi
-    volumeMounts:
-      - name: geyser-config
-        mountPath: /config.yml
-        subPath: config.yml
-      - name: geyser-data
-        mountPath: /app
 
 extraVolumes:
   - volumeMounts:
