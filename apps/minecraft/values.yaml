@@ -135,26 +135,6 @@ initContainers:
       - name: backupdir
         mountPath: /backups
 
-  - name: init-and-copy-geyser
-    image: "registry.lajas.tech/geyser-mc:latest"
-    command:
-      - sh
-      - -c
-      - |
-        # Copy config if it has changed
-        if [ "$(md5sum /config.yml | awk '{print $1}')" != "$(md5sum /data/config.yml | awk '{print $1}')" ]; then
-          echo "Copying Geyser config..."
-          cp /config.yml /data/config.yml
-        else
-          echo "Geyser config already copied."
-        fi
-    volumeMounts:
-      - name: geyser-data
-        mountPath: /data
-      - name: geyser-config
-        mountPath: /config.yml
-        subPath: config.yml
-
 sidecarContainers:
   - name: geyser
     image: "registry.lajas.tech/geyser-mc:latest"
@@ -169,7 +149,7 @@ sidecarContainers:
 extraVolumes:
   - volumeMounts:
       - name: geyser-config
-        mountPath: /app/config.yml
+        mountPath: /config/config.yml
         subPath: config.yml
       - name: geyser-data
         mountPath: /app
