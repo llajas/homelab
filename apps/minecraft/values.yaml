@@ -141,7 +141,7 @@ sidecarContainers:
     volumeMounts:
       - name: geyser-data
         mountPath: /app
-      - name: geyser-config
+      - name: geyser-config-temp
         mountPath: /geyser-config
     ports:
       - name: geyser-mc
