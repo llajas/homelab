@@ -142,7 +142,7 @@ sidecarContainers:
       - name: geyser-data
         mountPath: /app
       - name: geyser-config-temp
-        mountPath: /geyser-config
+        mountPath: /config-temp
     ports:
       - name: geyser-mc
         containerPort: 19132
