@@ -150,13 +150,13 @@ sidecarContainers:
 
 extraVolumes:
   - volumeMounts:
-      - name: geyser-config
-        mountPath: /geyser-config/config.yml
+      - name: geyser-config-temp
+        mountPath: /geyser-temp/config.yml
         subPath: config.yml
       - name: geyser-data
         mountPath: /app
     volumes:
-      - name: geyser-config
+      - name: geyser-config-temp
         configMap:
           name: geyser-config
       - name: geyser-data
