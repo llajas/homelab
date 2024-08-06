@@ -137,23 +137,16 @@ initContainers:
 
 sidecarContainers:
   - name: geyser
-    image: "registry.lajas.tech/geyser-mc:latest"
+    image: "registry.lajas.tech/geyser:latest"
     volumeMounts:
       - name: geyser-data
         mountPath: /app
+      - name: geyser-config
+        mountPath: /config
     ports:
       - name: geyser-mc
         containerPort: 19132
         protocol: UDP
-    command:
-      - java
-      - -Xms128M
-      - -Xmx512M
-      - -jar
-      - /app/Geyser.jar
-      - --nogui
-      - --config
-      - /config/config.yml
 
 extraVolumes:
   - volumeMounts:
