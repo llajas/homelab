@@ -143,11 +143,10 @@ sidecarContainers:
         mountPath: /app
       - name: geyser-config
         mountPath: /geyser-config
-        # ports:
-        #   - name: geyser-mc
-        #     containerPort: 19132
-        #     protocol: UDP
-        #     targetPort: geyser-mc
+    ports:
+      - name: geyser-mc
+        containerPort: 19132
+        protocol: UDP
 
 extraVolumes:
   - volumeMounts:
@@ -379,6 +378,10 @@ minecraftServer:
         port: 19132
         targetPort: 19132
         protocol: UDP
+      - name: minecraft
+        port: 25565
+        targetPort: minecraft
+        protocol: TCP
 
   # A list of Modrinth project slugs with optional version after colon
   modrinth:
@@ -529,7 +532,7 @@ deploymentLabels:
 
 serviceAnnotations:
   external-dns.alpha.kubernetes.io/hostname: "bluffcraft-local.lajas.tech"
-  #metallb.universe.tf/allow-shared-ip: "minecraft"
+  metallb.universe.tf/allow-shared-ip: "minecraft"
 serviceLabels: {}
 
 rconServiceAnnotations: {}
