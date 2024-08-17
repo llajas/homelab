@@ -41,6 +41,8 @@ descheduler:
                 memory: 50
                 pods: 50
               useDeviationThresholds: false
+          - name: RemovePodsViolatingInterPodAntiAffinity
+            args: {}
         plugins:
           deschedule:
             enabled:
