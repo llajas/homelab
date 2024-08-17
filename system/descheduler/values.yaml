@@ -1,46 +1,14 @@
 descheduler:
   deschedulerPolicy:
-    maxNoOfPodsToEvictPerNode: 5000
-    maxNoOfPodsToEvictPerNamespace: 5000
     profiles:
       - name: default
         pluginConfig:
-          - name: DefaultEvictor
-            args:
-              ignorePvcPods: true
-              evictLocalStoragePods: true
-              evictSystemCriticalPods: false
-              nodeFit: true
-              priorityThreshold:
-                value: 10000
           - name: RemovePodsViolatingNodeAffinity
             args:
               nodeAffinityType:
                 - requiredDuringSchedulingIgnoredDuringExecution
           - name: RemovePodsViolatingNodeTaints
-            args:
-              excludedTaints:
-                - dedicated=special-user
-          - name: RemovePodsViolatingTopologySpreadConstraint
-            args:
-              constraints:
-                - DoNotSchedule
-              topologyBalanceNodeFit: false
-          - name: RemovePodsHavingTooManyRestarts
-            args:
-              podRestartThreshold: 100
-              includingInitContainers: true
-          - name: LowNodeUtilization
-            args:
-              thresholds:
-                cpu: 20
-                memory: 20
-                pods: 20
-              targetThresholds:
-                cpu: 50
-                memory: 50
-                pods: 50
-              useDeviationThresholds: false
+            args: {}
           - name: RemovePodsViolatingInterPodAntiAffinity
             args: {}
         plugins:
@@ -49,9 +17,3 @@ descheduler:
               - RemovePodsViolatingNodeTaints
               - RemovePodsViolatingNodeAffinity
               - RemovePodsViolatingInterPodAntiAffinity
-              - RemovePodsHavingTooManyRestarts
-          balance:
-            enabled:
-              - RemoveDuplicates
-              - RemovePodsViolatingTopologySpreadConstraint
-              - LowNodeUtilization
