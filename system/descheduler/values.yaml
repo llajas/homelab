@@ -11,9 +11,25 @@ descheduler:
             args: {}
           - name: RemovePodsViolatingInterPodAntiAffinity
             args: {}
+          - name: LowNodeUtilization
+            args:
+              thresholds:
+                cpu: 20
+                memory: 20
+                pods: 20
+                nvidia.com/gpu: 10  # Threshold for GPU utilization, adjust as needed
+              targetThresholds:
+                cpu: 50
+                memory: 50
+                pods: 50
+                nvidia.com/gpu: 70  # Target threshold for GPU utilization
+              useDeviationThresholds: false  # Optional: Set to true to use deviations from the mean
         plugins:
           deschedule:
             enabled:
               - RemovePodsViolatingNodeTaints
               - RemovePodsViolatingNodeAffinity
               - RemovePodsViolatingInterPodAntiAffinity
+          balance:
+            enabled:
+              - LowNodeUtilization
