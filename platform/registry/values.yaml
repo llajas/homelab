@@ -45,4 +45,4 @@ docker-registry:
     enabled: true
     size: 10Gi
   garbageCollect:
-    enabled: true
+    enabled: false
