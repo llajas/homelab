@@ -190,6 +190,7 @@ extraDeploy:
         saved-user-logins:
           - SpecOp eX
           - Aliizsa
+          - TonicParsley323
           - ThisExampleUsernameShouldBeLongEnoughToNeverBeAnXboxUsername
           - ThisOtherExampleUsernameShouldAlsoBeLongEnough
         pending-authentication-timeout: 120
