@@ -6,7 +6,7 @@ global:
     repository: linuxserver/plex
 
     # -- The image tag to use
-    tag: 1.40.3
+    tag: 1.40.5
 
     # -- Defines when the image should be pulled. Options are Always (default), IfNotPresent, and Never
     imagePullPolicy: Always
