@@ -1,6 +1,6 @@
 type: application
 apiVersion: v2
-appVersion: "v2.14.3"
+appVersion: "v2.14.4"
 description: Tautulli integrates with Plex to provide you a feature-rich dashboard of statistics from user activity to a graphical history of streams, play count, along with configurable notifications, and more.
 name: tautulli
 version: 1.1.5
@@ -16,8 +16,8 @@ maintainers:
     email: helm@gavinmogan.com
 annotations:
   artifacthub.io/changes: |
-    - update to tautulli 2.13.4
+    - update to tautulli 2.14.4
   artifacthub.io/containsSecurityUpdates: "false"
   artifacthub.io/images: |
     - name: tautulli
-      image: tautulli/tautulli:v2.13.4
+      image: tautulli/tautulli:v2.14.4
