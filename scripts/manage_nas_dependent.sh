@@ -8,6 +8,14 @@ check_nas_address() {
   fi
 }
 
+# Function to check if ArgoCD environment variables are set
+check_argocd_env_vars() {
+  if [ -z "$ARGOCD_SERVER" ] || [ -z "$ARGOCD_USERNAME" ] || [ -z "$ARGOCD_PASSWORD" ]; then
+    echo "Please set ARGOCD_SERVER, ARGOCD_USERNAME, and ARGOCD_PASSWORD environment variables."
+    exit 1
+  fi
+}
+
 # Normalize NAS_ADDRESS to create NFS and SMB versions
 normalize_nas_address() {
   # Create SMB version with leading '//' and no trailing slash
@@ -181,58 +189,68 @@ scale_down() {
 }
 
 # Function to revert workloads using ArgoCD
-revert_workloads() {
-  echo "Reverting workloads using ArgoCD..."
+revert_sync_window() {
+  echo "Reverting sync window and triggering ArgoCD sync..."
 
-  # Get namespaces labeled as scaled down
-  mapfile -t namespaces < <(kubectl get namespaces -l nas-dependent=scaled -o jsonpath='{.items[*].metadata.name}')
+  # Get the list of scaled-down namespaces
+  scaled_down_namespaces=$(kubectl get deployments,statefulsets --all-namespaces -l nas-dependent=scaled -o json | jq -r '.items[].metadata.namespace' | sort | uniq)
 
-  if [ ${#namespaces[@]} -eq 0 ]; then
-    echo "No namespaces found with nas-dependent=scaled label."
-    exit 1
+  # Set the schedule, duration, and timezone parameters
+  schedule="* * * * *"
+  duration="24h"
+  timeZone="America/Chicago"
+
+  # Convert scaled-down namespaces to a comma-separated list
+  affected_namespaces=$(echo "$scaled_down_namespaces" | tr '\n' ',' | sed 's/,$//')
+
+  # Check for existing sync windows that match the schedule, duration, and timezone
+  existing_window=$(argocd proj windows list default -o json | jq -r --arg schedule "$schedule" --arg duration "$duration" --arg timeZone "$timeZone" '
+    .[] | select(.schedule == $schedule and .duration == $duration and .timeZone == $timeZone)')
+
+  if [ -n "$existing_window" ]; then
+    # Extract existing namespaces and the window ID using the index of the window
+    window_index=$(argocd proj windows list default -o json | jq -r --arg schedule "$schedule" --arg duration "$duration" --arg timeZone "$timeZone" '
+      to_entries[] | select(.value.schedule == $schedule and .value.duration == $duration and .value.timeZone == $timeZone) | .key')
+
+    # Get current namespaces in the window
+    current_namespaces=$(echo "$existing_window" | jq -r '.namespaces | join(",")')
+
+    # Remove the scaled-down namespaces from the current namespaces list
+    remaining_namespaces=$(comm -23 <(echo "$current_namespaces" | tr ',' '\n' | sort) <(echo "$scaled_down_namespaces" | tr ' ' '\n' | sort) | tr '\n' ',' | sed 's/,$//')
+
+    if [ -z "$remaining_namespaces" ]; then
+      # If no other namespaces remain, delete the sync window
+      echo "Deleting the sync window as it only contains scaled-down namespaces"
+      argocd proj windows delete default "$window_index"
+    else
+      # Update the sync window with the remaining namespaces
+      echo "Updating sync window: removing scaled-down namespaces"
+      argocd proj windows update default "$window_index" --namespaces "$remaining_namespaces" --schedule "$schedule" --duration "$duration" --time-zone "$timeZone"
+    fi
+  else
+    echo "No existing sync window matching the criteria was found."
   fi
 
-  echo "Namespaces to revert: ${namespaces[*]}"  # Debug output
-
-  # Login to ArgoCD if not already logged in
-  argocd_login
-
-  # Remove the ArgoCD sync window
-  remove_sync_window
-
-  # Sync the workloads back to their desired state
-  for namespace in "${namespaces[@]}"; do
-    echo "Reverting workloads in namespace $namespace"
-    sync_command="argocd app sync $namespace"
-    echo "Executing: $sync_command"
-    $sync_command || { echo "Failed to sync ArgoCD app for namespace $namespace"; exit 1; }
-
-    label_command="kubectl label namespace $namespace nas-dependent- --overwrite"
-    echo "Executing: $label_command"
-    $label_command || { echo "Failed to remove label from namespace $namespace"; exit 1; }
+  # Trigger ArgoCD sync for the scaled-down namespaces
+  for namespace in $scaled_down_namespaces; do
+    echo "Triggering ArgoCD sync for namespace: $namespace"
+    argocd app sync $namespace --async --apply-out-of-sync-only
   done
 
-  echo "Reversion complete."
+  echo "Revert complete."
 }
+
 
 # Main logic
 if [ "$1" == "down" ]; then
-  if [ -z "$ARGOCD_SERVER" ] || [ -z "$ARGOCD_USERNAME" ] || [ -z "$ARGOCD_PASSWORD" ]; then
-    echo "Please set ARGOCD_SERVER, ARGOCD_USERNAME, and ARGOCD_PASSWORD environment variables."
-    exit 1
-  fi
-  argocd_login
+  check_argocd_env_vars
   scale_down
 elif [ "$1" == "up" ]; then
-  if [ -z "$ARGOCD_SERVER" ] || [ -z "$ARGOCD_USERNAME" ] || [ -z "$ARGOCD_PASSWORD" ]; then
-    echo "Please set ARGOCD_SERVER, ARGOCD_USERNAME, and ARGOCD_PASSWORD environment variables."
-    exit 1
-  fi
-  argocd_login
-  revert_workloads
+  check_argocd_env_vars
+  revert_sync_window
 else
   echo "Usage: $0 [down|up]"
-  echo "  down: Scale down all NAS-dependent workloads to 0 replicas and create ArgoCD sync window."
-  echo "  up: Revert all NAS-dependent workloads using ArgoCD and remove the sync window."
+  echo "  down: Identify all NAS dependent PVCs, create ArgoCD sync window for affected namespaces, scale down dependent workloads to 0 replicas"
+  echo "  up: Remove ArgoCD sync window, trigger sync for affected namespaces to scale up dependent workloads to original replicas"
   exit 1
-fi
+fi 
