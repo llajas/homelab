@@ -44,7 +44,7 @@ get_pv_list_dependent_on_nas() {
       csi_source: .spec.csi.volumeAttributes.source,
       nfs_server: .spec.nfs.server,
       matches: (
-        (.spec.csi.volumeAttributes.source != null and 
+        (.spec.csi.volumeAttributes.source != null and
           (.spec.csi.volumeAttributes.source == $SMB_NAS_ADDRESS or .spec.csi.volumeAttributes.source == $SMB_NAS_ADDRESS + "/")) or
         (.spec.nfs.server != null and .spec.nfs.server == $NFS_NAS_ADDRESS)
       )
@@ -120,32 +120,54 @@ remove_sync_window() {
 get_deployments_and_statefulsets() {
   deployments=()
   statefulsets=()
+  pvc_list=()
 
+  # Iterate over the PVs and find those with NAS as the source
+  echo "$pv_list" | while read -r pv; do
+    source=$(kubectl get pv "$pv" -o json | jq -r '.spec.csi.volumeAttributes.source // .spec.nfs.server')
+    echo "Checking PV: $pv with source: $source"
+    normalized_source="${source%/}"
+    if [[ "$normalized_source" == "//$NAS_ADDRESS" || "$normalized_source" == "$NAS_ADDRESS" ]]; then
+      echo "Source matched: $normalized_source == //$NAS_ADDRESS or $NAS_ADDRESS"
+      claim=$(kubectl get pv "$pv" -o json | jq -r '.spec.claimRef.name')
+      namespace=$(kubectl get pv "$pv" -o json | jq -r '.spec.claimRef.namespace')
+      echo "Identified NAS-dependent PV: $pv in namespace: $namespace with claim: $claim"
+      pvc_list+=("${namespace}/${claim}")
+    else
+      echo "Source did not match: $normalized_source != //${NAS_ADDRESS} and $normalized_source != $NAS_ADDRESS"
+    fi
+  done
+
+  # Now that we have the PVC list, find the deployments and statefulsets using them
   for pvc in "${pvc_list[@]}"; do
     namespace=$(echo "$pvc" | cut -d/ -f1)
     claim=$(echo "$pvc" | cut -d/ -f2)
-
     echo "Searching for resources using PVC: $claim in namespace: $namespace"
 
     # Find the deployments that reference the PVC
     found_deployments=$(kubectl get deployments -n "$namespace" -o json | jq -r --arg claim "$claim" '
       .items[] | select(.spec.template.spec.volumes[]?.persistentVolumeClaim.claimName == $claim) | .metadata.name')
-    
-    # Add each found deployment to the deployments array
+
+    # Add each found deployment to the deployments array if it's not empty
     while IFS= read -r deployment; do
-      deployments+=("$namespace/$deployment")
+      if [[ -n "$deployment" && ! " ${deployments[*]} " =~ " $namespace/$deployment " ]]; then
+        deployments+=("$namespace/$deployment")
+      fi
     done <<< "$found_deployments"
 
     # Find the statefulsets that reference the PVC
     found_statefulsets=$(kubectl get statefulsets -n "$namespace" -o json | jq -r --arg claim "$claim" '
       .items[] | select(.spec.template.spec.volumes[]?.persistentVolumeClaim.claimName == $claim) | .metadata.name')
-    
-    # Add each found statefulset to the statefulsets array
+
+    # Add each found statefulset to the statefulsets array if it's not empty
     while IFS= read -r statefulset; do
-      statefulsets+=("$namespace/$statefulset")
+      if [[ -n "$statefulset" && ! " ${statefulsets[*]} " =~ " $namespace/$statefulset " ]]; then
+        statefulsets+=("$namespace/$statefulset")
+      fi
     done <<< "$found_statefulsets"
   done
 
+  # Output the final list of deployments and statefulsets without duplicates
   echo "Deployments using PVCs: ${deployments[*]}"
   echo "Statefulsets using PVCs: ${statefulsets[*]}"
 }
@@ -253,4 +275,4 @@ else
   echo "  down: Identify all NAS dependent PVCs, create ArgoCD sync window for affected namespaces, scale down dependent workloads to 0 replicas"
   echo "  up: Remove ArgoCD sync window, trigger sync for affected namespaces to scale up dependent workloads to original replicas"
   exit 1
-fi 
+fi
