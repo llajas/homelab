@@ -139,7 +139,7 @@ pms:
 
     # -- Set the transcode operating mode. Valid options are local (No workers), remote (only remote workers), both (default, remote first then local if remote fails).
     # If you disable the worker then this will be set to local automatically as that is the only valid option for that confguration.
-    transcodeOperatingMode: remote
+    transcodeOperatingMode: both
 
     # -- Set the Plex claim token obtained from https://plex.tv/claim
     plexClaimToken:
