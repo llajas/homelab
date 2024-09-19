@@ -160,7 +160,7 @@ pms:
     relayPort: 32499
 
     # -- The IP address that plex is using. This is only utilized if you disable the localRelayEnabled option above.
-    pmsIP: "10.42.8.254"
+    pmsIP: "10.137.0.228"
 
   # -- Configure the kubernetes service associated with the the PMS component
   # @default -- See below
