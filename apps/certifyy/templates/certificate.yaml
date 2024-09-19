@@ -1,0 +1,29 @@
+{{- range .Values.windowsHosts }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ .name }}-tls
+  namespace: default
+spec:
+  secretName: {{ .name }}-tls
+  privateKey:
+    algorithm: RSA
+    encoding: PKCS1
+    size: 2048
+  duration: 2160h # 90 days
+  renewBefore: 360h # 15 days before expiry
+  isCA: false
+  usages:
+    - server auth
+    - client auth
+    - digital signature
+    - key encipherment
+  commonName: {{ .certificate.commonName }}
+  dnsNames:
+    {{- range .certificate.dnsNames }}
+    - {{ . }}
+    {{- end }}
+  issuerRef:
+    name: {{ .certificate.issuerRef.name }}
+    kind: {{ .certificate.issuerRef.kind }}
+{{- end }}
