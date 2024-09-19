@@ -139,7 +139,7 @@ pms:
 
     # -- Set the transcode operating mode. Valid options are local (No workers), remote (only remote workers), both (default, remote first then local if remote fails).
     # If you disable the worker then this will be set to local automatically as that is the only valid option for that confguration.
-    transcodeOperatingMode: both
+    transcodeOperatingMode: remote
 
     # -- Set the Plex claim token obtained from https://plex.tv/claim
     plexClaimToken:
@@ -154,13 +154,13 @@ pms:
     # -- Enable or disable the local relay function. In most cases this should be left to the default (true).
     # If you disable this, you must add the pod IP address of each worker or the pod network CIDR to Plex under the
     # `List of IP addresses and networks that are allowed without auth` option in Plex's network configuration.
-    localRelayEnabled: false
+    localRelayEnabled: true
 
     # -- The port that the relay service will listen on
     relayPort: 32499
 
     # -- The IP address that plex is using. This is only utilized if you disable the localRelayEnabled option above.
-    pmsIP: "10.137.0.228"
+    pmsIP: ""
 
   # -- Configure the kubernetes service associated with the the PMS component
   # @default -- See below
