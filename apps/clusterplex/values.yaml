@@ -123,8 +123,8 @@ pms:
   #      value: UTC
   # F) - name: TZ
   #      value: '{{ .Release.Name }}'
-   runtimeClassName: nvidia
-   env:
+  runtimeClassName: nvidia
+  env:
     - name: FFMPEG_HWACCEL
       value: nvdec
     - name: NVIDIA_VISIBLE_DEVICES
