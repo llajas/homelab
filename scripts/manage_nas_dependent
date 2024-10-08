@@ -77,7 +77,7 @@ argocd_login() {
 
 # Function to create or update an ArgoCD sync window
 create_sync_window() {
-  echo "Checking for existing ArgoCD sync window for affected namespaces: $namespaces"
+  echo "Checking for existing ArgoCD sync window for affected namespaces..."
 
   # Set the schedule, duration, and timezone parameters
   schedule="* * * * *"
@@ -101,11 +101,13 @@ create_sync_window() {
     updated_namespaces=$(echo "$existing_namespaces,$affected_namespaces" | tr ',' '\n' | sort | uniq | tr '\n' ',' | sed 's/,$//')
 
     # Update the existing sync window with the combined namespaces
-    echo "Updating existing sync window ID $window_index with namespaces: $updated_namespaces"
+    echo "Prior sync window with matching schedule, duration, and timezone found."
+    echo "Updating existing sync window..."
     argocd proj windows update default "$window_index" --namespaces "$updated_namespaces" --time-zone "$timeZone"
   else
     # Create a new sync window if no matching window exists
-    echo "Creating a new sync window with namespaces: $affected_namespaces"
+    echo "No existing sync window matching the criteria was found."
+    echo "Creating a new sync window with the affected namespaces..."
     argocd proj windows add default -k deny --schedule "$schedule" --duration "$duration" --namespaces "$affected_namespaces" --manual-sync --time-zone "$timeZone"
   fi
 }
@@ -122,16 +124,17 @@ get_deployments_and_statefulsets() {
   statefulsets=()
   pvc_list=()
 
+  # Convert the pv_list into an array if needed
+  pv_array=($pv_list)
+
   # Iterate over the PVs and find those with NAS as the source
-  echo "$pv_list" | while read -r pv; do
+  echo "Checking for deployments and statefulsets using the NAS dependent PVCs..."
+  for pv in "${pv_array[@]}"; do
     source=$(kubectl get pv "$pv" -o json | jq -r '.spec.csi.volumeAttributes.source // .spec.nfs.server')
-    echo "Checking PV: $pv with source: $source"
     normalized_source="${source%/}"
     if [[ "$normalized_source" == "//$NAS_ADDRESS" || "$normalized_source" == "$NAS_ADDRESS" ]]; then
-      echo "Source matched: $normalized_source == //$NAS_ADDRESS or $NAS_ADDRESS"
       claim=$(kubectl get pv "$pv" -o json | jq -r '.spec.claimRef.name')
       namespace=$(kubectl get pv "$pv" -o json | jq -r '.spec.claimRef.namespace')
-      echo "Identified NAS-dependent PV: $pv in namespace: $namespace with claim: $claim"
       pvc_list+=("${namespace}/${claim}")
     else
       echo "Source did not match: $normalized_source != //${NAS_ADDRESS} and $normalized_source != $NAS_ADDRESS"
@@ -142,7 +145,6 @@ get_deployments_and_statefulsets() {
   for pvc in "${pvc_list[@]}"; do
     namespace=$(echo "$pvc" | cut -d/ -f1)
     claim=$(echo "$pvc" | cut -d/ -f2)
-    echo "Searching for resources using PVC: $claim in namespace: $namespace"
 
     # Find the deployments that reference the PVC
     found_deployments=$(kubectl get deployments -n "$namespace" -o json | jq -r --arg claim "$claim" '
@@ -180,18 +182,18 @@ scale_down_replicas() {
   for deployment in "${deployments[@]}"; do
     namespace=$(echo "$deployment" | cut -d/ -f1)
     name=$(echo "$deployment" | cut -d/ -f2)
-    echo "Scaling down deployment: $name in namespace: $namespace"
-    kubectl label deployment "$name" --namespace="$namespace" nas-dependent=scaled --overwrite
-    kubectl scale deployment "$name" --namespace="$namespace" --replicas=0
+    echo "Labeling and scaling down deployment: $name in namespace: $namespace"
+    kubectl label deployment "$name" --namespace="$namespace" nas-dependent=scaled --overwrite > /dev/null 2>&1
+    kubectl scale deployment "$name" --namespace="$namespace" --replicas=0 > /dev/null 2>&1
   done
 
   # Scale down statefulsets
   for statefulset in "${statefulsets[@]}"; do
     namespace=$(echo "$statefulset" | cut -d/ -f1)
     name=$(echo "$statefulset" | cut -d/ -f2)
-    echo "Scaling down statefulset: $name in namespace: $namespace"
-    kubectl label statefulset "$name" --namespace="$namespace" nas-dependent=scaled --overwrite
-    kubectl scale statefulset "$name" --namespace="$namespace" --replicas=0
+    echo "Labeling and scaling down statefulset: $name in namespace: $namespace"
+    kubectl label statefulset "$name" --namespace="$namespace" nas-dependent=scaled --overwrite > /dev/null 2>&1
+    kubectl scale statefulset "$name" --namespace="$namespace" --replicas=0 > /dev/null 2>&1
   done
 
   echo "Scaling down complete."
@@ -255,13 +257,21 @@ revert_sync_window() {
 
   # Trigger ArgoCD sync for the scaled-down namespaces
   for namespace in $scaled_down_namespaces; do
-    echo "Triggering ArgoCD sync for namespace: $namespace"
+    echo "Triggering ArgoCD sync and removing labels from workloads in namespace: $namespace"
     argocd app sync $namespace --async --apply-out-of-sync-only
+
+    # Remove the 'nas-dependent=scaled' label from deployments and statefulsets
+    kubectl get deployments -n "$namespace" -l nas-dependent=scaled -o json | jq -r '.items[].metadata.name' | while read -r deployment; do
+      kubectl label deployment "$deployment" -n "$namespace" nas-dependent- > /dev/null 2>&1
+    done
+
+    kubectl get statefulsets -n "$namespace" -l nas-dependent=scaled -o json | jq -r '.items[].metadata.name' | while read -r statefulset; do
+      kubectl label statefulset "$statefulset" -n "$namespace" nas-dependent- > /dev/null 2>&1
+    done
   done
 
   echo "Revert complete."
 }
-
 
 # Main logic
 if [ "$1" == "down" ]; then
