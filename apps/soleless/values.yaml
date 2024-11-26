@@ -1,6 +1,6 @@
 # Container image
 image:
-  repository: registry.lajas.tech/soleless
+  repository: registry.lajas.tech/soleless-app
   tag: latest
   pullPolicy: IfNotPresent
 
