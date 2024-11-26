@@ -213,7 +213,7 @@ operator:
   imageRepository: 1password/onepassword-operator
 
   # How often the 1Password Operator will poll for secrets updates.
-  pollingInterval: 600
+  pollingInterval: 180
 
   # The 1Password Operator version to pull
   version: "1.8.1"
