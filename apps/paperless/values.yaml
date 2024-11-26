@@ -29,6 +29,7 @@ app-template:
       className: nginx
       annotations:
         cert-manager.io/cluster-issuer: letsencrypt-prod
+        nginx.ingress.kubernetes.io/proxy-body-size: 32m
       hosts:
         - host: &host paperless.lajas.tech
           paths:
