@@ -1,0 +1,43 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-soleless
+spec:
+  template:
+    spec:
+      containers:
+      - name: soleless
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - name: SHOEBBOXED_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-soleless-secrets
+              key: client-id
+        - name: SHOEBBOXED_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-soleless-secrets
+              key: client-secret
+        - name: SHOEBBOXED_REDIRECT_URI
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-soleless-secrets
+              key: redirect-uri
+        - name: AUTHORIZATION_CODE
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-soleless-secrets
+              key: authorization-code
+        - name: PAPERLESS_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-soleless-secrets
+              key: url
+        - name: PAPERLESS_AUTH_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-soleless-secrets
+              key: auth-token
+      restartPolicy: Never

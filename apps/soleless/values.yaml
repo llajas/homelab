@@ -1,0 +1,9 @@
+# Container image
+image:
+  repository: registry.lajas.tech/soleless
+  tag: latest
+  pullPolicy: IfNotPresent
+
+opSecret:
+  vault: "z3emsr5qi5xqk33wthv5fpmfqa"
+  item: "4uvjmvioanbh3zknyg7buw6lkm"
