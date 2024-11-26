@@ -10,17 +10,17 @@ spec:
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         env:
-        - name: SHOEBBOXED_CLIENT_ID
+        - name: SHOEBOXED_CLIENT_ID
           valueFrom:
             secretKeyRef:
               name: {{ .Release.Name }}-soleless-secrets
               key: client-id
-        - name: SHOEBBOXED_CLIENT_SECRET
+        - name: SHOEBOXED_CLIENT_SECRET
           valueFrom:
             secretKeyRef:
               name: {{ .Release.Name }}-soleless-secrets
               key: client-secret
-        - name: SHOEBBOXED_REDIRECT_URI
+        - name: SHOEBOXED_REDIRECT_URI
           valueFrom:
             secretKeyRef:
               name: {{ .Release.Name }}-soleless-secrets
