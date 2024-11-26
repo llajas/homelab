@@ -1,7 +1,7 @@
 # Container image
 image:
   repository: registry.lajas.tech/soleless-app
-  tag: latest
+  tag: "90036e457196b6af0e3e4ed6a1f7629c2f01cb69"
   pullPolicy: IfNotPresent
 
 opSecret:
