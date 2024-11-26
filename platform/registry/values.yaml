@@ -45,4 +45,13 @@ docker-registry:
     enabled: true
     size: 10Gi
   garbageCollect:
-    enabled: false
+    enabled: true
+    deleteUntagged: true
+    schedule: "0 1 * * *" # Runs daily at 1 AM
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
