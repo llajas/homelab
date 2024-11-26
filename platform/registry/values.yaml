@@ -55,3 +55,7 @@ docker-registry:
       limits:
         memory: "512Mi"
         cpu: "500m"
+  configData:
+    storage:
+      cache:
+        blobdescriptor: disabled
