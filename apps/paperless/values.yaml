@@ -153,7 +153,7 @@ opSecrets:
     secretName: "paperless-redis"
   postgres:
     item: "xwm4eiiskzi52lkj7vmaa5qrdu"
-    secretName: "paperless-postgres"
+    secretName: "paperless-postgresql"
   paperless:
     item: "ph6bqn5sn4eun27qaseu7jsfem"
     secretName: "paperless-secret"
