@@ -21,7 +21,7 @@ env:
   # PAPERLESS_SECRET_KEY: ""
   PAPERLESS_PORT: 8000
   PAPERLESS_ADMIN_USER: root
-  PAPERLESS_URL: http://paperless.lajas.tech
+  PAPERLESS_URL: https://paperless.lajas.tech
 
 envFrom:
   - secretRef:
