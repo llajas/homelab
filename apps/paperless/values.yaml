@@ -53,3 +53,7 @@ app-template:
               subPath: data
             - path: /usr/src/paperless/media
               subPath: media
+
+opSecret:
+  vault: "z3emsr5qi5xqk33wthv5fpmfqa"
+  item: "ph6bqn5sn4eun27qaseu7jsfem"
