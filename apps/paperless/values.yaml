@@ -152,8 +152,8 @@ opSecrets:
     item: "k4k4iiq2soj5bjxtya35c3bxx4"
     secretName: "paperless-redis"
   postgres:
-    item: "xwm4eiiskzi52lkj7vmaa5qrdu"
+    item: "k4k4iiq2soj5bjxtya35c3bxx4"
     secretName: "paperless-postgresql"
   paperless:
-    item: "ph6bqn5sn4eun27qaseu7jsfem"
+    item: "k4k4iiq2soj5bjxtya35c3bxx4"
     secretName: "paperless-secret"
