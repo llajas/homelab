@@ -43,12 +43,12 @@ ingress:
       cert-manager.io/cluster-issuer: letsencrypt-prod
       nginx.ingress.kubernetes.io/proxy-body-size: 64m
     hosts:
-      - host: &host paperless.lajas.tech
+      - host: paperless.lajas.tech
         paths:
           - path: /
     tls:
       - hosts:
-          - *host
+          - paperless.lajas.tech
         secretName: paperless-tls-certificate
 
 persistence:
