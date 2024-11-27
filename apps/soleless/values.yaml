@@ -7,3 +7,10 @@ image:
 opSecret:
   vault: "z3emsr5qi5xqk33wthv5fpmfqa"
   item: "4uvjmvioanbh3zknyg7buw6lkm"
+
+settings:
+  maxWorkers: 2
+  maxRetries: 5
+  retryDelay: 5
+  taskPollInterval: 10
+  taskTimeout: 1800

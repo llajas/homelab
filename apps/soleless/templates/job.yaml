@@ -40,4 +40,14 @@ spec:
             secretKeyRef:
               name: {{ .Release.Name }}-soleless-secrets
               key: auth-token
+        - name: MAX_WORKERS
+          value: "{{ .Values.settings.maxWorkers | default 5 }}"
+        - name: MAX_RETRIES
+          value: "{{ .Values.settings.maxRetries | default 5 }}"
+        - name: RETRY_DELAY
+          value: "{{ .Values.settings.retryDelay | default 5 }}"
+        - name: TASK_POLL_INTERVAL
+          value: "{{ .Values.settings.taskPollInterval | default 10 }}"
+        - name: TASK_TIMEOUT
+          value: "{{ .Values.settings.taskTimeout | default 600 }}"
       restartPolicy: Never
