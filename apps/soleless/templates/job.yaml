@@ -50,4 +50,6 @@ spec:
           value: "{{ .Values.settings.taskPollInterval | default 10 }}"
         - name: TASK_TIMEOUT
           value: "{{ .Values.settings.taskTimeout | default 600 }}"
+        - name: BATCH_SIZE
+          value: "{{ .Values.settings.batchSize | default 100 }}"
       restartPolicy: Never

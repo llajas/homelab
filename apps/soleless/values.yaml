@@ -14,3 +14,4 @@ settings:
   retryDelay: 5
   taskPollInterval: 10
   taskTimeout: 1800
+  batchSize: 50
