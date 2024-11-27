@@ -38,17 +38,17 @@ service:
 ingress:
   main:
     enabled: true
-    className: nginx
+    ingressClassName: nginx
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-prod
       nginx.ingress.kubernetes.io/proxy-body-size: 64m
     hosts:
-      - host: paperless.lajas.tech
+      - host: &host paperless.lajas.tech
         paths:
           - path: /
     tls:
       - hosts:
-          - paperless.lajas.tech
+          - *host
         secretName: paperless-tls-certificate
 
 persistence:
