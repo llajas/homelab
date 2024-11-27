@@ -46,10 +46,6 @@ ingress:
       - host: &host paperless.lajas.tech
         paths:
           - path: /
-            pathType: Prefix
-            service:
-              name: paperless
-              port: 8000
     tls:
       - hosts:
           - *host
