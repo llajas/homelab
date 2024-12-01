@@ -117,7 +117,7 @@ def setup_gitea_oauth_app(name: str, redirect_uri: str) -> None:
 def setup_gitea_auth_with_dex():
     gitea_pod = client.CoreV1Api().list_namespaced_pod(namespace='gitea', label_selector='app=gitea').items[0].metadata.name
     client_secret = base64.b64decode(
-        client.CoreV1Api().read_namespaced_secret('gitea.dex', 'global-secrets').data['client_secret']
+        client.CoreV1Api().read_namespaced_secret('dex.gitea', 'global-secrets').data['client_secret']
     ).decode("utf-8")
     discovery_url = f"https://{client.NetworkingV1Api().read_namespaced_ingress('dex', 'dex').spec.rules[0].host}/.well-known/openid-configuration"
 
