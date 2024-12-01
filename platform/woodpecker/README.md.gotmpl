@@ -1,0 +1,59 @@
+{{ template "chart.header" . }}
+
+{{ template "chart.deprecationWarning" . }}
+
+{{ template "chart.badgesSection" . }}
+
+**Source Code**: <https://github.com/woodpecker-ci/woodpecker>
+
+## Installation
+
+To install the latest release of the chart:
+
+```sh
+# since > 1.6.1
+helm repo add woodpecker oci://ghcr.io/woodpecker-ci/helm
+helm install woodpecker woodpecker/woodpecker
+
+# deprecated (but still functional)
+helm repo add woodpecker https://woodpecker-ci.org/
+helm install woodpecker woodpecker/woodpecker
+```
+
+**Note**: The `woodpecker/woodpecker` chart contains both the server and the agent.
+If you want to install only the server or agent you can use the [`woodpecker/server`](./charts/server/README.md) or [`woodpecker/agent`](./charts/server/README.md) charts respectively.
+
+### Backend Configuration
+
+The Kubernetes backend configuration is documented in greater detail in the Woodpecker [documentation](https://woodpecker-ci.org/docs/next/administration/backends/kubernetes).
+
+### Terraform
+
+If you're using the `helm-release` terraform module, the following definition can be used:
+
+```hcl
+resource "helm_release" "woodpecker" {
+  name             = "woodpecker"
+  chart            = "woodpecker"
+  repository       = "https://woodpecker-ci.org/"
+  create_namespace = true # optional
+  version          = {{ template "chart.version" . }}
+  namespace        = "woodpecker"
+  count            = 1 # optional
+  timeout          = 90 # optional
+```
+
+## Upgrading
+
+<details>
+
+<summary>To 1.0.0</summary>
+
+- split `metrics.enabled` and the PodMonitor deployment to `prometheus.podmonitor.enabled`
+- move `metrics.interval` to `prometheus.podmonitor.interval`
+
+</details>
+
+{{ template "chart.requirementsSection" . }}
+
+{{ template "chart.valuesSection" . }}

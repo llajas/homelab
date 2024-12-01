@@ -3,6 +3,9 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: {{ include "woodpecker-agent.serviceAccountName" . }}
+  {{- with .Values.env.WOODPECKER_BACKEND_K8S_NAMESPACE }}
+  namespace: {{ . }}
+  {{- end }}
   labels:
     {{- include "woodpecker-agent.labels" . | nindent 4 }}
     {{- with .Values.serviceAccount.rbac.role.labels }}
@@ -14,14 +17,14 @@ metadata:
   {{- end }}
 rules:
   - apiGroups: [''] # '' indicates core apiGroup (don't remove)
-    resources: ['persistentvolumeclaims']
-    verbs: ['create','delete']
-  - apiGroups: ['']
-    resources: ['services']
+    resources: ['persistentvolumeclaims', 'services', 'secrets']
     verbs: ['create','delete']
   - apiGroups: ['']
     resources:
       - pods
-      - pods/log
     verbs: ['watch','create','delete','get','list']
+  - apiGroups: ['']
+    resources:
+      - pods/log
+    verbs: ['get']
 {{- end }}
