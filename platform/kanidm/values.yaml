@@ -6,7 +6,7 @@ app-template:
         main:
           image:
             repository: docker.io/kanidm/server
-            tag: 1.3.3
+            tag: 1.4.3
       statefulset:
         volumeClaimTemplates:
           - name: data
