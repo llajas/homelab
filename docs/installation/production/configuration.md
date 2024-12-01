@@ -1,22 +1,10 @@
 # Configuration
 
-Open the [tools container](../../concepts/tools-container.md), which includes all the tools needed:
+Open the [development shell](../../concepts/development-shell.md), which includes all the tools needed:
 
-=== "Docker"
-
-    ```sh
-    make tools
-    ```
-
-=== "Nix"
-
-    ```sh
-    nix-develop
-    ```
-
-!!! note
-
-     It will take a while to build the tools container on the first time
+```sh
+nix develop
+```
 
 Run the following script to configure the homelab:
 
@@ -26,7 +14,7 @@ make configure
 
 !!! example
 
-    <!-- TODO update example input -->
+    <!—- TODO update example input -—>
 
     ```
     Text editor (nvim):

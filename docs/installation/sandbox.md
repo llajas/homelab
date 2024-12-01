@@ -15,9 +15,9 @@ Host machine:
 Install the following packages:
 
 - `docker`
-- `make`
+- `nix` (see [development shell](../concepts/development-shell.md) for the installation guide)
 
-Clone the original repository and checkout the development branch from the original repository:
+Clone the repository and checkout the development branch:
 
 ```sh
 git clone https://github.com/khuedoan/homelab
@@ -26,19 +26,11 @@ git checkout dev
 
 ## Build
 
-Open the tools container, which includes all the tools needed:
+Open the development shell, which includes all the tools needed:
 
-=== "Docker"
-
-    ```sh
-    make tools
-    ```
-
-=== "Nix"
-
-    ```sh
-    nix-develop
-    ```
+```sh
+nix develop
+```
 
 Build a development cluster and bootstrap it:
 
@@ -52,7 +44,7 @@ make
 
 ## Explore
 
-The homepage should be available at <https://home.127-0-0-1.nip.io> (ignore the security warning because we don't have valid certificates).
+The homepage should be available at <https://home.127-0-0-1.nip.io> (ignore the security warning because we don’t have valid certificates).
 
 See [admin credentials](../post-installation/#admin-credentials) for default passwords.
 
@@ -63,7 +55,7 @@ git remote add sandbox https://git.127-0-0-1.nip.io/ops/homelab
 git config http.https://git.127-0-0-1.nip.io.sslVerify false
 
 git add foobar.txt
-git commit -m "feat: harness the power of the sun"
+git commit -m “feat: harness the power of the sun”
 git push sandbox # you can use the gitea_admin account
 ```
 
@@ -77,10 +69,10 @@ k3d cluster delete homelab-dev
 
 ## Caveats compare to production environment
 
-The development cluster doesn't have the following features:
+The development cluster doesn’t have the following features:
 
 - There is no valid domain name, hence no SSL certificates (some services require valid SSL certificates)
 - Only accessible on the host machine
 - No backup
 
-Please keep in mind that the development cluster may be unstable and things may break (it's for development after all).
+Please keep in mind that the development cluster may be unstable and things may break (it’s for development after all).
