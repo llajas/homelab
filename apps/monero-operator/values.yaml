@@ -1,0 +1,34 @@
+# Namespace configuration
+namespace: monero-system
+
+# ServiceAccount configuration
+serviceAccount:
+  name: monero-controller
+
+# ClusterRoleBinding configuration
+clusterRoleBinding:
+  name: monero-admin
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: cluster-admin
+  subjects:
+    - kind: ServiceAccount
+      name: monero-controller
+      namespace: monero-system
+
+# Deployment configuration
+replicaCount: 1  # Changed from 3 to 1
+
+image:
+  repository: ko://github.com/cirocosta/monero-operator/cmd/monero-operator
+  tag: latest
+  pullPolicy: IfNotPresent
+
+resources:
+  requests:
+    cpu: "200m"
+    memory: "200Mi"
+  limits:
+    cpu: "500m"
+    memory: "500Mi"
