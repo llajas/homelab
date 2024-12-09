@@ -1,0 +1,59 @@
+moneroNodeSet:
+  enabled: false
+  name: full-node
+  replicas: 1
+  diskSize: 200Gi
+  service:
+    type: ClusterIP
+  monerod:
+    args:
+      - "--public"
+      - "--enable-dns-blocklist"
+      - "--enforce-dns-checkpointing"
+      - "--out-peers=1024"
+      - "--in-peers=1024"
+      - "--limit-rate=128000"
+
+moneroMiningNodeSet:
+  enabled: true
+  name: miners
+  replicas: 5
+  hardAntiAffinity: true
+  pool:
+    address: pool.supportxmr.com
+    port: 5555
+  walletAddress: "44JZA9qyAAL2HJ2JU9mWf5GnzYdMHBbH9X8quKiqekV3QwdzX3Zs8qm9U54dJVNUbN2otb7Fwi19yPicWk8NzpUVPoEy4W3"
+  workerNamePattern: "miner-$(id)"
+  fixedDifficulty: 35000
+
+moneroNetwork:
+  enabled: false
+  name: private-network
+  replicas: 3
+  template:
+    spec:
+      monerod:
+        args:
+          - "--regtest"
+          - "--fixed-difficulty=1"
+          - "--no-igd"
+          - "--no-zmq"
+          - "--non-interactive"
+          - "--p2p-bind-ip=0.0.0.0"
+          - "--p2p-bind-port=18080"
+          - "--rpc-restricted-bind-ip=0.0.0.0"
+          - "--rpc-restricted-bind-port=18089"
+          - "--add-exclusive-node=private-network-0"
+          - "--add-exclusive-node=private-network-1"
+          - "--add-exclusive-node=private-network-2"
+        ports:
+          - name: rpc
+            containerPort: 18089
+            protocol: TCP
+  service:
+    type: NodePort
+    ports:
+      - name: rpc
+        port: 18089
+        targetPort: rpc
+        nodePort: 30089

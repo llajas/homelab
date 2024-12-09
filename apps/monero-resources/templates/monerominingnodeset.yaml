@@ -1,0 +1,21 @@
+{{- if .Values.moneroMiningNodeSet.enabled }}
+apiVersion: utxo.com.br/v1alpha1
+kind: MoneroMiningNodeSet
+metadata:
+  name: {{ .Values.moneroMiningNodeSet.name }}
+  labels:
+    {{- include "monero-resources.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.moneroMiningNodeSet.replicas }}
+  hardAntiAffinity: {{ .Values.moneroMiningNodeSet.hardAntiAffinity }}
+  xmrig:
+    args:
+      - -o
+      - "{{ .Values.moneroMiningNodeSet.pool.address }}:{{ .Values.moneroMiningNodeSet.pool.port }}"
+      - -u
+      - "{{ .Values.moneroMiningNodeSet.walletAddress }}.{{ .Values.moneroMiningNodeSet.workerNamePattern }}"
+      - --tls
+      {{- if .Values.moneroMiningNodeSet.fixedDifficulty }}
+      - "--fixed-difficulty={{ .Values.moneroMiningNodeSet.fixedDifficulty }}"
+      {{- end }}
+{{- end }}
