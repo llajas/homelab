@@ -16,6 +16,8 @@ spec:
       - "{{ .Values.moneroMiningNodeSet.walletAddress }}"
       - -p
       - "{{ .Values.moneroMiningNodeSet.workerNamePattern }}"
+      - --tls
+      - -k
       {{- if .Values.moneroMiningNodeSet.fixedDifficulty }}
       - "--fixed-difficulty={{ .Values.moneroMiningNodeSet.fixedDifficulty }}"
       {{- end }}
