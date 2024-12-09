@@ -14,7 +14,7 @@ spec:
       - "{{ .Values.moneroMiningNodeSet.pool.address }}:{{ .Values.moneroMiningNodeSet.pool.port }}"
       - -u
       - {{ .Values.moneroMiningNodeSet.walletAddress }}
-      - p
+      - -p
       - {{ .Values.moneroMiningNodeSet.workerNamePattern }}
       - --tls
       - --keepalive
