@@ -1,0 +1,18 @@
+{{- if .Values.moneroNodeSet.enabled }}
+apiVersion: utxo.com.br/v1alpha1
+kind: MoneroNodeSet
+metadata:
+  name: {{ .Values.moneroNodeSet.name }}
+  labels:
+    {{- include "monero-resources.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.moneroNodeSet.replicas }}
+  diskSize: {{ .Values.moneroNodeSet.diskSize | default "200Gi" }}
+  service:
+    type: {{ .Values.moneroNodeSet.service.type | default "ClusterIP" }}
+  monerod:
+    args:
+      {{- range .Values.moneroNodeSet.monerod.args }}
+      - "{{ . }}"
+      {{- end }}
+{{- end }}
