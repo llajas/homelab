@@ -11,13 +11,10 @@ spec:
   xmrig:
     args:
       - -o
-      - {{ .Values.moneroMiningNodeSet.pool.address }}:{{ .Values.moneroMiningNodeSet.pool.port }}
+      - "{{ .Values.moneroMiningNodeSet.pool.address }}:{{ .Values.moneroMiningNodeSet.pool.port }}{{ if .Values.moneroMiningNodeSet.fixedDifficulty }}+{{ .Values.moneroMiningNodeSet.fixedDifficulty }}{{ end }}"
       - -u
-      - {{ .Values.moneroMiningNodeSet.walletAddress }}
+      - "{{ .Values.moneroMiningNodeSet.walletAddress }}"
       - -p
-      - {{ .Values.moneroMiningNodeSet.workerNamePattern }}
+      - "{{ .Values.moneroMiningNodeSet.workerNamePattern }}"
       - --keepalive
-      {{- if .Values.moneroMiningNodeSet.fixedDifficulty }}
-      - "--fixed-difficulty={{ .Values.moneroMiningNodeSet.fixedDifficulty }}"
-      {{- end }}
 {{- end }}
