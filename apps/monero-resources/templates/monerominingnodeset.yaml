@@ -11,7 +11,7 @@ spec:
   xmrig:
     args:
       - -o
-      - "{{ .Values.moneroMiningNodeSet.pool.address }}:{{ .Values.moneroMiningNodeSet.pool.port }}"
+      - {{ .Values.moneroMiningNodeSet.pool.address }}:{{ .Values.moneroMiningNodeSet.pool.port }}
       - -u
       - {{ .Values.moneroMiningNodeSet.walletAddress }}
       - -p
