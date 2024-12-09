@@ -21,7 +21,7 @@ moneroMiningNodeSet:
   hardAntiAffinity: true
   pool:
     address: pool.supportxmr.com
-    port: 9000
+    port: 3333
   walletAddress: "44JZA9qyAAL2HJ2JU9mWf5GnzYdMHBbH9X8quKiqekV3QwdzX3Zs8qm9U54dJVNUbN2otb7Fwi19yPicWk8NzpUVPoEy4W3"
   workerNamePattern: "miner-$(id)"
   #fixedDifficulty: 35000
