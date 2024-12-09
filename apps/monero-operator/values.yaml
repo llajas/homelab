@@ -21,7 +21,7 @@ clusterRoleBinding:
 replicaCount: 1  # Changed from 3 to 1
 
 image:
-  repository: ko://github.com/cirocosta/monero-operator/cmd/monero-operator
+  repository: registry.lajas.tech/monero-operator
   tag: latest
   pullPolicy: IfNotPresent
 
