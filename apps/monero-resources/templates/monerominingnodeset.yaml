@@ -13,7 +13,9 @@ spec:
       - -o
       - "{{ .Values.moneroMiningNodeSet.pool.address }}:{{ .Values.moneroMiningNodeSet.pool.port }}"
       - -u
-      - "{{ .Values.moneroMiningNodeSet.walletAddress }}.{{ .Values.moneroMiningNodeSet.workerNamePattern }}"
+      - "{{ .Values.moneroMiningNodeSet.walletAddress }}"
+      - -p
+      - "{{ .Values.moneroMiningNodeSet.workerNamePattern }}"
       - --tls
       {{- if .Values.moneroMiningNodeSet.fixedDifficulty }}
       - "--fixed-difficulty={{ .Values.moneroMiningNodeSet.fixedDifficulty }}"
