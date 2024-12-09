@@ -23,7 +23,7 @@ replicaCount: 1
 image:
   repository: registry.lajas.tech/monero-operator
   tag: latest
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
 resources:
   requests:
