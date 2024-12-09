@@ -18,7 +18,7 @@ clusterRoleBinding:
       namespace: monero-system
 
 # Deployment configuration
-replicaCount: 1  # Changed from 3 to 1
+replicaCount: 1
 
 image:
   repository: registry.lajas.tech/monero-operator
@@ -32,3 +32,8 @@ resources:
   limits:
     cpu: "500m"
     memory: "500Mi"
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 2600
+  runAsGroup: 2600
