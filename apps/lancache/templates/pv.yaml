@@ -1,17 +1,29 @@
-{{- if .Values.persistence.data.existingClaim }}
 apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: {{ .Values.persistence.data.existingClaim }}-pv
+  namespace: {{ .Release.Namespace }}
 spec:
   capacity:
     storage: {{ .Values.persistence.data.size }}
-  volumeMode: Filesystem
+  volumeMode: {{ .Values.persistence.data.volumeMode }}
   accessModes:
     - {{ .Values.persistence.data.accessMode }}
-  persistentVolumeReclaimPolicy: Retain
+  persistentVolumeReclaimPolicy: {{ .Values.persistence.data.reclaimPolicy }}
+  csi:
+    driver: {{ .Values.persistence.data.driver }}
+    volumeAttributes:
+      source: {{ .Values.persistence.data.share.server }}
+      subDir: {{ .Values.persistence.data.share.path }}
+    nodeStageSecretRef:
+      name: {{ .Values.persistence.data.secret.secretName }}
+      namespace: {{ .Release.Namespace }}
   storageClassName: {{ .Values.persistence.data.storageClassName }}
-  nfs:
-    path: {{ required "A valid .Values.persistence.data.nfs.path is required!" .Values.persistence.data.nfs.path }}
-    server: {{ required "A valid .Values.persistence.data.nfs.server is required!" .Values.persistence.data.nfs.server }}
-{{- end }}
+  mountOptions:
+    - dir_mode=0777
+    - file_mode=0777
+    - uid=1000
+    - gid=1000
+    - cache=strict
+    - noserverino
+    - nobrl

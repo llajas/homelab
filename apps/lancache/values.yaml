@@ -102,11 +102,18 @@ persistence:
     existingClaim: lancache-data-cache-pvc
     mountPath: /data/cache
     accessMode: ReadWriteOnce
-    storageClassName: nfs
+    driver: smb.csi.k8s.io
+    storageClassName: smb
     size: 1Ti
-    nfs:
-      path: /mnt/user/lancache
-      server: nas-01.storage.lajas.tech
+    share:
+      path: lancache/
+      server: //nas-01.storage.lajas.tech/
+    reclaimPolicy: Retain
+    volumeMode: Filesystem
+    secret:
+      secretName: cifs.creds.lancache
+      vault: "z3emsr5qi5xqk33wthv5fpmfqa"
+      items: "c7ec7bt633qs2crad7ga3bb4am"
   logs:
     enabled: true
     mountPath: /data/logs
