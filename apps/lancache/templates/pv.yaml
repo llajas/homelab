@@ -18,6 +18,7 @@ spec:
     nodeStageSecretRef:
       name: {{ .Values.persistence.data.secret.secretName }}
       namespace: {{ .Release.Namespace }}
+    volumeHandle: {{ .Values.persistence.data.existingClaim }}
   storageClassName: {{ .Values.persistence.data.storageClassName }}
   mountOptions:
     - dir_mode=0777
