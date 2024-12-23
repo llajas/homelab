@@ -13,7 +13,7 @@ image:
   # -- image repository
   repository: quay.io/linuxserver.io/sabnzbd
   # -- image tag
-  tag: 4.3.3
+  tag: 4.4.1
   # -- image pull policy
   pullPolicy: IfNotPresent
 
