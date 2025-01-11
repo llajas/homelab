@@ -3,6 +3,28 @@
   roles:
     - pxe_server
 
+- name: Provision virtual machines
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Identify virtual machines in inventory
+      set_fact:
+        virtual_machines: "{{ groups['metal'] | selectattr('mac', 'match', mac_prefix) | map(attribute='inventory_hostname') | list }}"
+      vars:
+        mac_prefix: '^52:54:00'  # Replace with desired prefix
+
+    - name: Provision VMs using Terraform
+      when: virtual_machines | length > 0
+      block:
+        - name: Display virtual machines to be provisioned
+          debug:
+            msg: "Provisioning the following virtual machines: {{ virtual_machines }}"
+
+        - name: Run Terraform for virtual machines
+          command:
+            cmd: >
+              terraform -chdir=../terraform apply -auto-approve
+
 - name: Provision bare metal machines
   hosts: metal
   gather_facts: false
