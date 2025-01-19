@@ -3,11 +3,6 @@
   roles:
     - pxe_server
 
-- name: Start PXE server
-  hosts: localhost
-  roles:
-    - pxe_server
-
 - name: Gather virtual machines from inventory
   hosts: localhost
   gather_facts: false
