@@ -15,7 +15,7 @@
     - name: Identify virtual machines
       set_fact:
         virtual_nodes: "{{ groups['masters'] | union(groups['workers']) | map('extract', hostvars) | selectattr('virtual', 'defined') | list }}"
-        
+
     - name: Display virtual machines
       debug:
         msg: "Found virtual machines: {{ virtual_nodes | map(attribute='ansible_host') | list }}"
@@ -23,34 +23,36 @@
     - name: Initialize Terraform
       when: virtual_nodes | length > 0
       command:
-        cmd: terraform -chdir=../terraform init
+        cmd: terraform -chdir=./terraform init
       register: terraform_init_result
 
     - name: Create Terraform input for virtual nodes
       when: virtual_nodes | length > 0
       copy:
-        dest: "../terraform/virtual_nodes.tfvars.json"
+        dest: "{{ playbook_dir }}/terraform/virtual_nodes.tfvars.json"
         content: |
           {
-            {% for node in virtual_nodes %}
-            "{{ node.inventory_hostname }}": {
-              "name": "{{ node.inventory_hostname }}",
-              "memory": 16384,
-              "vcpu": 2,
-              "mac": "{{ node.mac }}",
-              "ip": "{{ node.ansible_host }}",
-              "network_interface": "{{ node.network_interface }}",
-              "disk_size": 100
-            }{% if not loop.last %},{% endif %}
-            {% endfor %}
+            "virtual_nodes": {
+              {% for node in virtual_nodes %}
+              "{{ node.inventory_hostname }}": {
+                "name": "{{ node.inventory_hostname }}",
+                "memory": 16384,
+                "vcpu": 2,
+                "mac": "{{ node.mac }}",
+                "ip": "{{ node.ansible_host }}",
+                "network_interface": "{{ node.network_interface }}",
+                "disk_size": 100
+              }{% if not loop.last %},{% endif %}
+              {% endfor %}
+            }
           }
 
     - name: Apply Terraform for virtual nodes
-      when: 
+      when:
         - virtual_nodes | length > 0
         - terraform_init_result is succeeded
       command:
-        cmd: terraform -chdir=../terraform apply -var-file=virtual_nodes.tfvars.json -auto-approve
+        cmd: terraform -chdir={{ playbook_dir }}/terraform apply -var-file=virtual_nodes.tfvars.json -auto-approve
 
 - name: Provision bare metal machines
   hosts: metal
