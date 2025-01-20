@@ -16,9 +16,22 @@
             | list | length > 0
           }}
 
+    - name: Check for virtual machines with GPUs in inventory
+      set_fact:
+        has_gpu_nodes: >-
+          {{
+            groups['metal'] | map('extract', hostvars)
+            | selectattr('gpu_type', 'defined')
+            | list | length > 0
+          }}
+
   roles:
     - role: initialize_hypervisor
       when: has_virtual_machines
+    - role: detect_gpu
+      when: has_gpu_nodes
+    - role: generate_gpu_xslt
+      when: has_gpu_nodes
     - role: create_virtual_machines
       when: has_virtual_machines
     - role: update_vm_wol
