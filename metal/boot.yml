@@ -3,51 +3,26 @@
   roles:
     - pxe_server
 
-- name: Gather virtual machines from inventory
+- name: Setup virtual machines
   hosts: localhost
-  gather_facts: false
-  tasks:
-    - name: Identify virtual machines
+  pre_tasks:
+    - name: Check for virtual machines in inventory
       set_fact:
-        virtual_nodes: "{{ groups['masters'] | union(groups['workers']) | map('extract', hostvars) | selectattr('virtual', 'defined') | list }}"
+        has_virtual_machines: >-
+          {{
+            groups['metal'] | map('extract', hostvars)
+            | selectattr('virtual', 'defined')
+            | selectattr('virtual', 'equalto', true)
+            | list | length > 0
+          }}
 
-    - name: Display virtual machines
-      debug:
-        msg: "Found virtual machines: {{ virtual_nodes | map(attribute='ansible_host') | list }}"
-
-    - name: Initialize Terraform
-      when: virtual_nodes | length > 0
-      command:
-        cmd: terraform -chdir=./terraform init
-      register: terraform_init_result
-
-    - name: Create Terraform input for virtual nodes
-      when: virtual_nodes | length > 0
-      copy:
-        dest: "{{ playbook_dir }}/terraform/virtual_nodes.tfvars.json"
-        content: |
-          {
-            "virtual_nodes": {
-              {% for node in virtual_nodes %}
-              "{{ node.inventory_hostname }}": {
-                "name": "{{ node.inventory_hostname }}",
-                "memory": 16384,
-                "vcpu": 2,
-                "mac": "{{ node.mac }}",
-                "ip": "{{ node.ansible_host }}",
-                "network_interface": "{{ node.network_interface }}",
-                "disk_size": 100
-              }{% if not loop.last %},{% endif %}
-              {% endfor %}
-            }
-          }
-
-    - name: Apply Terraform for virtual nodes
-      when:
-        - virtual_nodes | length > 0
-        - terraform_init_result is succeeded
-      command:
-        cmd: terraform -chdir={{ playbook_dir }}/terraform apply -var-file=virtual_nodes.tfvars.json -auto-approve
+  roles:
+    - role: initialize_hypervisor
+      when: has_virtual_machines
+    - role: create_virtual_machines
+      when: has_virtual_machines
+    - role: update_vm_wol
+      when: has_virtual_machines
 
 - name: Provision bare metal machines
   hosts: metal
