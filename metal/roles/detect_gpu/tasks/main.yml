@@ -1,0 +1,37 @@
+- name: Gather GPU information from hypervisor
+  shell: lspci -nn | grep -i nvidia
+  register: gpu_list
+  delegate_to: "{{ hypervisor_address }}"
+  changed_when: false
+
+- name: Parse GPU details
+  set_fact:
+    gpu_devices: >-
+      {{
+        gpu_list.stdout_lines | map('regex_search', '(\\d{2}:\\d{2}\\.\\d).*\\[(.*)\\] \\[(.*)\\]', {
+          "pci_id": "\\1",
+          "device_id": "\\2",
+          "name": "\\3"
+        }) | list
+      }}
+
+- name: Filter GPUs by `gpu_type` in inventory
+  set_fact:
+    gpu_mapping: >-
+      {{
+        dict(groups['metal'] | selectattr('gpu_type', 'defined') | map(
+          'extract', hostvars, ['inventory_hostname', 'gpu_type']
+        ) | map(
+          lambda x: dict(
+            inventory_hostname=x[0],
+            gpu_type=x[1],
+            gpu_device=(gpu_devices | selectattr('name', 'search', x[1]) | list | first)
+          )
+        ) | selectattr('gpu_device', 'defined') | list
+      }}
+
+- name: Save GPU mapping for Terraform
+  copy:
+    content: "{{ gpu_mapping | to_json }}"
+    dest: "{{ playbook_dir }}/gpu_mapping.json"
+    delegate_to: localhost
