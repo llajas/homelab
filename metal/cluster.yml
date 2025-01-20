@@ -1,3 +1,18 @@
+- name: Install OS Packages on virtual machines
+  hosts: metal
+  gather_facts: true
+  pre_tasks:
+    - name: Check for virtual machines in inventory
+      set_fact:
+        is_virtual: >-
+          {{
+            hostvars[inventory_hostname].virtual | default(false)
+          }}
+
+  roles:
+    - role: vm_install_packages
+      when: is_virtual
+
 - name: Create Kubernetes cluster
   hosts: metal
   roles:
