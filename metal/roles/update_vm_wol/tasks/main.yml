@@ -1,0 +1,57 @@
+# SPDX-License-Identifier: MIT-0
+---
+# tasks file for updating wol.json
+
+- name: Fetch existing wol.json from the hypervisor
+  shell: cat /boot/config/wol.json || echo '{}'
+  delegate_to: "{{ hypervisor_address }}"
+  register: wol_config_raw
+  changed_when: false
+
+- name: Parse wol.json into an Ansible variable
+  set_fact:
+    wol_config: "{{ wol_config_raw.stdout | from_json }}"
+
+- name: Ensure wol_config has default structure
+  set_fact:
+    wol_config: >-
+      {{
+        wol_config | combine({
+          'Docker': wol_config.get('Docker', {}),
+          'VM': wol_config.get('VM', {})
+        })
+      }}
+
+- name: Filter virtual nodes from inventory
+  set_fact:
+    virtual_nodes: >-
+      {{
+        groups['metal'] | map('extract', hostvars) | selectattr('virtual', 'defined') | selectattr('virtual', 'equalto', true) | list
+      }}
+
+- name: Update WoL entries for virtual VMs
+  set_fact:
+    wol_config: >-
+      {{
+        wol_config | combine({
+          'VM': wol_config.VM | combine({
+            item.inventory_hostname: wol_config.VM.get(item.inventory_hostname, {})
+            | combine({
+              'enable': 'enable',
+              'user_mac': item.mac
+            })
+          })
+        })
+      }}
+  loop: "{{ virtual_nodes }}"
+  loop_control:
+    label: "{{ item.inventory_hostname }}"
+
+- name: Write updated wol.json back to the hypervisor
+  template:
+    src: wol.json.j2
+    dest: /boot/config/wol.json
+    owner: root
+    group: root
+    mode: '0644'
+  delegate_to: "{{ hypervisor_address }}"

@@ -1,0 +1,26 @@
+# SPDX-License-Identifier: MIT-0
+---
+# tasks file for vm_install_packages
+
+# Ensure qemu-guest-agent is installed
+- name: Ensure qemu-guest-agent is installed on Fedora VMs
+  dnf:
+    name: qemu-guest-agent
+    state: present
+  become: true
+  when:
+    - ansible_distribution == "Fedora"
+    - inventory_hostname in groups['metal']
+    - hostvars[inventory_hostname].virtual | default(false)
+
+# Ensure qemu-guest-agent service is started and enabled
+- name: Ensure qemu-guest-agent service is running
+  ansible.builtin.service:
+    name: qemu-guest-agent
+    state: started
+    enabled: true
+  become: true
+  when:
+    - ansible_distribution == "Fedora"
+    - inventory_hostname in groups['metal']
+    - hostvars[inventory_hostname].virtual | default(false)

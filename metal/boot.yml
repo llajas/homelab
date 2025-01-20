@@ -3,6 +3,27 @@
   roles:
     - pxe_server
 
+- name: Setup virtual machines
+  hosts: localhost
+  pre_tasks:
+    - name: Check for virtual machines in inventory
+      set_fact:
+        has_virtual_machines: >-
+          {{
+            groups['metal'] | map('extract', hostvars)
+            | selectattr('virtual', 'defined')
+            | selectattr('virtual', 'equalto', true)
+            | list | length > 0
+          }}
+
+  roles:
+    - role: initialize_hypervisor
+      when: has_virtual_machines
+    - role: create_virtual_machines
+      when: has_virtual_machines
+    - role: update_vm_wol
+      when: has_virtual_machines
+
 - name: Provision bare metal machines
   hosts: metal
   gather_facts: false

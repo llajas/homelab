@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: MIT-0
+---
+# defaults file for create_virtual_machines
+
+# Libvirt provider configuration
+hypervisor_user: "{{ ansible_user }}"
+hypervisor_host: "{{ hypervisor_address }}"  # Referencing the global variable
+keyfile: "{{ ansible_ssh_private_key_file }}"
+bridge_interface: "br1.137"
+
+# Storage configuration
+storage_pool_path: "/mnt/user/domains/default_pool"
+storage_pool_name: "default_pool"
+
+# VM default configurations
+default_memory: 16384
+default_vcpu: 4
+default_disk_size: 100

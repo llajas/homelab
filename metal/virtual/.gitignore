@@ -1,0 +1,6 @@
+.terraform/*
+*.tfstate.*
+terraform.tfstate*
+*.tfstate.backup
+terraform.tfvars
+virtual_nodes.tfvars.json
