@@ -1,16 +1,3 @@
-variable "virtual_nodes" {
-  description = "Details of virtual nodes"
-  type = map(object({
-    name              = string
-    memory            = number
-    vcpu              = number
-    mac               = string
-    ip                = string
-    network_interface = string
-    disk_size         = number
-  }))
-}
-
 resource "libvirt_domain" "virtual_nodes" {
   for_each = var.virtual_nodes
 
@@ -18,9 +5,10 @@ resource "libvirt_domain" "virtual_nodes" {
   memory     = each.value.memory
   vcpu       = each.value.vcpu
   qemu_agent = false
+  running    = false
 
   network_interface {
-    bridge    = "br1.137"
+    bridge    = var.bridge_interface
     hostname  = each.value.name
     mac       = each.value.mac
     addresses = [each.value.ip]
