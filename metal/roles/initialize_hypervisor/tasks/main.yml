@@ -1,0 +1,38 @@
+# SPDX-License-Identifier: MIT-0
+---
+# tasks file for initialize_hypervisor
+
+- name: Ensure the libvirtd configuration file exists
+  stat:
+    path: /etc/libvirt/libvirtd.conf
+  delegate_to: "{{ hypervisor_address }}"
+  register: libvirtd_conf
+
+- name: Fail if libvirtd configuration file does not exist
+  fail:
+    msg: "Error: /etc/libvirt/libvirtd.conf does not exist on the hypervisor."
+  when: not libvirtd_conf.stat.exists
+
+- name: Check if listen_addr setting exists in libvirtd.conf
+  shell: grep -Fxq 'listen_addr = "0.0.0.0"' /etc/libvirt/libvirtd.conf
+  delegate_to: "{{ hypervisor_address }}"
+  register: listen_addr_check
+  ignore_errors: true
+  changed_when: false
+
+- name: Add listen_addr setting to libvirtd.conf if missing
+  blockinfile:
+    path: /etc/libvirt/libvirtd.conf
+    marker: "# {mark} Added by Ansible for Terraform/Unraid"
+    block: |
+      listen_addr = "0.0.0.0"
+  delegate_to: "{{ hypervisor_address }}"
+  when: listen_addr_check.rc != 0
+
+- name: Restart libvirtd service if configuration changed
+  systemd:
+    name: libvirtd
+    state: restarted
+    enabled: true
+  delegate_to: "{{ hypervisor_address }}"
+  when: listen_addr_check.rc != 0
