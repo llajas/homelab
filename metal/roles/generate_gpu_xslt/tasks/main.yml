@@ -1,0 +1,7 @@
+- name: Generate XSLT for GPU passthrough
+  template:
+    src: gpuPassthrough.xsl.j2
+    dest: "{{ playbook_dir }}/xslt/{{ item.inventory_hostname }}_gpuPassthrough.xsl"
+  loop: "{{ gpu_mapping }}"
+  loop_control:
+    label: "{{ item.inventory_hostname }}"

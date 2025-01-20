@@ -46,4 +46,9 @@ resource "libvirt_domain" "virtual_nodes" {
   boot_device {
     dev = ["hd", "network"]
   }
+
+  # GPU passthrough XSLT
+  xml {
+    xslt = file("${path.module}/xslt/${each.key}_gpuPassthrough.xsl")
+  }
 }

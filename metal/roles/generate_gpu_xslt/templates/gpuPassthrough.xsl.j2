@@ -1,0 +1,27 @@
+<?xml version="1.0" ?>
+<xsl:stylesheet version="1.0"
+                xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:template match="@*|node()">
+     <xsl:copy>
+       <xsl:apply-templates select="@*|node()"/>
+     </xsl:copy>
+  </xsl:template>
+
+  <xsl:template match="devices">
+    <xsl:copy>
+      <xsl:apply-templates select="@*|node()"/>
+
+      <!-- GPU Passthrough -->
+      <hostdev mode="subsystem" type="pci" managed="yes">
+        <driver name="vfio"/>
+        <source>
+          <address domain="0x0000" bus="{{ item.gpu_device.pci_id.split(':')[0] }}"
+                   slot="{{ item.gpu_device.pci_id.split(':')[1].split('.')[0] }}"
+                   function="{{ item.gpu_device.pci_id.split(':')[1].split('.')[1] }}"/>
+        </source>
+        <alias name="hostdev0"/>
+        <address type="pci" domain="0x0000" bus="0x00" slot="0x08" function="0x0"/>
+      </hostdev>
+    </xsl:copy>
+  </xsl:template>
+</xsl:stylesheet>
