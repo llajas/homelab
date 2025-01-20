@@ -1,0 +1,50 @@
+#SPDX-License-Identifier: MIT-0
+# tasks file for create_virtual_machines
+# tasks/main.yml
+---
+- name: Identify virtual machines
+  set_fact:
+    virtual_nodes: "{{ groups['masters'] | union(groups['workers']) | map('extract', hostvars) | selectattr('virtual', 'defined') | list }}"
+
+- name: Initialize Terraform
+  when: virtual_nodes | length > 0
+  command:
+    cmd: terraform -chdir=./virtual init
+  register: terraform_init_result
+
+- name: Create Terraform input for virtual nodes
+  when: virtual_nodes | length > 0
+  copy:
+    dest: "{{ playbook_dir }}/virtual/virtual_nodes.tfvars.json"
+    content: |
+      {
+        "virtual_nodes": {
+          {% for node in virtual_nodes %}
+          "{{ node.inventory_hostname }}": {
+            "name": "{{ node.inventory_hostname }}",
+            "memory": "{{ default_memory }}",
+            "vcpu": "{{ default_vcpu }}",
+            "mac": "{{ node.mac }}",
+            "ip": "{{ node.ansible_host }}",
+            "network_interface": "{{ node.network_interface }}",
+            "disk_size": "{{ default_disk_size }}"
+          }{% if not loop.last %},{% endif %}
+          {% endfor %}
+        }
+      }
+
+- name: Apply Terraform for virtual nodes
+  when:
+    - virtual_nodes | length > 0
+    - terraform_init_result is succeeded
+  command:
+    cmd: >
+      terraform -chdir={{ playbook_dir }}/virtual apply
+      -var "hypervisor_user={{ hypervisor_user }}"
+      -var "hypervisor_host={{ hypervisor_host }}"
+      -var "keyfile={{ keyfile }}"
+      -var "storage_pool_path={{ storage_pool_path }}"
+      -var "storage_pool_name={{ storage_pool_name }}"
+      -var "bridge_interface={{ bridge_interface }}"
+      -var-file=virtual_nodes.tfvars.json
+      -auto-approve
