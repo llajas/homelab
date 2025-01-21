@@ -48,7 +48,11 @@ resource "libvirt_domain" "virtual_nodes" {
   }
 
   # GPU passthrough XSLT
-  xml {
-    xslt = file("${path.module}/xslt/${each.key}_gpuPassthrough.xsl")
+  # Conditionally include the xml block if the node has a GPU
+  dynamic "xml" {
+    for_each = each.value.has_gpu ? [each.value] : []
+    content {
+      xslt = file("${path.module}/xslt/${each.key}_gpuPassthrough.xsl")
+    }
   }
 }
