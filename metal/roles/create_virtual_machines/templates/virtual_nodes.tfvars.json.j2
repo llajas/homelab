@@ -1,0 +1,17 @@
+{
+  "virtual_nodes": {
+    {% for node in merged_virtual_nodes | dict2items %}
+    "{{ node.key }}": {
+      "name": "{{ node.value.name }}",
+      "memory": {{ node.value.memory }},
+      "vcpu": {{ node.value.vcpu }},
+      "mac": "{{ node.value.mac }}",
+      "ip": "{{ node.value.ip }}",
+      "network_interface": "{{ node.value.network_interface }}",
+      "disk_size": {{ node.value.disk_size }},
+      "has_gpu": {{ node.value.has_gpu | tojson }}
+      {% if not loop.last %} {% endif %}
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  }
+}
