@@ -7,7 +7,7 @@
   community.general.wakeonlan:
     mac: "{{ mac }}"
     port: 9
-    broadcast: {{ hypervisor_address }}
+    broadcast: "{{ hypervisor_address }}"
   delegate_to: localhost
   when: virtual | default(false)
 
