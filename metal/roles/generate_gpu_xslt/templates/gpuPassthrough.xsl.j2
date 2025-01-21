@@ -1,27 +1,45 @@
 <?xml version="1.0" ?>
 <xsl:stylesheet version="1.0"
                 xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+
   <xsl:template match="@*|node()">
-     <xsl:copy>
-       <xsl:apply-templates select="@*|node()"/>
-     </xsl:copy>
+    <xsl:copy>
+      <xsl:apply-templates select="@*|node()"/>
+    </xsl:copy>
   </xsl:template>
 
   <xsl:template match="devices">
     <xsl:copy>
       <xsl:apply-templates select="@*|node()"/>
 
-      <!-- GPU Passthrough -->
+      {% for line in item.value.all_lines %}
+      {% set device_pci = line.split(' ')[0] %}
+      {% set domain_hex = "0x0000" %}
+
+      {% set bus_part = device_pci.split(':')[0] %}
+      {% set slot_func = device_pci.split(':')[1] %}
+      {% set slot = slot_func.split('.')[0] %}
+      {% set function = slot_func.split('.')[1] %}
+
       <hostdev mode="subsystem" type="pci" managed="yes">
         <driver name="vfio"/>
         <source>
-          <address domain="0x0000" bus="{{ item.gpu_device.pci_id.split(':')[0] }}"
-                   slot="{{ item.gpu_device.pci_id.split(':')[1].split('.')[0] }}"
-                   function="{{ item.gpu_device.pci_id.split(':')[1].split('.')[1] }}"/>
+          <address
+            domain="{{ domain_hex }}"
+            bus="0x{{ bus_part }}"
+            slot="0x{{ slot }}"
+            function="0x{{ function }}"
+          />
         </source>
-        <alias name="hostdev0"/>
-        <address type="pci" domain="0x0000" bus="0x00" slot="0x08" function="0x0"/>
+        <address
+          type="pci"
+          domain="{{ domain_hex }}"
+          bus="0x00"
+          slot="0x0{{ 5 + loop.index0 }}"
+          function="0x0"
+        />
       </hostdev>
+      {% endfor %}
     </xsl:copy>
   </xsl:template>
 </xsl:stylesheet>
