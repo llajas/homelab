@@ -127,7 +127,7 @@ mig:
   strategy: single
 
 driver:
-  enabled: true
+  enabled: false
   nvidiaDriverCRD:
     enabled: false
     deployDefaultCR: true
