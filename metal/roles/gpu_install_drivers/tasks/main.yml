@@ -1,0 +1,122 @@
+- name: Install NVIDIA drivers on GPU nodes
+  block:
+
+    - name: Update system packages
+      dnf:
+        name: "*"
+        state: latest
+      register: update_result
+
+    - name: Reboot System (if packages were updated)
+      reboot:
+        reboot_timeout: 600
+        test_command: uptime
+      when: update_result.changed
+
+    - name: Import RPMFusion Free GPG Key
+      ansible.builtin.rpm_key:
+        state: present
+        key: "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-2020"
+
+    - name: Import RPMFusion Non-Free GPG Key
+      ansible.builtin.rpm_key:
+        state: present
+        key: "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-nonfree-fedora-2020"
+
+    - name: Import NVIDIA GPG key
+      ansible.builtin.rpm_key:
+        state: present
+        key: "https://nvidia.github.io/libnvidia-container/gpgkey"
+
+    - name: Install RPMFusion repositories
+      dnf:
+        name:
+          - "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-{{ ansible_facts['distribution_version'] }}.noarch.rpm"
+          - "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-{{ ansible_facts['distribution_version'] }}.noarch.rpm"
+        state: present
+
+    - name: Add NVIDIA CUDA repository
+      get_url:
+        url: "https://developer.download.nvidia.com/compute/cuda/repos/fedora{{ ansible_facts['distribution_version'] }}/x86_64/cuda-fedora{{ ansible_facts['distribution_version'] }}.repo"
+        dest: "/etc/yum.repos.d/cuda-fedora.repo"
+
+    - name: Add NVIDIA container toolkit repository
+      shell: |
+        curl -s -L https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo | tee /etc/yum.repos.d/nvidia-container-toolkit.repo
+
+    - name: Clean package metadata cache
+      ansible.builtin.command: dnf clean all
+      changed_when: false
+
+    - name: Refresh package metadata cache
+      ansible.builtin.command: dnf makecache --refresh -y
+      changed_when: false
+
+    - name: Install Open DKMS NVIDIA Driver
+      ansible.builtin.dnf:
+        name: '@nvidia-driver:open-dkms/default'
+        state: present
+
+    - name: Reboot System after NVIDIA driver installation
+      reboot:
+        reboot_timeout: 600
+        test_command: uptime
+      when: update_result.changed
+
+    - name: Verify NVIDIA installation
+      command: nvidia-smi
+      register: nvidia_smi_result
+      changed_when: false
+      failed_when: nvidia_smi_result.rc != 0
+
+    - name: Install CUDA Toolkit, Container Toolkit & Persistence Daemon
+      dnf:
+        name:
+          - cuda-toolkit-12-6
+          - nvidia-container-toolkit
+          - nvidia-persistenced
+        state: present
+
+    - name: Enable and start NVIDIA persistence daemon
+      systemd:
+        name: nvidia-persistenced
+        enabled: yes
+        state: started
+
+    - name: Configure CUDA environment variables
+      copy:
+        dest: "/etc/profile.d/cuda.sh"
+        content: |
+          export PATH=/usr/local/cuda/bin:$PATH
+          export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+
+    - name: Apply environment variables
+      shell: source /etc/profile.d/cuda.sh
+      args:
+        executable: /bin/bash
+
+    - name: Create ldconfig symlink
+      file:
+        src: "/sbin/ldconfig"
+        dest: "/sbin/ldconfig.real"
+        state: link
+
+    - name: Check if NVIDIA modules are loaded
+      command: lsmod
+      register: lsmod_result
+      changed_when: false
+
+    - name: Verify if NVIDIA is functional
+      command: nvidia-smi
+      register: nvidia_smi_result
+      failed_when: "'failed' in nvidia_smi_result.stderr"
+      changed_when: false
+      ignore_errors: true
+
+    - name: Reboot if NVIDIA drivers are not fully functional
+      reboot:
+        reboot_timeout: 600
+        test_command: nvidia-smi
+      when: nvidia_smi_result.rc != 0
+
+  when: gpu_type is defined
