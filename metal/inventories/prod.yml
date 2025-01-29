@@ -10,6 +10,6 @@ metal:
         metal3: {ansible_host: 10.137.0.13, mac: '00:23:24:ab:99:b9', disk: sda, network_interface: eno1}
         metal4: {ansible_host: 10.137.0.14, mac: '6c:4b:90:3e:58:61', disk: sda, network_interface: enp0s31f6}
         metal5: {ansible_host: 10.137.0.15, mac: '6c:4b:90:6f:32:b1', disk: sda, network_interface: enp0s31f6}
-        metal6: {ansible_host: 10.137.0.16, mac: 'd8:cb:8a:bf:d6:79', disk: vda, network_interface: ens2, virtual: true, gpu_type: 'RTX 2060'}
+        metal9: {ansible_host: 10.137.0.19, mac: '52:54:00:34:2a:d3', disk: vda, network_interface: ens2, virtual: true, gpu_type: 'GeForce RTX 2060'}
         metal7: {ansible_host: 10.137.0.17, mac: '52:54:00:34:2a:c2', disk: vda, network_interface: ens1, virtual: true}
         metal8: {ansible_host: 10.137.0.18, mac: '52:54:00:34:2a:c4', disk: vda, network_interface: ens1, virtual: true}
