@@ -1,0 +1,7 @@
+# metal/roles/generate_gpu_xslt/vars/main.yml
+
+# Base directory for virtual machines (relative to the playbook directory)
+virtual_dir: "virtual"
+
+# Directory for XSLT files within virtual_dir
+xslt_dir: "{{ virtual_dir }}/xslt"

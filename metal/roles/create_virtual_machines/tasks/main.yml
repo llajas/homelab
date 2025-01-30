@@ -1,0 +1,67 @@
+# metal/roles/create_virtual_machines/tasks/main.yml
+
+- name: Initialize merged_virtual_nodes
+  set_fact:
+    merged_virtual_nodes: {}
+
+- name: Merge each virtual host data
+  set_fact:
+    merged_virtual_nodes: >-
+      {{
+        merged_virtual_nodes | combine({
+          item: {
+            'name': item,
+            'memory': (hostvars[item].memory|default(default_memory))|int,
+            'vcpu': (hostvars[item].vcpu|default(default_vcpu))|int,
+            'mac': hostvars[item].mac,
+            'ip': hostvars[item].ansible_host,
+            'network_interface': hostvars[item].network_interface,
+            'disk_size': (hostvars[item].disk_size|default(default_disk_size))|int,
+            'has_gpu': (hostvars[item].gpu_type is defined)
+          }
+        })
+      }}
+  loop: "{{ groups['metal'] }}"
+  loop_control:
+    loop_var: item
+  when: hostvars[item].virtual|default(false) == true
+
+- name: Initialize Terraform
+  command:
+    cmd: terraform -chdir={{ playbook_dir }}/virtual init
+  register: terraform_init_result
+  when: has_virtual_machines
+
+- name: Create Terraform input for virtual nodes
+  template:
+    src: virtual_nodes.tfvars.json.j2
+    dest: "{{ playbook_dir }}/virtual/virtual_nodes.tfvars.json"
+  when: has_virtual_machines
+
+- name: Apply Terraform for virtual nodes
+  command:
+    cmd: >
+      terraform -chdir={{ playbook_dir }}/virtual apply
+      -var "hypervisor_user={{ hypervisor_user }}"
+      -var "hypervisor_host={{ hypervisor_host }}"
+      -var "keyfile=/home/red/.ssh/id_ed25519"
+      -var "storage_pool_path={{ storage_pool_path }}"
+      -var "storage_pool_name={{ storage_pool_name }}"
+      -var "bridge_interface={{ bridge_interface }}"
+      -var-file=virtual_nodes.tfvars.json
+      -auto-approve
+  register: terraform_apply_result
+  when:
+    - has_virtual_machines
+    - terraform_init_result is succeeded
+  ignore_errors: true
+
+- name: Fail if Terraform Apply Failed
+  fail:
+    msg: "Terraform apply failed. Check the logs for details."
+  when: terraform_apply_result.rc != 0
+
+- name: Debug Terraform Apply Output
+  debug:
+    var: terraform_apply_result
+  when: terraform_apply_result.rc != 0

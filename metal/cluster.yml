@@ -1,17 +1,13 @@
 - name: Install OS Packages on virtual machines
   hosts: metal
   gather_facts: true
-  pre_tasks:
-    - name: Check for virtual machines in inventory
-      set_fact:
-        is_virtual: >-
-          {{
-            hostvars[inventory_hostname].virtual | default(false)
-          }}
 
   roles:
     - role: vm_install_packages
-      when: is_virtual
+      when: hostvars[inventory_hostname].virtual | default(false)
+
+    - role: gpu_install_drivers
+      when: hostvars[inventory_hostname].gpu_type is defined
 
 - name: Create Kubernetes cluster
   hosts: metal

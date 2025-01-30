@@ -50,5 +50,6 @@ variable "virtual_nodes" {
     ip                = string
     network_interface = string
     disk_size         = number
+    has_gpu           = bool
   }))
 }

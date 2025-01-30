@@ -1,0 +1,16 @@
+# metal/roles/generate_gpu_xslt/tasks/main.yml
+
+---
+- name: Ensure xslt directory exists
+  file:
+    path: "{{ playbook_dir }}/{{ xslt_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Generate XSLT for GPU passthrough
+  template:
+    src: gpuPassthrough.xsl.j2
+    dest: "{{ playbook_dir }}/{{ xslt_dir }}/{{ item.key }}_gpuPassthrough.xsl"
+  loop: "{{ gpu_mapping | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"

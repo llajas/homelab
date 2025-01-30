@@ -1,0 +1,89 @@
+# metal/roles/detect_gpu/tasks/main.yml
+
+- name: "Gather GPU information from hypervisor"
+  shell: "lspci -nn | grep -i nvidia"
+  register: gpu_list
+  delegate_to: "{{ hypervisor_host }}"
+  changed_when: false
+
+- name: "Debug: show the GPU lines we got"
+  debug:
+    var: gpu_list.stdout_lines
+
+- name: "Initialize an empty gpu_map"
+  set_fact:
+    gpu_map: {}
+
+###########################################################################
+# Next tasks loop over each 'metal' host that has gpu_type defined.       #
+# We do a substring search in gpu_list.stdout_lines to find that GPU,     #
+# parse out the bus prefix, collect related lines, and store everything   #
+# in gpu_map keyed by the host name (e.g. 'metal9').                      #
+###########################################################################
+
+- name: "Find main GPU line for each GPU-enabled host"
+  set_fact:
+    main_gpu_line: >-
+      {{
+        (
+          gpu_list.stdout_lines
+          | select('search', hostvars[item].gpu_type)
+          | list
+        ) | first | default('')
+      }}
+  loop: "{{ groups['metal'] }}"
+  loop_control:
+    loop_var: item
+  when: hostvars[item].gpu_type is defined
+
+- name: "Extract bus prefix from the main GPU line"
+  set_fact:
+    bus_prefix: "{{ main_gpu_line | regex_search('^([0-9A-Fa-f]{2}:[0-9A-Fa-f]{2})') | default('') }}"
+  loop: "{{ groups['metal'] }}"
+  loop_control:
+    loop_var: item
+  when:
+    - hostvars[item].gpu_type is defined
+    - main_gpu_line != ''
+
+- name: "Get all lines matching that bus prefix"
+  set_fact:
+    related_gpu_lines: >-
+      {{
+        gpu_list.stdout_lines
+        | map('trim')
+        | select('search', bus_prefix ~ '.')
+        | list
+      }}
+  loop: "{{ groups['metal'] }}"
+  loop_control:
+    loop_var: item
+  when:
+    - hostvars[item].gpu_type is defined
+    - bus_prefix != ''
+
+- name: "Store GPU data in gpu_map"
+  set_fact:
+    gpu_map: >-
+      {{
+        gpu_map | combine({
+          item: {
+            'gpu_type':   hostvars[item].gpu_type,
+            'main_line':  main_gpu_line,
+            'bus_prefix': bus_prefix,
+            'all_lines':  related_gpu_lines
+          }
+        })
+      }}
+  loop: "{{ groups['metal'] }}"
+  loop_control:
+    loop_var: item
+  when: hostvars[item].gpu_type is defined
+
+- name: "Debug final GPU map"
+  debug:
+    var: gpu_map
+
+- name: "Save gpu_map to gpu_mapping for the next role"
+  set_fact:
+    gpu_mapping: "{{ gpu_map }}"
