@@ -13,6 +13,27 @@
         test_command: uptime
       when: update_result.changed
 
+    - name: Install pciutils package
+      dnf:
+        name: pciutils
+        state: present
+
+    - name: Detect NVIDIA GPU
+      shell: lspci -nn | grep -i nvidia
+      register: gpu_detection
+      failed_when: gpu_detection.rc != 0
+
+    - name: Determine GPU type
+      set_fact:
+        gpu_type: >-
+          {%- if 'Tesla K80' in gpu_detection.stdout -%}
+            tesla_k80
+          {%- elif 'RTX' in gpu_detection.stdout or 'GTX' in gpu_detection.stdout -%}
+            rtx_gtx
+          {%- else -%}
+            unknown
+          {%- endif -%}
+
     - name: Import RPMFusion Free GPG Key
       ansible.builtin.rpm_key:
         state: present
@@ -39,10 +60,12 @@
       get_url:
         url: "https://developer.download.nvidia.com/compute/cuda/repos/fedora{{ ansible_facts['distribution_version'] }}/x86_64/cuda-fedora{{ ansible_facts['distribution_version'] }}.repo"
         dest: "/etc/yum.repos.d/cuda-fedora.repo"
+      when: gpu_type == 'rtx_gtx'
 
     - name: Add NVIDIA container toolkit repository
       shell: |
         curl -s -L https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo | tee /etc/yum.repos.d/nvidia-container-toolkit.repo
+      when: gpu_type == 'rtx_gtx'
 
     - name: Clean package metadata cache
       ansible.builtin.command: dnf clean all
@@ -56,6 +79,29 @@
       ansible.builtin.dnf:
         name: '@nvidia-driver:open-dkms/default'
         state: present
+      when: gpu_type == 'rtx_gtx'
+
+    - name: Install NVIDIA Drivers for Tesla K80 (470xx Legacy)
+      ansible.builtin.dnf:
+        name:
+          - xorg-x11-drv-nvidia-470xx
+          - akmod-nvidia-470xx
+        state: present
+      when: gpu_type == "tesla_k80"
+
+    - name: Rebuild NVIDIA Kernel Modules
+      command: akmods --force
+      when: gpu_type == "tesla_k80"
+
+    - name: Load NVIDIA Kernel Modules
+      command: modprobe nvidia
+      when: gpu_type == "tesla_k80"
+
+    - name: Install CUDA Support for Tesla K80 (470xx)
+      ansible.builtin.dnf:
+        name: xorg-x11-drv-nvidia-470xx-cuda
+        state: present
+      when: gpu_type == "tesla_k80"
 
     - name: Reboot System after NVIDIA driver installation
       reboot:
@@ -69,12 +115,17 @@
       changed_when: false
       failed_when: nvidia_smi_result.rc != 0
 
-    - name: Install CUDA Toolkit, Container Toolkit & Persistence Daemon
+    - name: Install CUDA Toolkit & Persistence Daemon
       dnf:
         name:
           - cuda-toolkit-12-6
-          - nvidia-container-toolkit
           - nvidia-persistenced
+        state: present
+      when: gpu_type == "rtx_gtx"
+
+    - name: Install NVIDIA Container Toolkit
+      dnf:
+        name: nvidia-container-toolkit
         state: present
 
     - name: Enable and start NVIDIA persistence daemon
@@ -89,11 +140,13 @@
         content: |
           export PATH=/usr/local/cuda/bin:$PATH
           export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+      when: gpu_type == "rtx_gtx"
 
     - name: Apply environment variables
       shell: source /etc/profile.d/cuda.sh
       args:
         executable: /bin/bash
+      when: gpu_type == "rtx_gtx"
 
     - name: Create ldconfig symlink
       file:
