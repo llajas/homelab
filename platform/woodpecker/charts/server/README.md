@@ -1,6 +1,6 @@
 # server
 
-![Version: 2.0.0](https://img.shields.io/badge/Version-2.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2.8.0](https://img.shields.io/badge/AppVersion-2.8.0-informational?style=flat-square)
+![Version: 3.0.1](https://img.shields.io/badge/Version-3.0.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 3.0.1](https://img.shields.io/badge/AppVersion-3.0.1-informational?style=flat-square)
 
 A Helm chart for the Woodpecker server
 
@@ -21,6 +21,14 @@ In the following scenarios, you need to take additional action:
 - if you deploy multiple agents (with a different config), you need to create an additional agent secret
 
 ## Upgrading
+
+<details>
+
+<summary>To 3.0.0</summary>
+
+See the [3.0.0 release notes](https://woodpecker-ci.org/migrations#300).
+
+</details>
 
 <details>
 
@@ -92,7 +100,7 @@ In the following scenarios, you need to take additional action:
 | persistentVolume.size            | string | `"10Gi"`                                                                      | Defines the size of the persistent volume                                                                              |
 | persistentVolume.storageClass    | string | `""`                                                                          | Defines the storageClass of the persistent volume                                                                      |
 | podAnnotations                   | object | `{}`                                                                          | Add pod annotations                                                                                                    |
-| podSecurityContext               | object | `{}`                                                                          | Add pod security context                                                                                               |
+| podSecurityContext               | object | `{"fsGroup":1000}`                                                            | Add pod security context                                                                                               |
 | prometheus.podmonitor.enabled    | bool   | `false`                                                                       | deploy podmonitor                                                                                                      |
 | prometheus.podmonitor.interval   | string | `nil`                                                                         | scrape interval in prometheus for this podmonitor                                                                      |
 | prometheus.podmonitor.labels     | object | `{}`                                                                          | add labels to podmonitor (to be selected by prometheus-operator)                                                       |
@@ -102,7 +110,8 @@ In the following scenarios, you need to take additional action:
 | prometheus.rules.labels          | object | `{}`                                                                          | add labels to prometheus-rules (to be selected by prometheus-operator)                                                 |
 | resources                        | object | `{}`                                                                          | Specifies the ressources for the server component                                                                      |
 | secrets                          | list   | `[]`                                                                          | Create a generic secret to store things in, e.g. env values                                                            |
-| securityContext                  | object | `{}`                                                                          | Add security context                                                                                                   |
+| securityContext                  | object | `{"runAsGroup":1000,"runAsUser":1000}`                                        | Add security context                                                                                                   |
+| service.annotations              | object | `{}`                                                                          | Annotations to add to the service                                                                                      |
 | service.clusterIP                | string | `nil`                                                                         | The cluster IP of the service (optional)                                                                               |
 | service.loadBalancerIP           | string | `nil`                                                                         | The loadbalancer IP of the service (optional)                                                                          |
 | service.port                     | int    | `80`                                                                          | The port of the service                                                                                                |
