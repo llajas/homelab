@@ -10,7 +10,7 @@ open-webui:
           - deepseek-r1:8b
           - deepseek-coder:6.7b
           - granite-code:8b
-    runtimeClass: nvidia
+    runtimeClassName: nvidia
     ingress:
       enabled: true
       className: nginx
