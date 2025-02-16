@@ -36,7 +36,6 @@ agent:
     WOODPECKER_BACKEND_K8S_POD_ANNOTATIONS: ''
     WOODPECKER_CONNECT_RETRY_COUNT: '1'
     WOODPECKER_MAX_WORKFLOWS: 10
-    WOODPECKER_PLUGINS_PRIVILEGED: 'woodpeckerci/plugin-docker-buildx:latest'
 
   # -- Add extra secret that is contains environment variables
   extraSecretNamesForEnvFrom:
@@ -196,6 +195,7 @@ server:
     WOODPECKER_GITEA_URL: https://git.lajas.tech
     WOODPECKER_OPEN: true
     WOODPECKER_ADMIN: gitea_admin
+    WOODPECKER_PLUGINS_PRIVILEGED: 'woodpeckerci/plugin-docker-buildx:latest'
     # WOODPECKER_GITHUB: "true"
 
   # -- Add extra environment variables from the secrets list
