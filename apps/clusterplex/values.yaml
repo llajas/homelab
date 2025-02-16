@@ -439,7 +439,7 @@ worker:
   # @default -- See below
   config:
     # -- The number of instances of the worker to run
-    replicas: 1
+    replicas: 2
 
     # -- The port the worker will expose its metrics on for the orchestrator to find
     port: 3501
