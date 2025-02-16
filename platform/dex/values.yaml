@@ -34,6 +34,11 @@ dex:
         redirectURIs:
           - 'https://git.lajas.tech/user/oauth2/Dex/callback'
         secretEnv: GITEA_CLIENT_SECRET
+      - id: open-webui
+        name: Open WebUI
+        redirectURIs:
+          - https://open-webui.lajas.tech/oauth/oidc/callback
+        secretEnv: OPEN_WEBUI_CLIENT_SECRET
   envFrom:
     - secretRef:
         name: dex-secrets
