@@ -1,0 +1,80 @@
+open-webui:
+  ollama:
+    ollama:
+      models:
+        pull:
+          - llama3.2:3b
+          - gemma2:9b
+          - hermes3:8b
+          - qwen2.5-coder:7b
+          - deepseek-r1:8b
+          - deepseek-coder:6.7b
+          - granite-code:8b
+    runtimeClass: nvidia
+    ingress:
+      enabled: true
+      className: nginx
+      annotations:
+        cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      hosts:
+        - host: &ollamahost ollama.lajas.tech
+          paths:
+            - path: /
+              pathType: Prefix
+      tls:
+        - secretName: ollama-tls
+          hosts:
+            - *ollamahost
+    extraEnv:
+      - name: NVIDIA_VISIBLE_DEVICES
+        value: "all"
+      - name: NVIDIA_DRIVER_CAPABILITIES
+        value: "all"
+    persistentVolume:
+      enabled: true
+      size: 50Gi
+    affinity:
+      nodeAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+                - key: nvidia.com/gpu.compute.major
+                  operator: In
+                  values:
+                    - "7"
+  ingress:
+    enabled: true
+    class: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    host: &openwebuihost "open-webui.lajas.tech"
+    tls: true
+  extraEnvVars:
+    - name: ENABLE_LOGIN_FORM
+      value: "true"
+    - name: ENABLE_OAUTH_SIGNUP
+      value: "true"
+    - name: OAUTH_CLIENT_ID
+      value: "open-webui"
+    - name: OAUTH_CLIENT_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: open-webui-oauth
+          key: client_secret
+    - name: OPENID_PROVIDER_URL
+      value: "https://dex.lajas.tech/.well-known/openid-configuration"
+    - name: OAUTH_PROVIDER_NAME
+      value: "Lajas.tech SSO"
+    - name: OAUTH_SCOPES
+      value: "openid email profile"
+    - name: OPENID_REDIRECT_URL
+      value: "https://open-webui.lajas.tech/oauth/callback"
+    - name: OAUTH_EMAIL_CLAIM
+      value: "email"
+    - name: OAUTH_USERNAME_CLAIM
+      value: "preferred_username"
+    - name: WEBUI_URL
+      value: *openwebuihost
+    - name: BYPASS_MODEL_ACCESS_CONTROL
+      value: "true"
