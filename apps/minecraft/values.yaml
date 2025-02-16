@@ -147,7 +147,28 @@ sidecarContainers:
       - name: geyser-mc
         containerPort: 19132
         protocol: UDP
-
+  - name: spectrum-sync
+    image: "registry.lajas.tech/minecraft-spectrum-sync:latest"
+    env:
+      - name: API_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: spectrum-secrets
+            key: cloudflare_api_token
+      - name: ZONE_ID
+        valueFrom:
+          secretKeyRef:
+            name: spectrum-secrets
+            key: cloudflare_zone_id
+      - name: CUSTOM_DOMAIN
+        valueFrom:
+          secretKeyRef:
+            name: spectrum-secrets
+            key: custom_domain
+      - name: SPECTRUM_PROTOCOL
+        value: "minecraft"
+      - name: SPECTRUM_PORT
+        value: "25565"
 extraVolumes:
   - volumeMounts:
       - name: geyser-config-temp
@@ -663,3 +684,8 @@ mcbackup:
     nfs:
       server: "nas-01.storage.lajas.tech"
       path: "/mnt/user/minecraft-worlds"
+
+opSecret:
+  vault: "z3emsr5qi5xqk33wthv5fpmfqa"
+  item: "wczp2hwip4lt7zxbjjkajcpnsy"
+  secretName: "spectrum-secrets"
