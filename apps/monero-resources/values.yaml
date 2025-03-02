@@ -17,7 +17,7 @@ moneroNodeSet:
 moneroMiningNodeSet:
   enabled: true
   name: miners
-  replicas: 5
+  replicas: 0
   hardAntiAffinity: true
   pool:
     address: gulf.moneroocean.stream
