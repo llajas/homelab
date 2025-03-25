@@ -2,7 +2,7 @@ kured:
   configuration:
     annotateNodes: true
     rebootSentinelCommand: sh -c "/usr/local/bin/rebooter.sh"
-    rebootSentinel: "/var/run/reboot-required"
+    useRebootSentinelHostPath: false
     period: 5m
     rebootDays: [mo, tu, we, th]
     startTime: 5:00
