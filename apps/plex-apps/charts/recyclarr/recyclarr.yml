@@ -1,0 +1,44 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/recyclarr/recyclarr/master/schemas/config-schema.json
+
+# An empty starter config to use with Recyclarr. Update the values below as needed for your
+# instance. You will be required to update the `api_key` and `base_url` for each instance you want
+# to use.
+#
+# If you'd rather use pre-built configuration instead of building your own from scratch, see these
+# pages:
+# - Config Templates: https://recyclarr.dev/wiki/guide-configs/
+# - CLI Command: https://recyclarr.dev/wiki/cli/config/list/templates/
+#
+# This file WILL NOT WORK as it currently is. You need to read the documentation and build this
+# configuration from scratch. Note that there's no "one size fits all" configuration. Please refer
+# to the TRaSH Guides to understand how to build the appropriate configuration based on your
+# hardware setup and capabilities.
+#
+# For more details on the configuration, see the Configuration Reference on the wiki here:
+# https://recyclarr.dev/wiki/yaml/config-reference/
+#
+# Want a more flexible file layout?
+# See: https://recyclarr.dev/wiki/file-structure/
+
+# Configuration specific to Sonarr. For Radarr, the layout is the same.
+# See: https://recyclarr.dev/wiki/yaml/config-reference/basic/
+
+sonarr:
+  tv-web-1080p-v4:
+    base_url: !env_var SONARR_BASE_URL
+    api_key: !env_var SONARR_API_KEY
+
+    include:
+      # Comment out any of the following includes to disable them
+      - template: sonarr-quality-definition-series
+      # - template: sonarr-v4-quality-profile-web-1080p (commented out so disabled)
+      - template: sonarr-v4-custom-formats-web-1080p
+
+radarr:
+  movies-web-1080p-v4:
+    base_url: !env_var RADARR_BASE_URL
+    api_key: !env_var RADARR_API_KEY
+
+    include:
+      - template: radarr-quality-profile-hd-bluray-web
+      - template: radarr-quality-profile-uhd-bluray-web
