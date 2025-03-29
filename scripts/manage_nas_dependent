@@ -1,288 +1,337 @@
 #!/bin/bash
+# Enable strict error handling: exit on error, treat unset variables as errors, and catch errors in pipelines
+set -euo pipefail
+
+# Function to ensure required commands are available
+check_dependencies() {
+  for cmd in kubectl argocd jq; do
+    if ! command -v "$cmd" &>/dev/null; then
+      echo "Error: Required command '$cmd' is not installed or not in PATH." >&2
+      exit 1
+    fi
+  done
+}
 
 # Function to check if NAS address is provided
 check_nas_address() {
-  if [ -z "$NAS_ADDRESS" ]; then
-    echo "Please set the NAS_ADDRESS environment variable."
+  if [[ -z "${NAS_ADDRESS:-}" ]]; then
+    echo "Error: Please set the NAS_ADDRESS environment variable." >&2
     exit 1
   fi
 }
 
-# Function to check if ArgoCD environment variables are set
+# Function to check if ArgoCD credentials are provided
 check_argocd_env_vars() {
-  if [ -z "$ARGOCD_SERVER" ] || [ -z "$ARGOCD_USERNAME" ] || [ -z "$ARGOCD_PASSWORD" ]; then
-    echo "Please set ARGOCD_SERVER, ARGOCD_USERNAME, and ARGOCD_PASSWORD environment variables."
+  if [[ -z "${ARGOCD_SERVER:-}" || -z "${ARGOCD_USERNAME:-}" || -z "${ARGOCD_PASSWORD:-}" ]]; then
+    echo "Error: Please set ARGOCD_SERVER, ARGOCD_USERNAME, and ARGOCD_PASSWORD environment variables." >&2
     exit 1
   fi
 }
 
-# Normalize NAS_ADDRESS to create NFS and SMB versions
+# Function to normalize NAS_ADDRESS into SMB and NFS formats for comparison
 normalize_nas_address() {
-  # Create SMB version with leading '//' and no trailing slash
+  # SMB format: ensure it starts with '//' and has no trailing slash
   if [[ "$NAS_ADDRESS" != //* ]]; then
     SMB_NAS_ADDRESS="//$NAS_ADDRESS"
   else
     SMB_NAS_ADDRESS="$NAS_ADDRESS"
   fi
-  SMB_NAS_ADDRESS="${SMB_NAS_ADDRESS%/}"
+  SMB_NAS_ADDRESS="${SMB_NAS_ADDRESS%/}"  # remove trailing slash if any
 
-  # Create NFS version without leading '//' and no trailing slash
+  # NFS format: ensure no leading '//' and no trailing slash
   NFS_NAS_ADDRESS="${NAS_ADDRESS#//}"
   NFS_NAS_ADDRESS="${NFS_NAS_ADDRESS%/}"
 }
 
-# Function to get PVs that are dependent on NAS
+# Function to get list of Persistent Volumes (PVs) that use the NAS address
 get_pv_list_dependent_on_nas() {
-  # Normalize the NAS address first
-  normalize_nas_address
-
-  # Query Kubernetes for PVs dependent on the NAS
-  pv_list=$(kubectl get pv -A -o json | jq -r --arg SMB_NAS_ADDRESS "$SMB_NAS_ADDRESS" --arg NFS_NAS_ADDRESS "$NFS_NAS_ADDRESS" '
-    .items[] |
-    {
-      name: .metadata.name,
-      csi_source: .spec.csi.volumeAttributes.source,
-      nfs_server: .spec.nfs.server,
-      matches: (
+  normalize_nas_address  # prepare SMB_NAS_ADDRESS and NFS_NAS_ADDRESS variables
+  # Query all PVs and filter those whose NFS server or CSI source matches the NAS addresses
+  pv_list=$(kubectl get pv -o json | jq -r --arg SMB "$SMB_NAS_ADDRESS" --arg NFS "$NFS_NAS_ADDRESS" '
+    .items[]
+    | select(
+        # Match if PV is CSI (likely SMB) and source equals the SMB NAS address (with or without trailing slash)
         (.spec.csi.volumeAttributes.source != null and
-          (.spec.csi.volumeAttributes.source == $SMB_NAS_ADDRESS or .spec.csi.volumeAttributes.source == $SMB_NAS_ADDRESS + "/")) or
-        (.spec.nfs.server != null and .spec.nfs.server == $NFS_NAS_ADDRESS)
+         (.spec.csi.volumeAttributes.source == $SMB or .spec.csi.volumeAttributes.source == ($SMB + "/")))
+        # Or match if PV is NFS and server equals the NFS NAS address
+        or (.spec.nfs.server != null and .spec.nfs.server == $NFS)
       )
-    } | select(.matches) | .name
+    | .metadata.name
   ')
 }
 
-get_namespaces() {
-  # Ensure the pv_list is not empty
-  if [ -z "$pv_list" ]; then
-    echo "No PVs found to process."
+# Function to get unique namespaces for the affected PVs (those using the NAS)
+get_namespaces_for_pvs() {
+  if [[ -z "$pv_list" ]]; then
+    echo "No persistent volumes found for NAS address '$NAS_ADDRESS'. Nothing to do."
+    namespaces=""  # no namespaces to process
     return
   fi
-
-  # Convert pv_list into a jq array format
+  # Prepare PV list as JSON array for jq filtering
+  local jq_pv_list
   jq_pv_list=$(echo "$pv_list" | jq -R -s -c 'split("\n") | map(select(. != ""))')
-
-  # Use jq to filter and find namespaces
-  namespaces=$(kubectl get pv -A -o json | jq -r --argjson pv_list "$jq_pv_list" '
-    .items[] | select(.metadata.name as $name | $pv_list | index($name)) | .spec.claimRef.namespace' | sort | uniq)
+  # Find all namespaces of PVCs that bind to the PVs in pv_list
+  namespaces=$(kubectl get pv -o json | jq -r --argjson PV_LIST "$jq_pv_list" '
+    .items[]
+    | select(.metadata.name as $name | ($PV_LIST | index($name)) )
+    | .spec.claimRef.namespace
+  ' | sort -u)
 }
 
-# Function to login to ArgoCD if not already logged in
+# Function to log in to ArgoCD (only if not already logged in)
 argocd_login() {
-  if argocd account get-user-info | grep -q 'Logged In: false'; then
-    echo "Logging into ArgoCD..."
+  # Use ArgoCD CLI to check login status; if not logged in, perform login
+  if argocd account get-user-info 2>&1 | grep -q 'Logged In: false'; then
+    echo "Logging into ArgoCD CLI..."
     argocd login "$ARGOCD_SERVER" --username "$ARGOCD_USERNAME" --password "$ARGOCD_PASSWORD" --grpc-web
   fi
 }
 
-# Function to create or update an ArgoCD sync window
+# Function to create or update an ArgoCD sync window that blocks auto-sync for affected apps
 create_sync_window() {
-  echo "Checking for existing ArgoCD sync window for affected namespaces..."
+  echo "Configuring ArgoCD sync window to block auto-sync for NAS-affected workloads..."
+  local schedule="* * * * *"    # every minute (continuous window)
+  local duration="24h"          # duration of each window occurrence
+  local timeZone="America/Chicago"  # our preferred time zone
 
-  # Set the schedule, duration, and timezone parameters
-  schedule="* * * * *"
-  duration="24h"
-  timeZone="America/Chicago"
-
-  # Convert namespaces to a comma-separated list for the update command
+  # Combine all affected namespaces into a comma-separated list
+  local affected_namespaces
   affected_namespaces=$(echo "$namespaces" | tr '\n' ',' | sed 's/,$//')
 
-  # Check for existing sync windows that match the schedule, duration, and timezone
-  existing_window=$(argocd proj windows list default -o json | jq -r --arg schedule "$schedule" --arg duration "$duration" --arg timeZone "$timeZone" '
-    .[] | select(.schedule == $schedule and .duration == $duration and .timeZone == $timeZone)')
+  # List existing sync windows in the ArgoCD project (assumed "default" project)
+  local existing_window_json
+  existing_window_json=$(argocd proj windows list default -o json || echo "[]")
 
-  if [ -n "$existing_window" ]; then
-    # Extract existing namespaces and the window ID using the index of the window
-    existing_namespaces=$(echo "$existing_window" | jq -r '.namespaces | join(",")')
-    window_index=$(argocd proj windows list default -o json | jq -r --arg schedule "$schedule" --arg duration "$duration" --arg timeZone "$timeZone" '
-      to_entries[] | select(.value.schedule == $schedule and .value.duration == $duration and .value.timeZone == $timeZone) | .key')
+  # Match based solely on schedule, duration, and kind (ignoring timeZone)
+  local matching_window
+  matching_window=$(echo "$existing_window_json" | jq -r --arg sched "$schedule" --arg dur "$duration" '
+    .[]
+    | select(.schedule == $sched and .duration == $dur and .kind == "deny")
+  ')
 
-    # Combine existing namespaces with affected namespaces, ensuring no duplicates
-    updated_namespaces=$(echo "$existing_namespaces,$affected_namespaces" | tr ',' '\n' | sort | uniq | tr '\n' ',' | sed 's/,$//')
-
-    # Update the existing sync window with the combined namespaces
-    echo "Prior sync window with matching schedule, duration, and timezone found."
-    echo "Updating existing sync window..."
-    argocd proj windows update default "$window_index" --namespaces "$updated_namespaces" --time-zone "$timeZone"
+  if [[ -n "$matching_window" ]]; then
+    # A matching window was found; update its namespace list.
+    local current_namespaces window_id updated_namespaces
+    current_namespaces=$(echo "$matching_window" | jq -r '.namespaces | join(",")')
+    window_id=$(echo "$existing_window_json" | jq -r --arg sched "$schedule" --arg dur "$duration" '
+      to_entries[]
+      | select(.value.schedule == $sched and .value.duration == $dur and .value.kind == "deny")
+      | .key
+    ')
+    updated_namespaces=$(echo "$current_namespaces,$affected_namespaces" | tr ',' '\n' | sed '/^$/d' | sort -u | paste -sd, -)
+    echo "Existing sync window found (ID=$window_id). Updating namespaces list to: $updated_namespaces"
+    argocd proj windows update default "$window_id" --namespaces "$updated_namespaces" --time-zone "$timeZone"
   else
-    # Create a new sync window if no matching window exists
-    echo "No existing sync window matching the criteria was found."
-    echo "Creating a new sync window with the affected namespaces..."
-    argocd proj windows add default -k deny --schedule "$schedule" --duration "$duration" --namespaces "$affected_namespaces" --manual-sync --time-zone "$timeZone"
+    echo "No existing sync window with given schedule/duration. Creating a new deny sync window for namespaces: $affected_namespaces"
+    argocd proj windows add default \
+      --kind deny \
+      --schedule "$schedule" \
+      --duration "$duration" \
+      --namespaces "$affected_namespaces" \
+      --time-zone "$timeZone" \
+      --manual-sync
   fi
 }
 
-# Function to remove the ArgoCD sync window
-remove_sync_window() {
-  echo "Removing ArgoCD sync window"
-  argocd proj windows delete default 0
-}
-
-# Function to get deployments and statefulsets using the specified PVCs
-get_deployments_and_statefulsets() {
+# Function to identify all deployments, statefulsets, and daemonsets that use the affected PVCs
+get_dependent_workloads() {
   deployments=()
   statefulsets=()
-  pvc_list=()
+  daemonsets=()
+  pvc_list_arr=()  # array for PVC references (namespace/name)
 
-  # Convert the pv_list into an array if needed
-  pv_array=($pv_list)
-
-  # Iterate over the PVs and find those with NAS as the source
-  echo "Checking for deployments and statefulsets using the NAS dependent PVCs..."
-  for pv in "${pv_array[@]}"; do
-    source=$(kubectl get pv "$pv" -o json | jq -r '.spec.csi.volumeAttributes.source // .spec.nfs.server')
-    normalized_source="${source%/}"
-    if [[ "$normalized_source" == "//$NAS_ADDRESS" || "$normalized_source" == "$NAS_ADDRESS" ]]; then
-      claim=$(kubectl get pv "$pv" -o json | jq -r '.spec.claimRef.name')
-      namespace=$(kubectl get pv "$pv" -o json | jq -r '.spec.claimRef.namespace')
-      pvc_list+=("${namespace}/${claim}")
-    else
-      echo "Source did not match: $normalized_source != //${NAS_ADDRESS} and $normalized_source != $NAS_ADDRESS"
+  # Build list of PVCs (namespace/name) bound to each PV in pv_list
+  # This loops through each PV name and gets its claimRef (namespace and claim name)
+  for pv in $pv_list; do
+    # Get the PVC name and namespace for this PV
+    local claim namespace
+    claim=$(kubectl get pv "$pv" -o jsonpath='{.spec.claimRef.name}')
+    namespace=$(kubectl get pv "$pv" -o jsonpath='{.spec.claimRef.namespace}')
+    if [[ -n "$claim" && -n "$namespace" ]]; then
+      pvc_list_arr+=("${namespace}/${claim}")
     fi
   done
 
-  # Now that we have the PVC list, find the deployments and statefulsets using them
-  for pvc in "${pvc_list[@]}"; do
-    namespace=$(echo "$pvc" | cut -d/ -f1)
-    claim=$(echo "$pvc" | cut -d/ -f2)
+  if [[ ${#pvc_list_arr[@]} -eq 0 ]]; then
+    echo "No PersistentVolumeClaims found for NAS PVs. Exiting."
+    return
+  fi
 
-    # Find the deployments that reference the PVC
-    found_deployments=$(kubectl get deployments -n "$namespace" -o json | jq -r --arg claim "$claim" '
-      .items[] | select(.spec.template.spec.volumes[]?.persistentVolumeClaim.claimName == $claim) | .metadata.name')
+  echo "Identifying workloads (Deployments, StatefulSets, DaemonSets) using PVCs on NAS..."
+  # For each PVC, find any Deployments/StatefulSets/DaemonSets that reference it in their volumes
+  for pvc in "${pvc_list_arr[@]}"; do
+    local ns pvc_name
+    ns="${pvc%%/*}"       # namespace
+    pvc_name="${pvc##*/}" # claim name
 
-    # Add each found deployment to the deployments array if it's not empty
-    while IFS= read -r deployment; do
-      if [[ -n "$deployment" && ! " ${deployments[*]} " =~ " $namespace/$deployment " ]]; then
-        deployments+=("$namespace/$deployment")
+    # Check deployments in this namespace for volume claims matching pvc_name
+    local deploys
+    deploys=$(kubectl get deployments -n "$ns" -o json | jq -r --arg claim "$pvc_name" \
+      '.items[] | select(.spec.template.spec.volumes[]? | .persistentVolumeClaim? and .persistentVolumeClaim.claimName == $claim) | .metadata.name')
+    for d in $deploys; do
+      # Avoid duplicates
+      if [[ -n "$d" && ! " ${deployments[*]} " =~ " $ns/$d " ]]; then
+        deployments+=("$ns/$d")
       fi
-    done <<< "$found_deployments"
+    done
 
-    # Find the statefulsets that reference the PVC
-    found_statefulsets=$(kubectl get statefulsets -n "$namespace" -o json | jq -r --arg claim "$claim" '
-      .items[] | select(.spec.template.spec.volumes[]?.persistentVolumeClaim.claimName == $claim) | .metadata.name')
-
-    # Add each found statefulset to the statefulsets array if it's not empty
-    while IFS= read -r statefulset; do
-      if [[ -n "$statefulset" && ! " ${statefulsets[*]} " =~ " $namespace/$statefulset " ]]; then
-        statefulsets+=("$namespace/$statefulset")
+    # Check statefulsets in this namespace
+    local stss
+    stss=$(kubectl get statefulsets -n "$ns" -o json | jq -r --arg claim "$pvc_name" \
+      '.items[] | select(.spec.template.spec.volumes[]? | .persistentVolumeClaim? and .persistentVolumeClaim.claimName == $claim) | .metadata.name')
+    for s in $stss; do
+      if [[ -n "$s" && ! " ${statefulsets[*]} " =~ " $ns/$s " ]]; then
+        statefulsets+=("$ns/$s")
       fi
-    done <<< "$found_statefulsets"
+    done
+
+    # Check daemonsets in this namespace
+    local dss
+    dss=$(kubectl get daemonsets -n "$ns" -o json | jq -r --arg claim "$pvc_name" \
+      '.items[] | select(.spec.template.spec.volumes[]? | .persistentVolumeClaim? and .persistentVolumeClaim.claimName == $claim) | .metadata.name')
+    for ds in $dss; do
+      if [[ -n "$ds" && ! " ${daemonsets[*]} " =~ " $ns/$ds " ]]; then
+        daemonsets+=("$ns/$ds")
+      fi
+    done
   done
 
-  # Output the final list of deployments and statefulsets without duplicates
-  echo "Deployments using PVCs: ${deployments[*]}"
-  echo "Statefulsets using PVCs: ${statefulsets[*]}"
+  # Output the list of affected workloads
+  echo "Deployments using NAS PVCs: ${deployments[*]:-(none)}"
+  echo "StatefulSets using NAS PVCs: ${statefulsets[*]:-(none)}"
+  echo "DaemonSets using NAS PVCs: ${daemonsets[*]:-(none)}"
 }
 
-# Function to scale down deployments and statefulsets
-scale_down_replicas() {
-  echo "Scaling down deployments and statefulsets..."
-
+# Function to scale down (zero replicas or unschedule) the identified workloads
+scale_down_workloads() {
+  echo "Scaling down identified workloads (setting replicas to 0 or unscheduling pods)..."
   # Scale down deployments
   for deployment in "${deployments[@]}"; do
-    namespace=$(echo "$deployment" | cut -d/ -f1)
-    name=$(echo "$deployment" | cut -d/ -f2)
-    echo "Labeling and scaling down deployment: $name in namespace: $namespace"
-    kubectl label deployment "$name" --namespace="$namespace" nas-dependent=scaled --overwrite > /dev/null 2>&1
-    kubectl scale deployment "$name" --namespace="$namespace" --replicas=0 > /dev/null 2>&1
+    local ns name
+    ns="${deployment%%/*}"
+    name="${deployment##*/}"
+    echo " - Scaling down Deployment $name in namespace $ns"
+    kubectl label deployment "$name" -n "$ns" nas-dependent=scaled --overwrite
+    kubectl scale deployment "$name" -n "$ns" --replicas=0
   done
 
   # Scale down statefulsets
   for statefulset in "${statefulsets[@]}"; do
-    namespace=$(echo "$statefulset" | cut -d/ -f1)
-    name=$(echo "$statefulset" | cut -d/ -f2)
-    echo "Labeling and scaling down statefulset: $name in namespace: $namespace"
-    kubectl label statefulset "$name" --namespace="$namespace" nas-dependent=scaled --overwrite > /dev/null 2>&1
-    kubectl scale statefulset "$name" --namespace="$namespace" --replicas=0 > /dev/null 2>&1
+    local ns name
+    ns="${statefulset%%/*}"
+    name="${statefulset##*/}"
+    echo " - Scaling down StatefulSet $name in namespace $ns"
+    kubectl label statefulset "$name" -n "$ns" nas-dependent=scaled --overwrite
+    kubectl scale statefulset "$name" -n "$ns" --replicas=0
   done
 
-  echo "Scaling down complete."
+  # "Scale down" daemonsets by preventing scheduling on any nodes
+  for daemonset in "${daemonsets[@]}"; do
+    local ns name
+    ns="${daemonset%%/*}"
+    name="${daemonset##*/}"
+    echo " - Pausing DaemonSet $name in namespace $ns (unscheduling its pods)"
+    kubectl label daemonset "$name" -n "$ns" nas-dependent=scaled --overwrite
+    # Patch the DaemonSet's pod template with an extra nodeSelector that matches no node (to remove all pods)
+    kubectl patch daemonset "$name" -n "$ns" --type=merge -p '{"spec": {"template": {"spec": {"nodeSelector": {"nas-dependent-paused": "true"}}}}}'
+    # Note: This effectively removes DaemonSet pods. The label 'nas-dependent-paused=true' is assumed not present on any node.
+  done
+
+  echo "All targeted workloads have been scaled down or paused."
 }
 
-# Function to scale down specific workloads
-scale_down() {
-  echo "Scaling down deployments and statefulsets dependent on NAS..."
-
-  check_nas_address
-  get_pv_list_dependent_on_nas
-  get_namespaces
-  argocd_login
-  create_sync_window
-  get_deployments_and_statefulsets
-  scale_down_replicas
-}
-
-# Function to revert workloads using ArgoCD
+# Function to remove/adjust the ArgoCD sync window and restore workloads (scale up)
+# This is used when bringing the system back "up".
 revert_sync_window() {
-  echo "Reverting sync window and triggering ArgoCD sync..."
+  echo "Reverting sync window and restoring scaled-down workloads via ArgoCD..."
+  # Identify namespaces that were scaled down (marked by nas-dependent=scaled label on workloads)
+  local scaled_down_namespaces
+  scaled_down_namespaces=$(kubectl get deployment,statefulset,daemonset -A -l nas-dependent=scaled -o json |
+    jq -r '.items[].metadata.namespace' | sort -u)
 
-  # Get the list of scaled-down namespaces
-  scaled_down_namespaces=$(kubectl get deployments,statefulsets --all-namespaces -l nas-dependent=scaled -o json | jq -r '.items[].metadata.namespace' | sort | uniq)
+  # Use the same schedule/duration/timeZone as in create_sync_window to find the window
+  local schedule="* * * * *"
+  local duration="24h"
+  local timeZone="America/Chicago"
 
-  # Set the schedule, duration, and timezone parameters
-  schedule="* * * * *"
-  duration="24h"
-  timeZone="America/Chicago"
-
-  # Convert scaled-down namespaces to a comma-separated list
-  affected_namespaces=$(echo "$scaled_down_namespaces" | tr '\n' ',' | sed 's/,$//')
-
-  # Check for existing sync windows that match the schedule, duration, and timezone
-  existing_window=$(argocd proj windows list default -o json | jq -r --arg schedule "$schedule" --arg duration "$duration" --arg timeZone "$timeZone" '
-    .[] | select(.schedule == $schedule and .duration == $duration and .timeZone == $timeZone)')
-
-  if [ -n "$existing_window" ]; then
-    # Extract existing namespaces and the window ID using the index of the window
-    window_index=$(argocd proj windows list default -o json | jq -r --arg schedule "$schedule" --arg duration "$duration" --arg timeZone "$timeZone" '
-      to_entries[] | select(.value.schedule == $schedule and .value.duration == $duration and .value.timeZone == $timeZone) | .key')
-
-    # Get current namespaces in the window
-    current_namespaces=$(echo "$existing_window" | jq -r '.namespaces | join(",")')
-
-    # Remove the scaled-down namespaces from the current namespaces list
-    remaining_namespaces=$(comm -23 <(echo "$current_namespaces" | tr ',' '\n' | sort) <(echo "$scaled_down_namespaces" | tr ' ' '\n' | sort) | tr '\n' ',' | sed 's/,$//')
-
-    if [ -z "$remaining_namespaces" ]; then
-      # If no other namespaces remain, delete the sync window
-      echo "Deleting the sync window as it only contains scaled-down namespaces"
-      argocd proj windows delete default "$window_index"
+  # Get the existing window (if any) matching those parameters
+  local existing_window_json matching_window window_id
+  existing_window_json=$(argocd proj windows list default -o json || echo "[]")
+  matching_window=$(echo "$existing_window_json" | jq -r --arg sched "$schedule" --arg dur "$duration" --arg tz "$timeZone" '
+    .[] | select(.schedule == $sched and .duration == $dur and (.timeZone // "" ) == $tz and .kind == "deny")
+  ')
+  if [[ -n "$matching_window" ]]; then
+    # Find window ID (index in the list output)
+    window_id=$(echo "$existing_window_json" | jq -r --arg sched "$schedule" --arg dur "$duration" --arg tz "$timeZone" '
+      to_entries[] | select(.value.schedule == $sched and .value.duration == $dur and (.value.timeZone // "" ) == $tz and .value.kind == "deny") | .key
+    ')
+    # Compute remaining namespaces after removing the scaled-down ones from this window
+    local current_namespaces remaining_namespaces
+    current_namespaces=$(echo "$matching_window" | jq -r '.namespaces | join(",")')
+    remaining_namespaces=$(comm -23 \
+      <(echo "$current_namespaces" | tr ',' '\n' | sort) \
+      <(echo "$scaled_down_namespaces" | tr ' ' '\n' | sort) \
+      | paste -sd, -)
+    if [[ -z "$remaining_namespaces" ]]; then
+      echo "No other namespaces remain in sync window; deleting the sync window (ID=$window_id)."
+      argocd proj windows delete default "$window_id"
     else
-      # Update the sync window with the remaining namespaces
-      echo "Updating sync window: removing scaled-down namespaces"
-      argocd proj windows update default "$window_index" --namespaces "$remaining_namespaces" --schedule "$schedule" --duration "$duration" --time-zone "$timeZone"
+      echo "Updating sync window (ID=$window_id) to remove restored namespaces: $remaining_namespaces"
+      argocd proj windows update default "$window_id" --namespaces "$remaining_namespaces" --schedule "$schedule" --duration "$duration" --time-zone "$timeZone"
     fi
   else
-    echo "No existing sync window matching the criteria was found."
+    echo "No matching ArgoCD sync window found (it may have been already removed)."
   fi
 
-  # Trigger ArgoCD sync for the scaled-down namespaces
-  for namespace in $scaled_down_namespaces; do
-    echo "Triggering ArgoCD sync and removing labels from workloads in namespace: $namespace"
-    argocd app sync $namespace --async --apply-out-of-sync-only
-
-    # Remove the 'nas-dependent=scaled' label from deployments and statefulsets
-    kubectl get deployments -n "$namespace" -l nas-dependent=scaled -o json | jq -r '.items[].metadata.name' | while read -r deployment; do
-      kubectl label deployment "$deployment" -n "$namespace" nas-dependent- > /dev/null 2>&1
-    done
-
-    kubectl get statefulsets -n "$namespace" -l nas-dependent=scaled -o json | jq -r '.items[].metadata.name' | while read -r statefulset; do
-      kubectl label statefulset "$statefulset" -n "$namespace" nas-dependent- > /dev/null 2>&1
-    done
+  # Trigger ArgoCD sync for each affected application (assumes app name equals namespace)
+  # This will restore original replicas and DaemonSet scheduling from Git manifests.
+  for ns in $scaled_down_namespaces; do
+    echo "Triggering ArgoCD sync for application/namespace: $ns"
+    argocd app sync "$ns" --async --apply-out-of-sync-only
+    # Remove the 'nas-dependent=scaled' labels from all workload types in this namespace
+    echo "Removing 'nas-dependent=scaled' labels from workloads in namespace: $ns"
+    kubectl get deployments -n "$ns" -l nas-dependent=scaled -o name | xargs -r kubectl label -n "$ns" --overwrite nas-dependent-
+    kubectl get statefulsets -n "$ns" -l nas-dependent=scaled -o name | xargs -r kubectl label -n "$ns" --overwrite nas-dependent-
+    kubectl get daemonsets -n "$ns" -l nas-dependent=scaled -o name | xargs -r kubectl label -n "$ns" --overwrite nas-dependent-
+    # Note: DaemonSet nodeSelector patch will be reverted by ArgoCD sync (restoring original spec from Git).
   done
 
-  echo "Revert complete."
+  echo "All workloads have been instructed to restore, and sync window adjustments are complete."
 }
 
-# Main logic
-if [ "$1" == "down" ]; then
-  check_argocd_env_vars
-  scale_down
-elif [ "$1" == "up" ]; then
-  check_argocd_env_vars
-  revert_sync_window
-else
+# Main script logic: determine "down" or "up" action
+if [[ $# -ne 1 ]]; then
   echo "Usage: $0 [down|up]"
-  echo "  down: Identify all NAS dependent PVCs, create ArgoCD sync window for affected namespaces, scale down dependent workloads to 0 replicas"
-  echo "  up: Remove ArgoCD sync window, trigger sync for affected namespaces to scale up dependent workloads to original replicas"
+  echo "  down: Identify NAS-dependent PVCs, block auto-sync, and scale down dependent workloads."
+  echo "  up:   Remove sync window block and trigger ArgoCD to restore original workload state."
   exit 1
 fi
+
+action="$1"
+case "$action" in
+  down)
+    check_dependencies
+    check_argocd_env_vars
+    check_nas_address
+    # Perform the scale-down process
+    get_pv_list_dependent_on_nas
+    get_namespaces_for_pvs
+    argocd_login
+    create_sync_window
+    get_dependent_workloads
+    scale_down_workloads
+    echo "NAS-dependent workloads have been scaled down. Auto-sync is blocked for their applications."
+    ;;
+  up)
+    check_dependencies
+    check_argocd_env_vars
+    # Perform the restore process
+    argocd_login
+    revert_sync_window
+    echo "NAS-dependent workloads have been restored to their original state."
+    ;;
+  *)
+    echo "Invalid option: $action. Use 'down' or 'up'."
+    exit 1
+    ;;
+esac
