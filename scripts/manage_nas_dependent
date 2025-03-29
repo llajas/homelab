@@ -249,23 +249,20 @@ revert_sync_window() {
   scaled_down_namespaces=$(kubectl get deployment,statefulset,daemonset -A -l nas-dependent=scaled -o json |
     jq -r '.items[].metadata.namespace' | sort -u)
 
-  # Use the same schedule/duration/timeZone as in create_sync_window to find the window
   local schedule="* * * * *"
   local duration="24h"
   local timeZone="America/Chicago"
 
-  # Get the existing window (if any) matching those parameters
+  # Get the existing sync window (if any) matching our schedule/duration/kind criteria
   local existing_window_json matching_window window_id
   existing_window_json=$(argocd proj windows list default -o json || echo "[]")
-  matching_window=$(echo "$existing_window_json" | jq -r --arg sched "$schedule" --arg dur "$duration" --arg tz "$timeZone" '
-    .[] | select(.schedule == $sched and .duration == $dur and (.timeZone // "" ) == $tz and .kind == "deny")
+  matching_window=$(echo "$existing_window_json" | jq -r --arg sched "$schedule" --arg dur "$duration" '
+    .[] | select(.schedule == $sched and .duration == $dur and .kind == "deny")
   ')
   if [[ -n "$matching_window" ]]; then
-    # Find window ID (index in the list output)
-    window_id=$(echo "$existing_window_json" | jq -r --arg sched "$schedule" --arg dur "$duration" --arg tz "$timeZone" '
-      to_entries[] | select(.value.schedule == $sched and .value.duration == $dur and (.value.timeZone // "" ) == $tz and .value.kind == "deny") | .key
+    window_id=$(echo "$existing_window_json" | jq -r --arg sched "$schedule" --arg dur "$duration" '
+      to_entries[] | select(.value.schedule == $sched and .value.duration == $dur and .value.kind == "deny") | .key
     ')
-    # Compute remaining namespaces after removing the scaled-down ones from this window
     local current_namespaces remaining_namespaces
     current_namespaces=$(echo "$matching_window" | jq -r '.namespaces | join(",")')
     remaining_namespaces=$(comm -23 \
@@ -283,17 +280,24 @@ revert_sync_window() {
     echo "No matching ArgoCD sync window found (it may have been already removed)."
   fi
 
-  # Trigger ArgoCD sync for each affected application (assumes app name equals namespace)
-  # This will restore original replicas and DaemonSet scheduling from Git manifests.
+  # For each namespace, trigger ArgoCD sync and remove the nas-dependent label from workloads
   for ns in $scaled_down_namespaces; do
     echo "Triggering ArgoCD sync for application/namespace: $ns"
     argocd app sync "$ns" --async --apply-out-of-sync-only
-    # Remove the 'nas-dependent=scaled' labels from all workload types in this namespace
+
     echo "Removing 'nas-dependent=scaled' labels from workloads in namespace: $ns"
-    kubectl get deployments -n "$ns" -l nas-dependent=scaled -o name | xargs -r kubectl label -n "$ns" --overwrite nas-dependent-
-    kubectl get statefulsets -n "$ns" -l nas-dependent=scaled -o name | xargs -r kubectl label -n "$ns" --overwrite nas-dependent-
-    kubectl get daemonsets -n "$ns" -l nas-dependent=scaled -o name | xargs -r kubectl label -n "$ns" --overwrite nas-dependent-
-    # Note: DaemonSet nodeSelector patch will be reverted by ArgoCD sync (restoring original spec from Git).
+    # Remove label for deployments
+    for resource in $(kubectl get deployments -n "$ns" -l nas-dependent=scaled -o name); do
+      kubectl label -n "$ns" "$resource" --overwrite nas-dependent-
+    done
+    # Remove label for statefulsets
+    for resource in $(kubectl get statefulsets -n "$ns" -l nas-dependent=scaled -o name); do
+      kubectl label -n "$ns" "$resource" --overwrite nas-dependent-
+    done
+    # Remove label for daemonsets
+    for resource in $(kubectl get daemonsets -n "$ns" -l nas-dependent=scaled -o name); do
+      kubectl label -n "$ns" "$resource" --overwrite nas-dependent-
+    done
   done
 
   echo "All workloads have been instructed to restore, and sync window adjustments are complete."
