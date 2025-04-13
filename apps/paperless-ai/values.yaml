@@ -1,0 +1,170 @@
+# Default values for paperless-ai.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
+# Please keep this value to 1, while many instances running a crontab could lead to unknown results.
+replica:
+  replicaCount: 1
+  strategy:
+    type: Recreate
+
+# This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
+image:
+  repository: clusterzx/paperless-ai
+  # This sets the pull policy for images.
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  # Use latest or nightly to be up2date.
+  tag: ""
+
+# This is for the secretes for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+imagePullSecrets: []
+# This is to override the chart name.
+nameOverride: ""
+fullnameOverride: ""
+
+# This is for setting Kubernetes Annotations to a Pod.
+# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+podAnnotations:
+  operator.1password.io/item-path: "vaults/z3emsr5qi5xqk33wthv5fpmfqa/items/n5k7mdhztvvkbyfejk4gcwz7ri"
+  operator.1password.io/item-name: "paperless-ai-api-key"
+# This is for setting Kubernetes Labels to a Pod.
+# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+podLabels: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+# This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
+service:
+  # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+  type: ClusterIP
+  # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
+  port: 3000
+
+# This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: paperless-ai.lajas.tech
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls:
+    - secretName: paperlessai-tls-certificate
+      hosts:
+        - paperless-ai.lajas.tech
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+# This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+livenessProbe:
+  initialDelaySeconds: 90
+  httpGet:
+    path: /
+#    path: /health
+    port: http
+readinessProbe:
+  initialDelaySeconds: 90
+  httpGet:
+    path: /
+#    path: /health
+    port: http
+
+# paperless-ai config
+paperless:
+  # When setting the below paperless-ngx url, make sure to append '/api' to the end of the url.
+  # This is necessary to avoid login issues.
+  apiUrl: "http://paperless-paperless-ngx.paperless.svc.cluster.local:8000/api"
+  apiToken: ""
+
+ai:
+  provider: "ollama"
+  # Be sure that the below is wrapped in quotes to avoid issues with the yaml parser setting it as 'true' or 'false'
+  addProcessedTag: "yes"
+  processedTagName: ai-processed
+  initialSetup: "no"
+
+prompt:
+  # Be sure that the below is wrapped in quotes to avoid issues with the yaml parser setting it as 'true' or 'false'
+  useTags: "yes"
+  tags: Bill,Bank-Statement,Contract,Employer,Invoice,Receipt,Tax-Document,paystub,other
+
+openAi:
+  apiKey:
+  model: ""
+
+ollama:
+  apiUrl: "http://open-webui-ollama.open-webui.svc.cluster.local:11434"
+  model: "deepseek-r1:8b"
+
+scanInterval: "*/30 * * * *"
+
+systemPrompt: |-
+  Return the result EXCLUSIVELY as a JSON object. The Tags and Title MUST be in the language that is used in the document.:
+
+  {
+    "title": "xxxxx",
+    "correspondent": "xxxxxxxx",
+    "tags": ["Tag1", "Tag2", "Tag3", "Tag4"],
+    "document_date": "YYYY-MM-DD",
+    "language": "en/de/es/..."
+  }
+processPredefinedDocuments: "no"
+tags: "indexed,indexed2"
+
+# additional envs, if neccessary
+envs:
+  - name: PAPERLESS_USERNAME
+    value: "paperless-ai"
+  - name: PAPERLESS_API_TOKEN
+    valueFrom:
+      secretKeyRef:
+        name: paperless-ai-api-key
+        key: apiKey
+  - name: CONFIG_PATH
+    value: "/app/config"
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# persistence volumes needed for configuration and processing data directory
+persistence:
+  config:
+    mountPath: "/app/config/config.js"
+    subPath: "config.js"
+  envfile:
+    mountPath: "app/.env"
+    subPath: ".env"
+  data:
+    enabled: true
+    size: 1Gi
+    storageClass: longhorn
+    mountPath: "/app/data"

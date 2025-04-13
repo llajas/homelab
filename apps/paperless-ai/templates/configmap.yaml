@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "paperless-ai.fullname" . }}-config
+  labels:
+    {{- include "paperless-ai.labels" . | nindent 4 }}
+data:
+{{- if .Values.paperless.apiUrl }}
+  PAPERLESS_API_URL: "{{ .Values.paperless.apiUrl }}"
+{{- end }}
+{{- if .Values.aiProvider }}
+  AI_PROVIDER: "{{ .Values.aiProvider }}"
+{{- end }}
+{{- if .Values.ollama.apiUrl }}
+  OLLAMA_API_URL: "{{ .Values.ollama.apiUrl }}"
+{{- end }}
+{{- if .Values.ollama.model }}
+  OLLAMA_MODEL: "{{ .Values.ollama.model }}"
+{{- end }}
+{{- if .Values.scanInterval }}
+  SCAN_INTERVAL: "{{ .Values.scanInterval }}"
+{{- end }}
