@@ -111,7 +111,7 @@ ai:
 
 prompt:
   # Be sure that the below is wrapped in quotes to avoid issues with the yaml parser setting it as 'true' or 'false'
-  useTags: "yes"
+  useTags: "no"
   tags: Bill,Bank-Statement,Contract,Employer,Invoice,Receipt,Tax-Document,paystub,other
 
 openAi:
