@@ -85,9 +85,14 @@ persistence:
     enabled: true
     retain: true
     mountPath: /usr/src/paperless/consume
-    storageClass: ""
+    storageClass: "smb"
     accessMode: ReadWriteOnce
     size: 4Gi
+    existingClaim: "paperless-consume-smb"
+    server: "//nas-01.storage.lajas.tech/"
+    path: "documents/"
+    driver: "smb.csi.k8s.io"
+    secretName: cifs.creds.smb
 
 # -- Enable and configure postgresql database subchart under this key.
 #    If enabled, the app's db envs will be set for you.
