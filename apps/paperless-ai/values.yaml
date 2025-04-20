@@ -148,6 +148,8 @@ envs:
         key: apiKey
   - name: CONFIG_PATH
     value: "/app/config"
+  - name: PAPERLESS_AI_PORT
+    value: "3000"
 
 nodeSelector: {}
 
