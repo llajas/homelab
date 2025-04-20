@@ -120,7 +120,7 @@ openAi:
 
 ollama:
   apiUrl: "http://open-webui-ollama.open-webui.svc.cluster.local:11434"
-  model: "deepseek-r1:8b"
+  model: "llama3.2:3b
 
 scanInterval: "*/30 * * * *"
 
