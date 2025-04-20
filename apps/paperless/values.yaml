@@ -158,3 +158,6 @@ opSecrets:
   paperless:
     item: "k4k4iiq2soj5bjxtya35c3bxx4"
     secretName: "paperless-secret"
+  consume:
+    item: "lqvk4ql32rlorykjtxgf22echm"
+    secretName: "cifs.creds.smb"
