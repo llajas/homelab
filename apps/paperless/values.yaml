@@ -22,6 +22,7 @@ env:
   PAPERLESS_PORT: 8000
   PAPERLESS_ADMIN_USER: root
   PAPERLESS_URL: https://paperless.lajas.tech
+  PAPERLESS_CONSUMER_POLLING: 10
 
 envFrom:
   - secretRef:
