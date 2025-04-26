@@ -92,63 +92,74 @@
     # ── DRIVER INSTALL & SMART REBOOT ──────────────────────────────────────
 
     - name: Install Open DKMS NVIDIA Driver
-      ansible.builtin.dnf:
+      dnf:
         name: '@nvidia-driver:open-dkms/default'
         state: present
       when: gpu_type == 'rtx_gtx'
+      register: install_open_dkms
 
     - name: Install NVIDIA Drivers for Tesla K80 (470xx Legacy)
-      ansible.builtin.dnf:
+      dnf:
         name:
           - xorg-x11-drv-nvidia-470xx
           - akmod-nvidia-470xx
         state: present
-      when: gpu_type == "tesla_k80"
+      when: gpu_type == 'tesla_k80'
+      register: install_legacy_drivers
 
     - name: Rebuild NVIDIA Kernel Modules
       command: akmods --force
-      when: gpu_type == "tesla_k80"
+      when: gpu_type == 'tesla_k80'
+      register: rebuild_akmods
 
     - name: Load NVIDIA Kernel Modules
       command: modprobe nvidia
-      when: gpu_type == "tesla_k80"
+      when: gpu_type == 'tesla_k80'
+      register: modprobe_nvidia
+      ignore_errors: true
 
-    - name: Install CUDA Support for Tesla K80 (470xx)
-      ansible.builtin.dnf:
-        name: xorg-x11-drv-nvidia-470xx-cuda
-        state: present
-      when: gpu_type == "tesla_k80"
+    - name: Test if NVIDIA driver is already functional
+      command: nvidia-smi
+      register: nvidia_smi_test
+      changed_when: false
+      failed_when: false
 
-    - name: Reboot System after NVIDIA driver installation
+    - name: Reboot if driver install happened and nvidia-smi still fails
       reboot:
         reboot_timeout: 600
-        test_command: uptime
-      when: update_result.changed
+        test_command: nvidia-smi
+      when:
+        - nvidia_smi_test.rc != 0
+        - install_open_dkms.changed or install_legacy_drivers.changed
 
-    - name: Verify NVIDIA installation
+    - name: Verify NVIDIA installation after possible reboot
       command: nvidia-smi
       register: nvidia_smi_result
       changed_when: false
       failed_when: nvidia_smi_result.rc != 0
 
-    - name: Install CUDA Toolkit & Persistence Daemon
-      dnf:
-        name:
-          - cuda-toolkit-12-6
-          - nvidia-persistenced
-        state: present
-      when: gpu_type == "rtx_gtx"
+    # ── POST-INSTALL CUDA & TOOLKIT (nobest fallback) ──────────────────────────────
+
+    - name: Install CUDA Toolkit & Persistence Daemon (nobest fallback)
+      command: >
+        dnf install cuda-toolkit-12-6 nvidia-persistenced --nobest -y
+      register: cuda_install
+      changed_when: "'Complete!' in cuda_install.stdout"
+      failed_when: cuda_install.rc not in [0,1]
+      when: gpu_type == 'rtx_gtx'
 
     - name: Install NVIDIA Container Toolkit
       dnf:
         name: nvidia-container-toolkit
         state: present
+      when: gpu_type == 'rtx_gtx'
 
     - name: Enable and start NVIDIA persistence daemon
       systemd:
         name: nvidia-persistenced
         enabled: yes
         state: started
+      when: gpu_type == 'rtx_gtx'
 
     - name: Configure CUDA environment variables
       copy:
