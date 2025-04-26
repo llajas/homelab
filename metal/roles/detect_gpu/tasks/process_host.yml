@@ -13,7 +13,10 @@
 
 - name: "Find main GPU lines for host {{ host }}"
   set_fact:
-    main_gpu_lines: "{{ gpu_list.stdout_lines | select('search', hostvars[host].gpu_type | trim) | list }}"
+    main_gpu_lines: >
+      {{ gpu_list.stdout_lines
+         | select('search', hostvars[host].gpu_type | trim)
+         | list }}
   when: hostvars[host].gpu_type is defined
 
 - name: "Debug: Main GPU lines for host {{ host }}"
@@ -23,12 +26,17 @@
 
 - name: "Extract bus prefixes for host {{ host }}"
   set_fact:
-    host_bus_prefixes: "{{ main_gpu_lines | map('regex_search', '^([0-9A-Fa-f]{2}:[0-9A-Fa-f]{2})') | select('string') | list | unique }}"
+    host_bus_prefixes: >
+      {{ main_gpu_lines
+         | map('regex_search', '^([0-9A-Fa-f]{2}:[0-9A-Fa-f]{2})')
+         | select('string')
+         | list
+         | unique }}
   when: main_gpu_lines is defined and (main_gpu_lines | length > 0)
 
 - name: "Debug: Bus prefixes for host {{ host }}"
   debug:
-    msg: "Host: {{ host }} - Bus Prefixes: {{ host_bus_prefixes }}"
+    msg: "Host: {{ host }} - All Bus Prefixes: {{ host_bus_prefixes }}"
   when: host_bus_prefixes is defined and (host_bus_prefixes | length > 0)
 
 - name: "Filter out prefixes already claimed for host {{ host }}"
