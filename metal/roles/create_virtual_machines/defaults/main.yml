@@ -6,7 +6,7 @@
 hypervisor_user: "{{ ansible_user }}"
 hypervisor_host: "{{ hypervisor_address }}"  # Referencing the global variable
 keyfile: "{{ ansible_ssh_private_key_file }}"
-bridge_interface: "br1.137"
+bridge_interface: "br0.137"
 
 # Storage configuration
 storage_pool_path: "/mnt/user/domains/default_pool"
