@@ -1,3 +1,5 @@
+# metal/roles/gpu_install_drivers/tasks/main.yml
+
 - name: Install NVIDIA drivers on GPU nodes
   block:
 
@@ -86,6 +88,8 @@
     - name: Refresh package metadata cache
       command: dnf makecache --refresh -y
       changed_when: false
+
+    # ── DRIVER INSTALL & SMART REBOOT ──────────────────────────────────────
 
     - name: Install Open DKMS NVIDIA Driver
       ansible.builtin.dnf:
