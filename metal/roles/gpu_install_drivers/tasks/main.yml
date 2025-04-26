@@ -80,11 +80,11 @@
       when: gpu_type == 'rtx_gtx'
 
     - name: Clean package metadata cache
-      ansible.builtin.command: dnf clean all
+      command: dnf clean all
       changed_when: false
 
     - name: Refresh package metadata cache
-      ansible.builtin.command: dnf makecache --refresh -y
+      command: dnf makecache --refresh -y
       changed_when: false
 
     - name: Install Open DKMS NVIDIA Driver
