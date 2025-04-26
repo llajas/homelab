@@ -99,7 +99,7 @@ readinessProbe:
 paperless:
   # When setting the below paperless-ngx url, make sure to append '/api' to the end of the url.
   # This is necessary to avoid login issues.
-  apiUrl: "http://paperless-paperless-ngx.paperless.svc.cluster.local:8000/api"
+  apiUrl: "https://paperless.lajas.tech/api"
   apiToken: ""
 
 ai:
