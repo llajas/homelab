@@ -35,17 +35,17 @@
           {%- endif -%}
 
     - name: Import RPMFusion Free GPG Key
-      ansible.builtin.rpm_key:
+      rpm_key:
         state: present
-        key: "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-2020"
+        key: "https://download1.rpmfusion.org/free/fedora/RPM-GPG-KEY-rpmfusion-free-fedora-2020"
 
     - name: Import RPMFusion Non-Free GPG Key
-      ansible.builtin.rpm_key:
+      rpm_key:
         state: present
-        key: "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-nonfree-fedora-2020"
+        key: "https://download1.rpmfusion.org/nonfree/fedora/RPM-GPG-KEY-rpmfusion-nonfree-fedora-2020"
 
     - name: Import NVIDIA GPG key
-      ansible.builtin.rpm_key:
+      rpm_key:
         state: present
         key: "https://nvidia.github.io/libnvidia-container/gpgkey"
 
@@ -55,16 +55,28 @@
           - "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-{{ ansible_facts['distribution_version'] }}.noarch.rpm"
           - "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-{{ ansible_facts['distribution_version'] }}.noarch.rpm"
         state: present
+    # ── CUDA REPO SETUP ─────────────────────────────────────────────────
+
+    - name: Determine Fedora major version for CUDA repo
+      set_fact:
+        cuda_repo_version: "{{ ansible_facts['distribution_version'].split('.')[0] }}"
+      when: gpu_type == 'rtx_gtx'
+
+    - name: Debug CUDA repo version
+      debug:
+        msg: "Using Fedora{{ cuda_repo_version }} for CUDA repo"
+      when: gpu_type == 'rtx_gtx'
 
     - name: Add NVIDIA CUDA repository
       get_url:
-        url: "https://developer.download.nvidia.com/compute/cuda/repos/fedora{{ ansible_facts['distribution_version'] }}/x86_64/cuda-fedora{{ ansible_facts['distribution_version'] }}.repo"
+        url: "https://developer.download.nvidia.com/compute/cuda/repos/fedora{{ cuda_repo_version }}/x86_64/cuda-fedora{{ cuda_repo_version }}.repo"
         dest: "/etc/yum.repos.d/cuda-fedora.repo"
       when: gpu_type == 'rtx_gtx'
 
     - name: Add NVIDIA container toolkit repository
       shell: |
-        curl -s -L https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo | tee /etc/yum.repos.d/nvidia-container-toolkit.repo
+        curl -sL https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo \
+          | tee /etc/yum.repos.d/nvidia-container-toolkit.repo
       when: gpu_type == 'rtx_gtx'
 
     - name: Clean package metadata cache
