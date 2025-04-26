@@ -8,6 +8,7 @@ open-webui:
           - hermes3:8b
           - qwen2.5-coder:7b
           - deepseek-r1:8b
+          - deepseek-r1:14b
           - deepseek-coder:6.7b
           - granite-code:8b
     runtimeClassName: nvidia
