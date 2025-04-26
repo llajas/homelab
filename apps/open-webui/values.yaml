@@ -39,14 +39,13 @@ open-webui:
       size: 75Gi
     affinity:
       nodeAffinity:
-        preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
-            preference:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
               matchExpressions:
-                - key: nvidia.com/gpu.compute.major
+                - key: nvidia.com/gpu.memory
                   operator: In
                   values:
-                    - "7"
+                    - "12288"
   ingress:
     enabled: true
     class: nginx
