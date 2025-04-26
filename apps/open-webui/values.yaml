@@ -41,11 +41,11 @@ open-webui:
       nodeAffinity:
         requiredDuringSchedulingIgnoredDuringExecution:
           nodeSelectorTerms:
-              matchExpressions:
-                - key: nvidia.com/gpu.memory
-                  operator: In
-                  values:
-                    - "12288"
+            - matchExpressions:
+              - key: nvidia.com/gpu.memory
+                operator: In
+                values:
+                  - "12288"
   ingress:
     enabled: true
     class: nginx
