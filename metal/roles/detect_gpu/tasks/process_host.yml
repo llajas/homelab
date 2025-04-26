@@ -1,6 +1,11 @@
 ---
 # Process GPU data for a single host.
-# The loop variable "host" is passed in from the parent.
+# The loop variable "host" is passed in from the parent
+# and this role is running on localhost.
+
+- name: "Initialize claimed_prefixes for GPU assignment"
+  set_fact:
+    claimed_prefixes: "{{ claimed_prefixes | default([]) }}"
 
 - name: "Debug: Inventory GPU type for host {{ host }}"
   debug:
@@ -26,9 +31,24 @@
     msg: "Host: {{ host }} - Bus Prefixes: {{ host_bus_prefixes }}"
   when: host_bus_prefixes is defined and (host_bus_prefixes | length > 0)
 
-- name: "Get all GPU lines for host {{ host }} based on bus prefixes"
+- name: "Filter out prefixes already claimed for host {{ host }}"
   set_fact:
-    related_gpu_lines: "{{ gpu_list.stdout_lines | select('search', '^(' ~ (host_bus_prefixes | join('|')) ~ ')') | list }}"
+    host_bus_prefixes: >
+      {{ host_bus_prefixes
+         | difference(claimed_prefixes) }}
+  when: host_bus_prefixes is defined
+
+- name: "Debug: Available Bus prefixes for host {{ host }}"
+  debug:
+    msg: "Host: {{ host }} - Available Bus Prefixes: {{ host_bus_prefixes }}"
+  when: host_bus_prefixes is defined and (host_bus_prefixes | length > 0)
+
+- name: "Get all GPU lines for host {{ host }} based on available prefixes"
+  set_fact:
+    related_gpu_lines: >
+      {{ gpu_list.stdout_lines
+         | select('search', '^(' ~ (host_bus_prefixes | join('|')) ~ ')')
+         | list }}
   when: host_bus_prefixes is defined and (host_bus_prefixes | length > 0)
 
 - name: "Debug: Related GPU lines for host {{ host }}"
@@ -38,9 +58,16 @@
 
 - name: "Store GPU data in gpu_map for host {{ host }}"
   set_fact:
-    gpu_map: "{{ gpu_map | combine({ host: {
-                        'gpu_type': hostvars[host].gpu_type | trim,
-                        'main_lines': main_gpu_lines | default([]),
-                        'bus_prefixes': host_bus_prefixes | default([]),
-                        'all_lines': related_gpu_lines | default([])
-                      } }) }}"
+    gpu_map: >-
+      {{ gpu_map
+         | default({})
+         | combine({ host: {
+             'gpu_type'    : hostvars[host].gpu_type | trim,
+             'main_lines'  : main_gpu_lines    | default([]),
+             'bus_prefixes': host_bus_prefixes  | default([]),
+             'all_lines'   : related_gpu_lines  | default([])
+         } }) }}
+
+- name: "Update claimed_prefixes with host {{ host }} assignments"
+  set_fact:
+    claimed_prefixes: "{{ claimed_prefixes + (host_bus_prefixes | default([])) }}"
