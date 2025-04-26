@@ -167,36 +167,18 @@
         content: |
           export PATH=/usr/local/cuda/bin:$PATH
           export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
-      when: gpu_type == "rtx_gtx"
+      when: gpu_type == 'rtx_gtx'
 
     - name: Apply environment variables
       shell: source /etc/profile.d/cuda.sh
       args:
         executable: /bin/bash
-      when: gpu_type == "rtx_gtx"
+      when: gpu_type == 'rtx_gtx'
 
     - name: Create ldconfig symlink
       file:
         src: "/sbin/ldconfig"
         dest: "/sbin/ldconfig.real"
         state: link
-
-    - name: Check if NVIDIA modules are loaded
-      command: lsmod
-      register: lsmod_result
-      changed_when: false
-
-    - name: Verify if NVIDIA is functional
-      command: nvidia-smi
-      register: nvidia_smi_result
-      failed_when: "'failed' in nvidia_smi_result.stderr"
-      changed_when: false
-      ignore_errors: true
-
-    - name: Reboot if NVIDIA drivers are not fully functional
-      reboot:
-        reboot_timeout: 600
-        test_command: nvidia-smi
-      when: nvidia_smi_result.rc != 0
 
   when: gpu_type is defined
