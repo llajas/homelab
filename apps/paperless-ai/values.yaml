@@ -146,6 +146,11 @@ envs:
       secretKeyRef:
         name: paperless-ai-api-key
         key: apiKey
+  - name: API_KEY
+    valueFrom:
+      secretKeyRef:
+        name: paperless-ai-api-key
+        key: aiApiKey
   - name: CONFIG_PATH
     value: "/app/config"
   - name: PAPERLESS_AI_PORT
