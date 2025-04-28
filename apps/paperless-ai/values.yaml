@@ -155,6 +155,8 @@ envs:
     value: "/app/config"
   - name: PAPERLESS_AI_PORT
     value: "3000"
+  - name: TZ
+    value: "America/Chicago"
 
 nodeSelector: {}
 
