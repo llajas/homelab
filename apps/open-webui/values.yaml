@@ -14,6 +14,7 @@ open-webui:
           - deepseek-coder:6.7b
           - granite-code:8b
           - phi4:14b
+          - llava:13b
     runtimeClassName: nvidia
     ingress:
       enabled: true
@@ -42,10 +43,10 @@ open-webui:
         requiredDuringSchedulingIgnoredDuringExecution:
           nodeSelectorTerms:
             - matchExpressions:
-              - key: nvidia.com/gpu.memory
-                operator: In
-                values:
-                  - "12288"
+                - key: nvidia.com/gpu.memory
+                  operator: In
+                  values:
+                    - "12288"
   ingress:
     enabled: true
     class: nginx
