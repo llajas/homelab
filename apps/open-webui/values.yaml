@@ -65,7 +65,7 @@ open-webui:
     - name: OAUTH_CLIENT_SECRET
       valueFrom:
         secretKeyRef:
-          name: open-webui-oauth
+          name: &oauthSecret open-webui-oauth
           key: client_secret
     - name: OPENID_PROVIDER_URL
       value: "https://dex.lajas.tech/.well-known/openid-configuration"
@@ -83,3 +83,9 @@ open-webui:
       value: *openwebuihost
     - name: BYPASS_MODEL_ACCESS_CONTROL
       value: "true"
+
+opSecrets:
+  vault: "z3emsr5qi5xqk33wthv5fpmfqa"
+  oauth:
+    item: "rznaz276pelmmcgsvgyun4expy"
+    secretName: *oauthSecret
