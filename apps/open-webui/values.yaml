@@ -3,18 +3,19 @@ open-webui:
     ollama:
       models:
         pull:
-          - llama3.2:3b
+          - deepseek-coder:6.7b
+          - deepseek-r1:14b
+          - deepseek-r1:8b
           - gemma2:9b
           - gemma3:12b
-          - hermes3:8b
-          - qwen2.5-coder:7b
-          - qwen2.5-coder:14b
-          - deepseek-r1:8b
-          - deepseek-r1:14b
-          - deepseek-coder:6.7b
           - granite-code:8b
-          - phi4:14b
+          - hermes3:8b
+          - llama3.2-vision:11b
+          - llama3.2:3b
           - llava:13b
+          - phi4:14b
+          - qwen2.5-coder:14b
+          - qwen2.5-coder:7b
     runtimeClassName: nvidia
     ingress:
       enabled: true
