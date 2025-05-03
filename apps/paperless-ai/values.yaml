@@ -123,7 +123,7 @@ openAi:
 
 ollama:
   apiUrl: "http://open-webui-ollama.open-webui.svc.cluster.local:11434"
-  model: "phi4:14b"
+  model: "llama3.2-vision:11b"
 
 scanInterval: "*/30 * * * *"
 
