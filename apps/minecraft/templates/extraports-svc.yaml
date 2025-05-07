@@ -7,15 +7,16 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ $serviceName }}
+  namespace: "{{ $.Release.Namespace }}"
   annotations: {{ toYaml .service.annotations | nindent 4 }}
   labels:
     app: {{ $serviceName }}
-    chart: "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
+    chart: {{ template "chart.fullname" $ }}
     release: "{{ $.Release.Name }}"
     heritage: "{{ $.Release.Service }}"
     app.kubernetes.io/name: "{{ $.Chart.Name }}"
     app.kubernetes.io/instance: {{ $minecraftFullname }}
-    app.kubernetes.io/version: "{{ $.Chart.Version }}"
+    app.kubernetes.io/version: {{ template "chart.version" $ }}
 spec:
 {{- if (or (eq .service.type "ClusterIP") (empty .service.type)) }}
   type: ClusterIP

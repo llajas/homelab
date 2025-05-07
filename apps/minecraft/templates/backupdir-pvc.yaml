@@ -3,14 +3,15 @@ kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: {{ template "minecraft.fullname" . }}-backupdir
+  namespace: {{ .Release.Namespace }}
   labels:
     app: {{ template "minecraft.fullname" . }}
-    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    chart: {{ template "chart.fullname" . }}
     release: "{{ .Release.Name }}"
     heritage: "{{ .Release.Service }}"
     app.kubernetes.io/name: "{{ .Chart.Name }}"
     app.kubernetes.io/instance: {{ template "minecraft.fullname" . }}
-    app.kubernetes.io/version: "{{ .Chart.Version }}"
+    app.kubernetes.io/version: {{ template "chart.version" . }}
   annotations:
   {{- with .Values.mcbackup.persistence.annotations  }}
   {{ toYaml . | nindent 4 }}

@@ -3,6 +3,7 @@ apiVersion: apps/v1
 kind: {{ ternary "StatefulSet" "Deployment" .Values.workloadAsStatefulSet }}
 metadata:
   name: {{ template "minecraft.fullname" . }}
+  namespace: {{ .Release.Namespace }}
   {{- if .Values.deploymentAnnotations }}
   annotations:
     {{- range $key, $value := .Values.deploymentAnnotations }}
@@ -11,12 +12,12 @@ metadata:
   {{- end }}
   labels:
     app: {{ template "minecraft.fullname" . }}
-    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    chart: {{ template "chart.fullname" . }}
     release: "{{ .Release.Name }}"
     heritage: "{{ .Release.Service }}"
     app.kubernetes.io/name: "{{ .Chart.Name }}"
     app.kubernetes.io/instance: {{ template "minecraft.fullname" . }}
-    app.kubernetes.io/version: "{{ .Chart.Version }}"
+    app.kubernetes.io/version: {{ template "chart.version" . }}
   {{- if .Values.deploymentLabels }}
     {{- range $key, $value := .Values.deploymentLabels}}
     {{ $key }}: {{ $value | quote }}
@@ -41,7 +42,7 @@ spec:
         app: {{ template "minecraft.fullname" . }}
         app.kubernetes.io/name: "{{ .Chart.Name }}"
         app.kubernetes.io/instance: {{ template "minecraft.fullname" . }}
-        app.kubernetes.io/version: "{{ .Chart.Version }}"
+        app.kubernetes.io/version: {{ template "chart.version" . }}
       {{- if .Values.podLabels }}
         {{- range $key, $value := .Values.podLabels}}
         {{ $key }}: {{ $value | quote }}
@@ -62,119 +63,16 @@ spec:
       dnsPolicy: {{ .Values.dnsPolicy}}
       {{- end }}
       {{- if .Values.dnsConfig }}
-      dnsConfig: 
+      dnsConfig:
         {{- toYaml .Values.dnsConfig | nindent 8 }}
       {{- end }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
-      {{- if .Values.initContainers }}
-      initContainers:
-      {{- toYaml .Values.initContainers | nindent 8 }}
-      {{- end }}
       containers:
-      {{- if and .Values.mcbackup.enabled .Values.minecraftServer.rcon.enabled }}
-      - name: {{ template "minecraft.fullname" . }}-mc-backup
-        image: "{{ .Values.mcbackup.image.repository }}:{{ .Values.mcbackup.image.tag }}"
-        imagePullPolicy: {{ .Values.mcbackup.image.pullPolicy }}
-        resources:
-{{ toYaml .Values.mcbackup.resources | indent 10 }}
-      {{- with .Values.mcbackup.envFrom }}
-        envFrom:
-          {{- . | toYaml | nindent 10 }}{{ end }}
-        env:
-        - name: SRC_DIR
-          value: "/data"
-{{- template "minecraft.envMap" list "BACKUP_NAME" .Values.minecraftServer.worldSaveName  }}
-{{- template "minecraft.envMap" list "INITIAL_DELAY" .Values.mcbackup.initialDelay  }}
-{{- template "minecraft.envMap" list "BACKUP_INTERVAL" .Values.mcbackup.backupInterval  }}
-{{- template "minecraft.envMap" list "PRUNE_BACKUPS_DAYS" .Values.mcbackup.pruneBackupsDays  }}
-{{- template "minecraft.envMap" list "PAUSE_IF_NO_PLAYERS" .Values.mcbackup.pauseIfNoPlayers  }}
-        - name: SERVER_PORT
-          value: "25565"
-        - name: RCON_HOST
-          value: "localhost"
-{{- template "minecraft.envMap" list "RCON_PORT" .Values.minecraftServer.rcon.port  }}
-        - name: RCON_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Values.minecraftServer.rcon.existingSecret | default (printf "%s-rcon" (include "minecraft.fullname" .)) }}
-              key: {{ .Values.minecraftServer.rcon.secretKey | default "rcon-password" }}
-{{- template "minecraft.envMap" list "RCON_RETRIES" .Values.mcbackup.rconRetries  }}
-{{- template "minecraft.envMap" list "RCON_RETRY_INTERVAL" .Values.mcbackup.rconRetryInterval  }}
-{{- template "minecraft.envMap" list "EXCLUDES" .Values.mcbackup.excludes  }}
-{{- template "minecraft.envMap" list "BACKUP_METHOD" .Values.mcbackup.backupMethod  }}
-        {{- if or (eq .Values.mcbackup.backupMethod "tar") (eq .Values.mcbackup.backupMethod "rclone") (eq .Values.mcbackup.backupMethod "rsync") }}
-{{- template "minecraft.envMap" list "DEST_DIR" .Values.mcbackup.destDir  }}
-{{- template "minecraft.envMap" list "LINK_LATEST" .Values.mcbackup.linkLatest  }}
-        {{- if ne .Values.mcbackup.backupMethod "rsync" }}
-{{- template "minecraft.envMap" list "TAR_COMPRESS_METHOD" .Values.mcbackup.compressMethod  }}
-{{- template "minecraft.envMap" list "ZSTD_PARAMETERS" .Values.mcbackup.zstdParameters  }}
-        {{- end }}    
-        {{- if eq .Values.mcbackup.backupMethod "rclone" }}
-{{- template "minecraft.envMap" list "RCLONE_REMOTE" .Values.mcbackup.rcloneRemote  }}
-{{- template "minecraft.envMap" list "RCLONE_DEST_DIR" .Values.mcbackup.rcloneDestDir  }}
-{{- template "minecraft.envMap" list "RCLONE_COMPRESS_METHOD" .Values.mcbackup.rcloneCompressMethod  }}
-        {{- end }}
-        {{- end }}
-        {{- if eq .Values.mcbackup.backupMethod "restic" }}
-{{- template "minecraft.envMap" list "RESTIC_REPOSITORY" .Values.mcbackup.resticRepository  }}
-{{- template "minecraft.envMap" list "RESTIC_ADDITIONAL_TAGS" .Values.mcbackup.resticAdditionalTags  }}
-{{- template "minecraft.envMap" list "PRUNE_RESTIC_RETENTION" .Values.mcbackup.pruneResticRetention  }}
-        {{-   range $key, $value := .Values.mcbackup.resticEnvs }}
-        {{-     if kindIs "map" $value }}
-        {{-       if hasKey $value "valueFrom" }}
-        - name: {{ $key }}
-          valueFrom:
-            {{- $value.valueFrom | toYaml | nindent 12 }}
-        {{-       end }}
-        {{-     else }}
-        - name: {{ $key }}
-          value: {{ $value | quote }}
-        {{-     end }}
-        {{-   end }}
-        {{- end }}
-
-        {{- range $key, $value := .Values.mcbackup.extraEnv }}
-        {{-   if kindIs "map" $value }}
-        {{-     if hasKey $value "valueFrom" }}
-        - name: {{ $key }}
-          valueFrom:
-            {{- $value.valueFrom | toYaml | nindent 12 }}
-        {{-     end }}
-        {{-   else }}
-        - name: {{ $key }}
-          value: {{ $value | quote }}
-        {{-   end }}
-        {{- end }}
-        volumeMounts:
-        - name: tmp
-          mountPath: /tmp
-        {{- if .Values.persistence.altDataVolumeName }}
-        - name: {{ .Values.persistence.altDataVolumeName }}
-          mountPath: /data
-        {{- else }}
-        - name: datadir
-          mountPath: /data
-          readOnly: true
-        {{- end }}
-        - name: backupdir
-          mountPath: {{ default "/backups" .Values.mcbackup.destDir }}
-        {{- if or (eq .Values.mcbackup.backupMethod "rclone") (eq (include "isResticWithRclone" $) "true") }}
-        - name: rclone-config
-          mountPath: /config/rclone
-        {{- end }}
-        {{- range .Values.extraVolumes }}
-        {{-   if .volumeMounts }}
-        {{-     toYaml .volumeMounts | nindent 8 }}
-        {{-   end }}
-        {{- end }}
-        securityContext:
-          {{- toYaml .Values.securityContext | nindent 10 }}
-      {{- end }}
       - name: {{ template "minecraft.fullname" . }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
-        tty: true
+        tty: {{ default true .Values.minecraftServer.tty }}
         stdin: true
         {{- if or (.Values.lifecycle.postStart) (.Values.lifecycle.preStop)}}
         lifecycle:
@@ -246,7 +144,10 @@ spec:
         {{- end }}
         {{- else if eq .Values.minecraftServer.type "CURSEFORGE" }}
 {{- template "minecraft.envMap" list "CF_SERVER_MOD" .Values.minecraftServer.cfServerMod  }}
-{{- template "minecraft.envBoolMap" list "FTB_LEGACYJAVAFIXER" .Values.minecraftServer.ftbLegacyJavaFixer  }}
+{{- template "minecraft.envMap" list "FTB_LEGACYJAVAFIXER" .Values.minecraftServer.ftbLegacyJavaFixer  }}
+        {{- else if eq .Values.minecraftServer.type "FABRIC" }}
+{{- template "minecraft.envMap" list "FABRIC_LAUNCHER_VERSION" .Values.minecraftServer.fabricLauncherVersion  }}
+{{- template "minecraft.envMap" list "FABRIC_LOADER_VERSION" .Values.minecraftServer.fabricLoaderVersion  }}
         {{- end }}
 {{- template "minecraft.envMap" list "VERSION" .Values.minecraftServer.version  }}
 {{- template "minecraft.envMap" list "DIFFICULTY" .Values.minecraftServer.difficulty  }}
@@ -255,27 +156,27 @@ spec:
 {{- template "minecraft.envMap" list "ICON" .Values.minecraftServer.icon  }}
 {{- template "minecraft.envMap" list "MAX_PLAYERS" .Values.minecraftServer.maxPlayers  }}
 {{- template "minecraft.envMap" list "MAX_WORLD_SIZE" .Values.minecraftServer.maxWorldSize  }}
-{{- template "minecraft.envBoolMap" list "ALLOW_NETHER" .Values.minecraftServer.allowNether  }}
-{{- template "minecraft.envBoolMap" list "ANNOUNCE_PLAYER_ACHIEVEMENTS" .Values.minecraftServer.announcePlayerAchievements  }}
-{{- template "minecraft.envBoolMap" list "ENABLE_COMMAND_BLOCK" .Values.minecraftServer.enableCommandBlock  }}
-{{- template "minecraft.envBoolMap" list "FORCE_GAMEMODE" .Values.minecraftServer.forcegameMode  }}
+{{- template "minecraft.envMap" list "ALLOW_NETHER" .Values.minecraftServer.allowNether  }}
+{{- template "minecraft.envMap" list "ANNOUNCE_PLAYER_ACHIEVEMENTS" .Values.minecraftServer.announcePlayerAchievements  }}
+{{- template "minecraft.envMap" list "ENABLE_COMMAND_BLOCK" .Values.minecraftServer.enableCommandBlock  }}
+{{- template "minecraft.envMap" list "FORCE_GAMEMODE" .Values.minecraftServer.forcegameMode  }}
         {{- if .Values.minecraftServer.forceReDownload }}
         - name: FORCE_REDOWNLOAD
           value: "TRUE"
         {{- end }}
-{{- template "minecraft.envBoolMap" list "GENERATE_STRUCTURES" .Values.minecraftServer.generateStructures  }}
-{{- template "minecraft.envBoolMap" list "HARDCORE" .Values.minecraftServer.hardcore  }}
+{{- template "minecraft.envMap" list "GENERATE_STRUCTURES" .Values.minecraftServer.generateStructures  }}
+{{- template "minecraft.envMap" list "HARDCORE" .Values.minecraftServer.hardcore  }}
 {{- template "minecraft.envMap" list "MAX_BUILD_HEIGHT" .Values.minecraftServer.maxBuildHeight  }}
 {{- template "minecraft.envMap" list "MAX_TICK_TIME" .Values.minecraftServer.maxTickTime  }}
-{{- template "minecraft.envBoolMap" list "SPAWN_ANIMALS" .Values.minecraftServer.spawnAnimals  }}
-{{- template "minecraft.envBoolMap" list "SPAWN_MONSTERS" .Values.minecraftServer.spawnMonsters  }}
-{{- template "minecraft.envBoolMap" list "SPAWN_NPCS" .Values.minecraftServer.spawnNPCs  }}
+{{- template "minecraft.envMap" list "SPAWN_ANIMALS" .Values.minecraftServer.spawnAnimals  }}
+{{- template "minecraft.envMap" list "SPAWN_MONSTERS" .Values.minecraftServer.spawnMonsters  }}
+{{- template "minecraft.envMap" list "SPAWN_NPCS" .Values.minecraftServer.spawnNPCs  }}
 {{- template "minecraft.envMap" list "SPAWN_PROTECTION" .Values.minecraftServer.spawnProtection  }}
 {{- template "minecraft.envMap" list "VIEW_DISTANCE" .Values.minecraftServer.viewDistance  }}
 {{- template "minecraft.envMap" list "SEED" .Values.minecraftServer.levelSeed  }}
 {{- template "minecraft.envMap" list "MODE" .Values.minecraftServer.gameMode  }}
 {{- template "minecraft.envMap" list "MOTD" .Values.minecraftServer.motd  }}
-{{- template "minecraft.envBoolMap" list "PVP" .Values.minecraftServer.pvp  }}
+{{- template "minecraft.envMap" list "PVP" .Values.minecraftServer.pvp  }}
 {{- template "minecraft.envMap" list "LEVEL_TYPE" .Values.minecraftServer.levelType  }}
 {{- template "minecraft.envMap" list "GENERATOR_SETTINGS" .Values.minecraftServer.generatorSettings  }}
 {{- template "minecraft.envMap" list "LEVEL" .Values.minecraftServer.worldSaveName  }}
@@ -303,8 +204,8 @@ spec:
         {{- if .projects }}
 {{- template "minecraft.envMap" list "MODRINTH_PROJECTS" (join "," .projects) }}
         {{- end }}
-        {{- if .optionalDependencies }}
-{{- template "minecraft.envMap" list "MODRINTH_DOWNLOAD_OPTIONAL_DEPENDENCIES" .optionalDependencies }}
+        {{- if .downloadDependencies }}
+{{- template "minecraft.envMap" list "MODRINTH_DOWNLOAD_DEPENDENCIES" .downloadDependencies }}
         {{- end }}
 {{- template "minecraft.envMap" list "MODRINTH_ALLOWED_VERSION_TYPE" .allowedVersionType }}
     {{- end }}
@@ -323,12 +224,12 @@ spec:
         - name: RESOURCE_PACK_ENFORCE
           value: "TRUE"
         {{- end }}
-{{- template "minecraft.envBoolMap" list "ONLINE_MODE" .Values.minecraftServer.onlineMode  }}
-{{- template "minecraft.envBoolMap" list "ENFORCE_SECURE_PROFILE" .Values.minecraftServer.enforceSecureProfile  }}
+{{- template "minecraft.envMap" list "ONLINE_MODE" .Values.minecraftServer.onlineMode  }}
+{{- template "minecraft.envMap" list "ENFORCE_SECURE_PROFILE" .Values.minecraftServer.enforceSecureProfile  }}
 {{- template "minecraft.envMap" list "MEMORY" .Values.minecraftServer.memory  }}
 {{- template "minecraft.envMap" list "JVM_OPTS" .Values.minecraftServer.jvmOpts  }}
 {{- template "minecraft.envMap" list "JVM_XX_OPTS" .Values.minecraftServer.jvmXXOpts  }}
-{{- template "minecraft.envBoolMap" list "OVERRIDE_SERVER_PROPERTIES" .Values.minecraftServer.overrideServerProperties  }}
+{{- template "minecraft.envMap" list "OVERRIDE_SERVER_PROPERTIES" .Values.minecraftServer.overrideServerProperties  }}
 
 {{- if .Values.minecraftServer.rcon.enabled }}
         - name: ENABLE_RCON
@@ -438,11 +339,111 @@ spec:
         {{- end }}
         securityContext:
             {{- toYaml .Values.securityContext | nindent 10 }}
-      {{- if .Values.sidecarContainers }}
-      {{- toYaml .Values.sidecarContainers | nindent 6 }}
+      {{- if and .Values.mcbackup.enabled .Values.minecraftServer.rcon.enabled }}
+      - name: {{ template "minecraft.fullname" . }}-mc-backup
+        image: "{{ .Values.mcbackup.image.repository }}:{{ .Values.mcbackup.image.tag }}"
+        imagePullPolicy: {{ .Values.mcbackup.image.pullPolicy }}
+        resources:
+{{ toYaml .Values.mcbackup.resources | indent 10 }}
+      {{- with .Values.mcbackup.envFrom }}
+        envFrom:
+          {{- . | toYaml | nindent 10 }}{{ end }}
+        env:
+        - name: SRC_DIR
+          value: "/data"
+{{- template "minecraft.envMap" list "BACKUP_NAME" .Values.minecraftServer.worldSaveName  }}
+{{- template "minecraft.envMap" list "INITIAL_DELAY" .Values.mcbackup.initialDelay  }}
+{{- template "minecraft.envMap" list "BACKUP_INTERVAL" .Values.mcbackup.backupInterval  }}
+{{- template "minecraft.envMap" list "PRUNE_BACKUPS_DAYS" .Values.mcbackup.pruneBackupsDays  }}
+{{- template "minecraft.envMap" list "PAUSE_IF_NO_PLAYERS" .Values.mcbackup.pauseIfNoPlayers  }}
+        - name: SERVER_PORT
+          value: "25565"
+        - name: RCON_HOST
+          value: "localhost"
+{{- template "minecraft.envMap" list "RCON_PORT" .Values.minecraftServer.rcon.port  }}
+        - name: RCON_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.minecraftServer.rcon.existingSecret | default (printf "%s-rcon" (include "minecraft.fullname" .)) }}
+              key: {{ .Values.minecraftServer.rcon.secretKey | default "rcon-password" }}
+{{- template "minecraft.envMap" list "RCON_RETRIES" .Values.mcbackup.rconRetries  }}
+{{- template "minecraft.envMap" list "RCON_RETRY_INTERVAL" .Values.mcbackup.rconRetryInterval  }}
+{{- template "minecraft.envMap" list "EXCLUDES" .Values.mcbackup.excludes  }}
+{{- template "minecraft.envMap" list "BACKUP_METHOD" .Values.mcbackup.backupMethod  }}
+        {{- if or (eq .Values.mcbackup.backupMethod "tar") (eq .Values.mcbackup.backupMethod "rclone") (eq .Values.mcbackup.backupMethod "rsync") }}
+{{- template "minecraft.envMap" list "DEST_DIR" .Values.mcbackup.destDir  }}
+{{- template "minecraft.envMap" list "LINK_LATEST" .Values.mcbackup.linkLatest  }}
+        {{- if ne .Values.mcbackup.backupMethod "rsync" }}
+{{- template "minecraft.envMap" list "TAR_COMPRESS_METHOD" .Values.mcbackup.compressMethod  }}
+{{- template "minecraft.envMap" list "ZSTD_PARAMETERS" .Values.mcbackup.zstdParameters  }}
+        {{- end }}
+        {{- if eq .Values.mcbackup.backupMethod "rclone" }}
+{{- template "minecraft.envMap" list "RCLONE_REMOTE" .Values.mcbackup.rcloneRemote  }}
+{{- template "minecraft.envMap" list "RCLONE_DEST_DIR" .Values.mcbackup.rcloneDestDir  }}
+{{- template "minecraft.envMap" list "RCLONE_COMPRESS_METHOD" .Values.mcbackup.rcloneCompressMethod  }}
+        {{- end }}
+        {{- end }}
+        {{- if eq .Values.mcbackup.backupMethod "restic" }}
+{{- template "minecraft.envMap" list "RESTIC_REPOSITORY" .Values.mcbackup.resticRepository  }}
+{{- template "minecraft.envMap" list "RESTIC_ADDITIONAL_TAGS" .Values.mcbackup.resticAdditionalTags  }}
+{{- template "minecraft.envMap" list "PRUNE_RESTIC_RETENTION" .Values.mcbackup.pruneResticRetention  }}
+        {{-   range $key, $value := .Values.mcbackup.resticEnvs }}
+        {{-     if kindIs "map" $value }}
+        {{-       if hasKey $value "valueFrom" }}
+        - name: {{ $key }}
+          valueFrom:
+            {{- $value.valueFrom | toYaml | nindent 12 }}
+        {{-       end }}
+        {{-     else }}
+        - name: {{ $key }}
+          value: {{ $value | quote }}
+        {{-     end }}
+        {{-   end }}
+        {{- end }}
+
+        {{- range $key, $value := .Values.mcbackup.extraEnv }}
+        {{-   if kindIs "map" $value }}
+        {{-     if hasKey $value "valueFrom" }}
+        - name: {{ $key }}
+          valueFrom:
+            {{- $value.valueFrom | toYaml | nindent 12 }}
+        {{-     end }}
+        {{-   else }}
+        - name: {{ $key }}
+          value: {{ $value | quote }}
+        {{-   end }}
+        {{- end }}
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        {{- if .Values.persistence.altDataVolumeName }}
+        - name: {{ .Values.persistence.altDataVolumeName }}
+          mountPath: /data
+        {{- else }}
+        - name: datadir
+          mountPath: /data
+          readOnly: true
+        {{- end }}
+        - name: backupdir
+          mountPath: {{ default "/backups" .Values.mcbackup.destDir }}
+        {{- if or (eq .Values.mcbackup.backupMethod "rclone") (eq (include "isResticWithRclone" $) "true") }}
+        - name: rclone-config
+          mountPath: /config/rclone
+        {{- end }}
+        {{- range .Values.extraVolumes }}
+        {{-   if .volumeMounts }}
+        {{-     toYaml .volumeMounts | nindent 8 }}
+        {{-   end }}
+        {{- end }}
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 10 }}
       {{- end }}
-      {{- if or (eq .Values.mcbackup.backupMethod "rclone") (eq (include "isResticWithRclone" $) "true") }}
+      {{- range .Values.sidecarContainers }}
+      - {{ include "tplRender" (dict "value" . "context" $) | nindent 8 | trim }}
+      {{- end }}
+      {{- if or .Values.initContainers (eq .Values.mcbackup.backupMethod "rclone") (eq (include "isResticWithRclone" $) "true") }}
       initContainers:
+        {{- if or (eq .Values.mcbackup.backupMethod "rclone") (eq (include "isResticWithRclone" $) "true") }}
         - name: init-container
           image: busybox
           command: ['sh', '-c', 'cp /secret/rclone.conf /config/rclone/']
@@ -451,6 +452,10 @@ spec:
             mountPath: /secret
           - name: rclone-config
             mountPath: /config/rclone
+        {{- end }}
+        {{- range .Values.initContainers }}
+        - {{ include "tplRender" (dict "value" . "context" $) | nindent 10 | trim }}
+        {{- end }}
       {{- end }}
       volumes:
       - name: tmp
@@ -523,15 +528,15 @@ spec:
   volumeClaimTemplates:
     {{- if and .Values.persistence.dataDir.enabled (not .Values.persistence.dataDir.existingClaim) }}
     - metadata:
-        name: datadir   
+        name: datadir
         labels:
           app: {{ template "minecraft.fullname" . }}
-          chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+          chart: {{ template "chart.fullname" . }}
           release: "{{ .Release.Name }}"
           heritage: "{{ .Release.Service }}"
           app.kubernetes.io/name: "{{ .Chart.Name }}"
           app.kubernetes.io/instance: {{ template "minecraft.fullname" . }}
-          app.kubernetes.io/version: "{{ .Chart.Version }}"  
+          app.kubernetes.io/version: {{ template "chart.version" . }}
         annotations:
         {{- with .Values.persistence.annotations  }}
         {{ toYaml . | nindent 10 }}
@@ -560,12 +565,12 @@ spec:
         name: backupdir
         labels:
           app: {{ template "minecraft.fullname" . }}
-          chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+          chart: {{ template "chart.fullname" . }}
           release: "{{ .Release.Name }}"
           heritage: "{{ .Release.Service }}"
           app.kubernetes.io/name: "{{ .Chart.Name }}"
           app.kubernetes.io/instance: {{ template "minecraft.fullname" . }}
-          app.kubernetes.io/version: "{{ .Chart.Version }}"
+          app.kubernetes.io/version: {{ template "chart.version" . }}
         annotations:
         {{- with .Values.mcbackup.persistence.annotations  }}
         {{ toYaml . | nindent 10 }}
