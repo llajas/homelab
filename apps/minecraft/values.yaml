@@ -282,7 +282,7 @@ minecraftServer:
   ## Common types: "VANILLA", "FABRIC", "FORGE", "SPIGOT", "BUKKIT", "PAPER",
   ## "FTBA", "SPONGEVANILLA", "AUTO_CURSEFORGE"
   ## ref: https://docker-minecraft-server.readthedocs.io/en/latest/types-and-platforms
-  type: "VANILLA"
+  type: "FABRIC"
   # If type is set to FORGE, this sets the version; this is ignored if forgeInstallerUrl is set
   forgeVersion:
   # If type is set to FORGE, this sets the URL to download the Forge installer
