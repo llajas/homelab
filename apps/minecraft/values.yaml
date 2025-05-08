@@ -204,7 +204,7 @@ extraDeploy:
           compression-level: 6
           enable-proxy-protocol: false
         remote:
-          address: "minecraft-minecraft.minecraft.svc.cluster.local"
+          address: "minecraft.minecraft.svc.cluster.local"
           port: 25565
           auth-type: "online"
           allow-password-authentication: true
