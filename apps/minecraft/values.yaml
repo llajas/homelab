@@ -236,7 +236,7 @@ extraDeploy:
         add-non-bedrock-items: true
         above-bedrock-nether-building: true
         force-resource-packs: true
-        xbox-achievements-enabled: false
+        xbox-achievements-enabled: true
         log-player-ip-addresses: true
         notify-on-new-bedrock-update: true
         unusable-space-block: "minecraft:barrier"
