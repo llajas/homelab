@@ -442,7 +442,7 @@ minecraftServer:
     # CurseForge API key obtained from developer console
     apiKey:
       key: "CHANGEME!"
-      existingSecret: ""
+      existingSecret: "minecraft-player-secrets"
       secretKey: cf-api-key
     # Link to modpack in general or a specific file
     # NOTE: In case of specific file - do not point at server file
@@ -710,13 +710,27 @@ mcbackup:
     smb:
       server: "//nas-01.storage.lajas.tech/"
       shareName: "minecraft_world_backup/bluffcraft"
+      secret: "smb-creds"
 
     # NFS Configuration
     nfs:
       server: "nas-01.storage.lajas.tech"
       path: "/mnt/user/minecraft-worlds"
 
-opSecret:
+#opSecret:
+#  vault: "z3emsr5qi5xqk33wthv5fpmfqa"
+#  item: "wczp2hwip4lt7zxbjjkajcpnsy"
+#  secretName: "spectrum-secrets"
+
+opSecrets:
   vault: "z3emsr5qi5xqk33wthv5fpmfqa"
-  item: "wczp2hwip4lt7zxbjjkajcpnsy"
-  secretName: "spectrum-secrets"
+  secrets:
+    - name: spectrum-secrets
+      item: "wczp2hwip4lt7zxbjjkajcpnsy"
+      secretName: "spectrum-secrets"
+    - name: smb-creds
+      item: "ygmkhtq6qsphcymjceabnfhniq"
+      secretName: "smb-creds"
+    - name: minecraft-player-secrets
+      item: "weatiwfamdvnxzf7bapu6ow2wy"
+      secretName: "minecraft-player-secrets"

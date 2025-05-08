@@ -1,4 +1,16 @@
+{{- /* only render this PV when using smb */ -}}
 {{- if eq .Values.mcbackup.persistence.storageType "smb" }}
+
+{{- /* 1) build a little dict to hold the matching secretName */}}
+{{- $selected := dict "secretName" "" }}
+
+{{- /* 2) loop your 1Password secrets and set it when the name matches */}}
+{{- range .Values.opSecrets.secrets }}
+  {{- if eq .name $.Values.mcbackup.persistence.smb.secret }}
+    {{- $_ := set $selected "secretName" .secretName }}
+  {{- end }}
+{{- end }}
+
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -20,13 +32,15 @@ spec:
     - gid=1000
     - cache=strict
     - noserverino
+
   csi:
     driver: smb.csi.k8s.io
     volumeHandle: {{ .Release.Namespace }}-world-backup
     volumeAttributes:
       source: {{ .Values.mcbackup.persistence.smb.server }}
       subDir: {{ .Values.mcbackup.persistence.smb.shareName }}
+
     nodeStageSecretRef:
-      name: cifs.creds.bluffcraft
+      name: {{ $selected.secretName }}
       namespace: {{ .Release.Namespace }}
-{{- end}}
+{{- end }}
