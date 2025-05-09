@@ -431,7 +431,12 @@ minecraftServer:
 
   # A list of Modrinth project slugs with optional version after colon
   modrinth:
-    projects: []
+    projects:
+      - fabric-api
+      - worldedit
+      - xaeros-world-map
+      - xaeros-minimap
+      - cloth-config
     # Downloads Modrinth project dependencies marked as optional
     optionalDependencies: false
     # The version type is used to determine the newest version to use from each project. The allowed values are: release, beta, alpha
