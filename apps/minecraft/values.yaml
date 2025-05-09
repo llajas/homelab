@@ -438,7 +438,7 @@ minecraftServer:
       - xaeros-minimap
       - cloth-config
     # Downloads Modrinth project dependencies marked as optional
-    optionalDependencies: false
+    optionalDependencies: true
     # The version type is used to determine the newest version to use from each project. The allowed values are: release, beta, alpha
     allowedVersionType: release
 
