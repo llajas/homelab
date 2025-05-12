@@ -23,6 +23,7 @@ dex:
             - profile
             - email
             - groups
+          insecureEnableGroups: true
     staticClients:
       - id: grafana-sso
         name: Grafana
