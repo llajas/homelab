@@ -59,3 +59,8 @@ docker-registry:
     storage:
       cache:
         blobdescriptor: disabled
+  replicaCount: 1
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
