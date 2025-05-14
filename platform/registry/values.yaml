@@ -62,6 +62,3 @@ docker-registry:
   replicaCount: 1
   updateStrategy:
     type: Recreate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 0
