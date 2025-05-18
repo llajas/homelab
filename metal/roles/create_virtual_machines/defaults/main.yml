@@ -14,5 +14,5 @@ storage_pool_name: "default_pool"
 
 # VM default configurations
 default_memory: 16384
-default_vcpu: 4
-default_disk_size: 100
+default_vcpu: 6
+default_disk_size: 250
