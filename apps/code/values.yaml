@@ -4,13 +4,17 @@ app-template:
       containers:
         main:
           image:
-            repository: registry.lajas.tech/code-tunnel
+            repository: registry.lajas.tech/vscode-tunnel
             tag: latest
             pullPolicy: Always
           env:
             TZ: "America/Chicago"
             TUNNEL_NAME: "SecretTunnel"
             PROVIDER: "microsoft"
+            PODMAN: "true"
+            DOCKER: "true"
+            DOCKER_COMPOSE: "true"
+            OHMYZSH: "true"
           probes:
             liveness:
               enabled: false
@@ -28,4 +32,8 @@ app-template:
       advancedMounts:
         main:
           main:
-            - path: /temporary-data
+            - path: /home/coder
+  defaultPodOptions:
+    hostname: "static"
+    securityContext:
+      fsGroup: 1000
