@@ -1,0 +1,36 @@
+app-template:
+  controllers:
+    main:
+      containers:
+        main:
+          image:
+            repository: registry.lajas.tech/code-tunnel
+            tag: latest
+            pullPolicy: Always
+          env:
+            PUID: "99"
+            PGID: "100"
+            TZ: "America/Chicago"
+            TUNNEL_NAME: "SecretTunnel"
+            PROVIDER: "microsoft"
+                sleep 600 # Wait 10 minutes
+              done
+      initContainers: []
+  service:
+    main:
+      ports:
+        http:
+          port: 8080
+          protocol: HTTP
+  persistence:
+  #   data:
+  #     accessMode: ReadWriteOnce
+  #     size: 15Gi
+  #     advancedMounts:
+  #       main:
+  #         main:
+  #           - path: /home/coder
+  #         backup:
+  #           - path: /home/coder
+  #         restore:
+  #           - path: /home/coder

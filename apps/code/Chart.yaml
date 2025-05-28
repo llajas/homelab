@@ -1,7 +1,7 @@
 apiVersion: v2
-name: Code
+name: vscode-tunnel
 version: 0.1.0
-description: A Helm chart for deploying VSCode using bjw-s common chart
+description: A Helm chart for deploying bolt.diy using bjw-s common chart
 dependencies:
   - name: app-template
     version: 2.6.0
