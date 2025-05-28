@@ -13,8 +13,6 @@ app-template:
             TZ: "America/Chicago"
             TUNNEL_NAME: "SecretTunnel"
             PROVIDER: "microsoft"
-                sleep 600 # Wait 10 minutes
-              done
       initContainers: []
   service:
     main:
