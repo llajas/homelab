@@ -9,7 +9,7 @@ app-template:
             pullPolicy: Always
           env:
             TZ: "America/Chicago"
-            TUNNEL_NAME: "sector-vsc"
+            TUNNEL_NAME: &host "sector-vsc"
             PROVIDER: "microsoft"
             PODMAN: "true"
             DOCKER: "true"
@@ -34,6 +34,6 @@ app-template:
           main:
             - path: /home/coder
   defaultPodOptions:
-    hostname: "static"
+    hostname: *host
     securityContext:
       fsGroup: 1000
