@@ -9,7 +9,7 @@ app-template:
             pullPolicy: Always
           env:
             TZ: "America/Chicago"
-            TUNNEL_NAME: "SecretTunnel"
+            TUNNEL_NAME: "sector-vsc"
             PROVIDER: "microsoft"
             PODMAN: "true"
             DOCKER: "true"
