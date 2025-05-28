@@ -8,18 +8,20 @@ app-template:
             tag: latest
             pullPolicy: Always
           env:
-            PUID: "99"
-            PGID: "100"
             TZ: "America/Chicago"
             TUNNEL_NAME: "SecretTunnel"
             PROVIDER: "microsoft"
+        probes:
+          liveness:
+            enabled: false
+          readiness:
+            enabled: false
+          startup:
+            enabled: false    
       initContainers: []
   service:
     main:
-      ports:
-        http:
-          port: 8080
-          protocol: HTTP
+      enabled: false
   persistence:
   #   data:
   #     accessMode: ReadWriteOnce
