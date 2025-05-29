@@ -15,7 +15,7 @@ app-template:
             DOCKER: "true"
             DOCKER_COMPOSE: "true"
             OHMYZSH: "true"
-            PUBLIC_KEY: "true"
+            PRIVATE_KEY: "true"
           probes:
             liveness:
               enabled: false
