@@ -10,11 +10,12 @@ app-template:
           env:
             TZ: "America/Chicago"
             TUNNEL_NAME: &host "sector-vsc"
-            PROVIDER: "microsoft"
+            PROVIDER: "github"
             PODMAN: "true"
             DOCKER: "true"
             DOCKER_COMPOSE: "true"
             OHMYZSH: "true"
+            PUBLIC_KEY: "true"
           probes:
             liveness:
               enabled: false
