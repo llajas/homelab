@@ -13,7 +13,7 @@ app-template:
             PROVIDER: "github"
             GIT_USERNAME: "llajas"
             GIT_USER_EMAIL: "29675370+llajas@users.noreply.github.com"
-            #DOCKER_HOST: ssh://root@unraid.storage.lajas.tech
+            DOCKER_HOST: ssh://root@unraid.storage.lajas.tech
             PRIVATE_KEY: "true"
             SSH_PRIVATE:
               valueFrom:
