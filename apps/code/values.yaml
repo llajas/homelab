@@ -47,10 +47,6 @@ app-template:
     hostname: *host
     securityContext:
       fsGroup: 1000
-
-opSecrets:
-  vault: "z3emsr5qi5xqk33wthv5fpmfqa"
-  secrets:
-    - name: ssh-key-coder-user
-      item: "6zxgtfn6jcfaw6kt6yeuyeo2qu"
-      secretName: "sector-vsc-ssh"
+    annotations:
+      operator.1password.io/item-path: "vaults/z3emsr5qi5xqk33wthv5fpmfqa/items/6zxgtfn6jcfaw6kt6yeuyeo2qu"
+      operator.1password.io/item-name: "sector-vsc-ssh"
