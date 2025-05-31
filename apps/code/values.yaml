@@ -11,11 +11,20 @@ app-template:
             TZ: "America/Chicago"
             TUNNEL_NAME: &host "sector-vsc"
             PROVIDER: "github"
-            PODMAN: "true"
-            DOCKER: "true"
-            DOCKER_COMPOSE: "true"
-            OHMYZSH: "true"
+            GIT_USERNAME: "llajas"
+            GIT_USER_EMAIL: "29675370+llajas@users.noreply.github.com"
+            DOCKER_HOST: ssh://root@unraid.storage.lajas.tech
             PRIVATE_KEY: "true"
+            SSH_PRIVATE:
+              valueFrom:
+                secretKeyRef:
+                  name: sector-vsc-ssh
+                  key: id_rsa
+            SSH_PUBLIC:
+              valueFrom:
+                secretKeyRef:
+                  name: sector-vsc-ssh
+                  key: id_rsa.pub
           probes:
             liveness:
               enabled: false
@@ -38,3 +47,10 @@ app-template:
     hostname: *host
     securityContext:
       fsGroup: 1000
+
+opSecrets:
+  vault: "z3emsr5qi5xqk33wthv5fpmfqa"
+  secrets:
+    - name: ssh-key-coder-user
+      item: "6zxgtfn6jcfaw6kt6yeuyeo2qu"
+      secretName: "sector-vsc-ssh"
