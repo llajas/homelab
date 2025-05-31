@@ -42,7 +42,7 @@ app-template:
       advancedMounts:
         main:
           main:
-            - path: /home/coder
+            - path: /home/red
   defaultPodOptions:
     hostname: *host
     securityContext:
