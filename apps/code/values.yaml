@@ -19,12 +19,12 @@ app-template:
               valueFrom:
                 secretKeyRef:
                   name: sector-vsc-ssh
-                  key: private_key
+                  key: private-key
             SSH_PUBLIC:
               valueFrom:
                 secretKeyRef:
                   name: sector-vsc-ssh
-                  key: public_key
+                  key: public-key
           probes:
             liveness:
               enabled: false
