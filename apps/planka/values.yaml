@@ -117,6 +117,10 @@ postgresql:
     postgresPassword: ""
     replicationPassword: ""
     existingSecret: *adminSecret
+    secretkeys:
+      adminPasswordKey: postgres-password
+      userPasswordKey: password
+      replicationPasswordKey: replication-password
   serviceBindings:
     enabled: true
 
