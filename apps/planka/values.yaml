@@ -172,7 +172,7 @@ oidc:
   ## NOTE: Must contain key `clientId` and `clientSecret`
   ## NOTE: When it's set, the `clientId` and `clientSecret` parameters are ignored
   ##
-  existingSecret: ""
+  existingSecret: *adminSecret
 
   ## @param oidc.issuerUrl The OpenID connect metadata document endpoint
   ##
