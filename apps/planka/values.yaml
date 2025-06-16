@@ -176,7 +176,7 @@ oidc:
 
   ## @param oidc.issuerUrl The OpenID connect metadata document endpoint
   ##
-  issuerUrl: ""
+  issuerUrl: "https://dex.lajas.tech/.well-known/openid-configuration"
 
   ## @param oidc.scopes A list of scopes required for OIDC client.
   ## If empty will default to `openid`, `profile` and `email`
@@ -220,5 +220,6 @@ opSecrets:
   vault: "z3emsr5qi5xqk33wthv5fpmfqa"
   secrets:
     - name: *adminSecret
-      item: "wczp2hwip4lt7zxbjjkajcpnsy"
+      item: "turevh2buhm3mpcntfccwbsjja"
       secretName: *adminSecret
+
