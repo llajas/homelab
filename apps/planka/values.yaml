@@ -116,7 +116,7 @@ postgresql:
     password: ""
     postgresPassword: ""
     replicationPassword: ""
-    # existingSecret: planka-postgresql
+    existingSecret: *adminSecret
   serviceBindings:
     enabled: true
 
