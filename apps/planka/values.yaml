@@ -29,7 +29,7 @@ existingAdminCredsSecret: *adminSecret
 
 # Base url for PLANKA. Will override `ingress.hosts[0].host`
 # Defaults to `http://localhost:3000` if ingress is disabled.
-baseUrl: &host planka.lajas.tech
+baseUrl: &host https://planka.lajas.tech
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -74,7 +74,7 @@ ingress:
     # kubernetes.io/tls-acme: "true"
   hosts:
     # Used to set planka BASE_URL if no `baseurl` is provided.
-    - host: *host
+    - host: &host planka.lajas.tech
       paths:
         - path: /
           pathType: ImplementationSpecific
@@ -157,7 +157,7 @@ persistence:
 oidc:
   ## @param oidc.enabled Enable single sign-on (SSO) with OpenID Connect (OIDC)
   ##
-  enabled: false
+  enabled: true
 
   ## OIDC credentials
   ## @param oidc.clientId A string unique to the provider that identifies your app.
