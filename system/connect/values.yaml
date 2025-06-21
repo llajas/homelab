@@ -165,7 +165,7 @@ connect:
     # See: https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types for other possible values.
     pathType: Prefix
     hosts:
-      - host: &host "{{ .Values.connect.host }}.lajas.tech"
+      - host: &host "onepassword.lajas.tech"
         paths: []
     # Extra paths to prepend to the host configuration.
     # This is useful when working with annotation based services.
