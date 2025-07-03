@@ -436,7 +436,7 @@ worker:
   runtimeClassName: nvidia
   env:
     - name: FFMPEG_HWACCEL
-      value: nvdec
+      value: "nvdec,nvenc"
     - name: NVIDIA_VISIBLE_DEVICES
       value: all
     - name: NVIDIA_DRIVER_CAPABILITIES
@@ -521,12 +521,18 @@ worker:
       # -- Memory Request Amount
       memory: 3Gi
 
+      # -- GPU Request amount
+      nvidia.com/gpu: 1
+
     limits:
       # -- CPU Limit amount
       #cpu: []
 
       # -- Memory Limit amount
       memory: 6Gi
+
+      # -- GPU Limit amount
+      nvidia.com/gpu: 1
 
   # -- Configure the affinity rules for the worker pods. This helps prevent multiple worker pods from
   # being scheduled on the same node as another worker pod or as the main plex media server.
