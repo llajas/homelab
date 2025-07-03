@@ -436,7 +436,7 @@ worker:
   runtimeClassName: nvidia
   env:
     - name: FFMPEG_HWACCEL
-      value: "nvdec,nvenc"
+      value: "cuda"
     - name: NVIDIA_VISIBLE_DEVICES
       value: all
     - name: NVIDIA_DRIVER_CAPABILITIES
