@@ -78,11 +78,24 @@ service:
       http:
         enabled: false
         primary: false
+    {{ if .Values.pms.serviceConfig.enableHttpPorts }}
+      plex-http:
+        enabled: true
+        primary: false
+        port: 80
+        targetPort: 32400
+        protocol: TCP
+      plex-https:
+        enabled: true
+        primary: false
+        port: 443
+        targetPort: 32400
+        protocol: TCP
+    {{- end}}
       plex:
         enabled: true
         primary: true
         port: '{{ .Values.pms.config.port | default "32400" }}'
-        targerPort: '{{ .Values.pms.config.port | default "32400" }}'
         protocol: TCP
       relay:
         enabled: true
@@ -100,18 +113,27 @@ ingress:
 persistence:
   config:
     {{- toYaml .Values.pms.configVolume | nindent 4 }}
+  {{ if .Values.global.sharedStorage.transcode.enabled }}
   transcode:
     {{- toYaml .Values.global.sharedStorage.transcode | nindent 4 }}
     accessMode: ReadWriteMany
     {{ if not .Values.global.sharedStorage.transcode.existingClaim }}
     existingClaim: {{ .Release.Name }}-transcode
     {{- end }}
+  {{- end}}
   media:
     {{- toYaml .Values.global.sharedStorage.media | nindent 4 }}
     accessMode: ReadWriteMany
     {{ if not .Values.global.sharedStorage.media.existingClaim }}
     existingClaim: {{ .Release.Name }}-media
     {{- end }}
+  {{ if .Values.pms.config.sslSecret }}
+  ssl:
+    enabled: true
+    type: secret
+    name: {{ .Values.pms.config.sslSecret }}
+    mountPath: /ssl
+  {{- end }}
 {{- range $key, $value := .Values.global.sharedStorage.additionalMediaVolumes -}}
   {{ $key | nindent 2}}:
     {{- toYaml $value | nindent 4 }}

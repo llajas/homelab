@@ -164,7 +164,7 @@ pms:
 
     # -- kubernetes secert for SSL certificate, should contain a pkcs12 (.p12) key for Plex to use
     # Secret will be mounted at `/ssl`
-    sslSecret: "plex-tls-certificate"
+    sslSecret: plex-tls-certificate
 
   # -- Configure the kubernetes service associated with the the PMS component
   # @default -- See below
