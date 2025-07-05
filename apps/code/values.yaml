@@ -30,12 +30,12 @@ app-template:
             OP_CONNECT_TOKEN:
               valueFrom:
                 secretKeyRef:
-                  name: sector-vsc-
+                  name: sector-vsc
                   key: "token"
             OP_CONNECT_HOST:
               valueFrom:
                 secretKeyRef:
-                  name: sector-vsc"
+                  name: sector-vsc
                   key: "host"
           probes:
             liveness:
