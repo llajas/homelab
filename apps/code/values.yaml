@@ -37,6 +37,11 @@ app-template:
                 secretKeyRef:
                   name: sector-vsc
                   key: "host"
+            GH_TOKEN:
+              valueFrom:
+                secretKeyRef:
+                  name: sector-vsc
+                  key: "github-token"
           probes:
             liveness:
               enabled: false
