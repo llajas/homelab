@@ -25,6 +25,18 @@ app-template:
                 secretKeyRef:
                   name: sector-vsc-ssh
                   key: public-key
+            CHEZMOI_REPO: "https://github.com/llajas/dotfiles.git"
+            CHEZMOI_BRANCH: "main"
+            OP_CONNECT_TOKEN:
+              valueFrom:
+                secretKeyRef:
+                  name: "sector-vsc-op-token"
+                  key: "token"
+            OP_CONNECT_HOST:
+              valueFrom:
+                secretKeyRef:
+                  name: "sector-vsc-op-token"
+                  key: "host"
           probes:
             liveness:
               enabled: false
