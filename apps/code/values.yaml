@@ -18,24 +18,24 @@ app-template:
             SSH_PRIVATE:
               valueFrom:
                 secretKeyRef:
-                  name: sector-vsc-ssh
+                  name: sector-vsc
                   key: private-key
             SSH_PUBLIC:
               valueFrom:
                 secretKeyRef:
-                  name: sector-vsc-ssh
+                  name: sector-vsc
                   key: public-key
             CHEZMOI_REPO: "https://github.com/llajas/dotfiles.git"
             CHEZMOI_BRANCH: "main"
             OP_CONNECT_TOKEN:
               valueFrom:
                 secretKeyRef:
-                  name: "sector-vsc-op-token"
+                  name: sector-vsc-
                   key: "token"
             OP_CONNECT_HOST:
               valueFrom:
                 secretKeyRef:
-                  name: "sector-vsc-op-token"
+                  name: sector-vsc"
                   key: "host"
           probes:
             liveness:
@@ -61,4 +61,4 @@ app-template:
       fsGroup: 1000
     annotations:
       operator.1password.io/item-path: "vaults/z3emsr5qi5xqk33wthv5fpmfqa/items/6zxgtfn6jcfaw6kt6yeuyeo2qu"
-      operator.1password.io/item-name: "sector-vsc-ssh"
+      operator.1password.io/item-name: "sector-vsc"
