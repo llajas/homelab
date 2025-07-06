@@ -44,7 +44,7 @@ ingress:
   enabled: true
   className: "nginx"
   annotations: 
-    external-dns.alpha.kubernetes.io/target: "homelab-tunnel.example.com"
+    external-dns.alpha.kubernetes.io/target: "homelab-tunnel.lajas.tech"
     external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
     cert-manager.io/cluster-issuer: letsencrypt-prod
   hosts:
