@@ -196,11 +196,12 @@ pms:
       cert-manager.io/cluster-issuer: letsencrypt-prod
       external-dns.alpha.kubernetes.io/target: "homelab-tunnel.lajas.tech"
       external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+      # trust traffic that arrives from any pod address (cloudflared lives there)
+      nginx.ingress.kubernetes.io/set-real-ip-from: 10.42.0.0/16
+      # pick up the real visitor IP Cloudflare already inserts
+      nginx.ingress.kubernetes.io/real-ip-header: CF-Connecting-IP
+      # make the controller use the new client address when it builds X-F-For
       nginx.ingress.kubernetes.io/use-forwarded-headers: "true"
-      nginx.ingress.kubernetes.io/configuration-snippet: |
-        real_ip_header CF-Connecting-IP;
-      # kubernetes.io/ingress.class: nginx
-      # kubernetes.io/tls-acme: "true"
 
     # -- Provide additional labels which may be required.
     labels: {}
