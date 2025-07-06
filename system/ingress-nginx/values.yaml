@@ -1,20 +1,22 @@
 ingress-nginx:
   controller:
-    allowSnippetAnnotations: true            # you already have this
     admissionWebhooks:
       timeoutSeconds: 30
     metrics:
       enabled: true
       serviceMonitor:
         enabled: true
+    allowSnippetAnnotations: true
 
-    # ⬇︎ New section that becomes the ConfigMap
     config:
       enable-real-ip: "true"
       use-forwarded-headers: "true"
       forwarded-for-header: "CF-Connecting-IP"
-      proxy-real-ip-cidr: "10.42.0.0/16"     # covers every pod in your k3s cluster
-      compute-full-forwarded-for: "true"     # optional, keeps full X-F-F chain
+
+      real-ip-header: "CF-Connecting-IP"
+
+      proxy-real-ip-cidr: "10.42.0.0/16"
+      compute-full-forwarded-for: "true"
 
   tcp:
     22: gitea/gitea-ssh:22
