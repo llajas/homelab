@@ -1,0 +1,17 @@
+apiVersion: v2
+name: homelab-docs
+description: A Helm chart for homelab documentation service with auto-updating MkDocs
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - documentation
+  - mkdocs
+  - nginx
+  - homelab
+home: https://github.com/llajas/homelab-docs
+sources:
+  - https://github.com/llajas/homelab-docs
+maintainers:
+  - name: llajas
+    url: https://github.com/llajas
