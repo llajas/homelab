@@ -66,17 +66,6 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          {{- if .Values.persistence.enabled }}
-          volumeMounts:
-            - name: cache-volume
-              mountPath: /tmp
-          {{- end }}
-      {{- if .Values.persistence.enabled }}
-      volumes:
-        - name: cache-volume
-          persistentVolumeClaim:
-            claimName: {{ include "homelab-docs.fullname" . }}-cache
-      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
