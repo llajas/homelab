@@ -1,0 +1,9 @@
+---
+# metal/roles/virtualization/tasks/cluster.yml
+- name: Install OS Packages on virtual machines
+  include_tasks: vm_install_packages.yml
+  when: hostvars[inventory_hostname].virtual | default(false)
+
+- name: Install GPU Drivers
+  include_tasks: gpu_install_drivers.yml
+  when: hostvars[inventory_hostname].gpu_type is defined

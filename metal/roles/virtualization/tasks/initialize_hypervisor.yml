@@ -1,4 +1,17 @@
 # SPDX-License-Identifier: MIT-0
+#
+# Role Name: initialize_hypervisor
+#
+# This role checks that the libvirt service is listening on 0.0.0.0 and that the libvirt service is running.
+# If the configuration is not correct, the role will correct it and restart the service, else it will do nothing.
+#
+# Requirements:
+#   - The 'libvirt' package must be installed on the target machine (default hypervisor for Unraid).
+#   - The 'python3' package must be installed on the target machine for Ansible to run (installable via NerdPack in Unraid GUI).
+#
+# Variables:
+#   - This role has no variables, but reads the Unraid address from global Ansible variables.
+#
 ---
 # tasks file for initialize_hypervisor
 

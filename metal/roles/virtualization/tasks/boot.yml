@@ -1,0 +1,21 @@
+---
+# metal/roles/virtualization/tasks/boot.yml
+- name: Initialize Hypervisor
+  include_tasks: initialize_hypervisor.yml
+  when: has_virtual_machines
+
+- name: Detect GPU
+  include_tasks: detect_gpu.yml
+  when: has_gpu_nodes
+
+- name: Generate GPU XSLT
+  include_tasks: generate_gpu_xslt.yml
+  when: has_gpu_nodes
+
+- name: Create Virtual Machines
+  include_tasks: create_virtual_machines.yml
+  when: has_virtual_machines
+
+- name: Update VM WOL
+  include_tasks: update_vm_wol.yml
+  when: has_virtual_machines
