@@ -1,0 +1,101 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "paperless-ai.fullname" . }}
+  labels:
+    {{- include "paperless-ai.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replica.replicaCount }}
+  strategy:
+    type: {{ .Values.replica.strategy.type }}
+  selector:
+    matchLabels:
+      {{- include "paperless-ai.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "paperless-ai.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          livenessProbe:
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- with .Values.envs }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "paperless-ai.fullname" . }}-config
+          {{- if .Values.openAi.apiKey }}
+            - secretRef:
+                name: {{ include "paperless-ai.fullname" . }}-open-ai-api
+          {{- end }}
+          {{- if .Values.paperless.apiToken }}
+            - secretRef:
+                name: {{ include "paperless-ai.fullname" . }}-paperless-api
+          {{- end }}
+          {{- if or .Values.persistence.config.enabled .Values.persistence.data.enabled }}
+          volumeMounts:
+            - name: {{ include "paperless-ai.fullname" . }}-volume-config
+              mountPath: {{ .Values.persistence.config.mountPath }}
+              subPath: {{ .Values.persistence.config.subPath }}
+            - name: {{ include "paperless-ai.fullname" . }}-volume-envfile
+              mountPath: {{ .Values.persistence.envfile.mountPath }}
+              subPath: {{ .Values.persistence.envfile.subPath }}
+          {{- if .Values.persistence.data.enabled }}
+            - name: {{ include "paperless-ai.fullname" . }}-volume-data
+              mountPath: {{ .Values.persistence.data.mountPath }}
+          {{- end }}
+          {{- end }}
+      {{- if or .Values.persistence.config.enabled .Values.persistence.data.enabled }}
+      volumes:
+        - name: {{ include "paperless-ai.fullname" . }}-volume-config
+          configMap:
+            name: {{ include "paperless-ai.fullname" . }}-config-file
+        - name: {{ include "paperless-ai.fullname" . }}-volume-envfile
+          secret:
+            secretName: {{ include "paperless-ai.fullname" . }}-env-file
+      {{- if .Values.persistence.data.enabled }}
+        - name: {{ include "paperless-ai.fullname" . }}-volume-data
+          persistentVolumeClaim:
+            claimName: {{ include "paperless-ai.fullname" . }}-pvc-data
+      {{- end }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

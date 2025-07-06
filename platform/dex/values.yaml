@@ -23,6 +23,7 @@ dex:
             - profile
             - email
             - groups
+          insecureEnableGroups: true
     staticClients:
       - id: grafana-sso
         name: Grafana
@@ -39,6 +40,11 @@ dex:
         redirectURIs:
           - https://open-webui.lajas.tech/oauth/oidc/callback
         secretEnv: OPEN_WEBUI_CLIENT_SECRET
+      - id: planka
+        name: Planka
+        redirectURIs:
+          - https://planka.lajas.tech/oidc-callback
+        secretEnv: PLANKA_CLIENT_SECRET
   envFrom:
     - secretRef:
         name: dex-secrets

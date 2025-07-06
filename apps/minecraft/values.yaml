@@ -10,6 +10,9 @@ image:
 # ### WARNING ###
 replicaCount: 1
 
+nameOverride: ""
+fullnameOverride: ""
+
 ## Configure resource requests and limits
 ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
 ##
@@ -201,7 +204,7 @@ extraDeploy:
           compression-level: 6
           enable-proxy-protocol: false
         remote:
-          address: "minecraft-minecraft.minecraft.svc.cluster.local"
+          address: "minecraft.minecraft.svc.cluster.local"
           port: 25565
           auth-type: "online"
           allow-password-authentication: true
@@ -233,7 +236,7 @@ extraDeploy:
         add-non-bedrock-items: true
         above-bedrock-nether-building: true
         force-resource-packs: true
-        xbox-achievements-enabled: false
+        xbox-achievements-enabled: true
         log-player-ip-addresses: true
         notify-on-new-bedrock-update: true
         unusable-space-block: "minecraft:barrier"
@@ -258,19 +261,34 @@ extraDeploy:
         requests:
           storage: 1Gi
 
+## Extra fields to set on the pod
+##
+## Fields set here will be added to the end of the Pod spec
+## Can include any fields from https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#PodSpec
+## that are not already set by the chart.
+##
+## The value of the field will be interpretted as a template.
+##
+# extraPodSpec:
+#   priorityClassName: 'my-priority-class'
+extraPodSpec: {}
+
 minecraftServer:
   # This must be overridden, since we can't accept this for the user.
   eula: "TRUE"
   # One of: LATEST, SNAPSHOT, or a specific version (ie: "1.7.9").
-  version: "1.21.4"
-  # This can be one of "VANILLA", "FORGE", "SPIGOT", "BUKKIT", "PAPER", "FTBA", "SPONGEVANILLA", "CURSEFORGE", or "FABRIC"
-  type: "VANILLA"
+  version: "1.21.5"
+  ## The type of Minecraft server to run, check for related settings below
+  ## Common types: "VANILLA", "FABRIC", "FORGE", "SPIGOT", "BUKKIT", "PAPER",
+  ## "FTBA", "SPONGEVANILLA", "AUTO_CURSEFORGE"
+  ## ref: https://docker-minecraft-server.readthedocs.io/en/latest/types-and-platforms
+  type: "FABRIC"
   # If type is set to FORGE, this sets the version; this is ignored if forgeInstallerUrl is set
   forgeVersion:
-  # If type is set to SPONGEVANILLA, this sets the version
-  spongeVersion:
   # If type is set to FORGE, this sets the URL to download the Forge installer
   forgeInstallerUrl:
+  # If type is set to SPONGEVANILLA, this sets the version
+  spongeVersion:
   # If type is set to BUKKIT, this sets the URL to download the Bukkit package
   bukkitDownloadUrl:
   # If type is set to SPIGOT, this sets the URL to download the Spigot package
@@ -283,6 +301,14 @@ minecraftServer:
   ftbModpackVersionId:
   # If type is set to CURSEFORGE, this sets the server mod to run. Can also provide url to curseforge package.
   cfServerMod:
+  ## If type is set to FABRIC, this sets the version of fabric server launcher
+  ## to use. Defaults to latest available for minecraftServer.version.
+  ##
+  ## For a custom launcher, see: https://docker-minecraft-server.readthedocs.io/en/latest/types-and-platforms/server-types/fabric/
+  fabricLauncherVersion:
+  ## If type is set to FABRIC, this sets the version of fabric-loader to use.
+  ## Defaults to latest available for minecraftServer.version.
+  fabricLoaderVersion:
   # Set to true if running Feed The Beast and get an error like "unable to launch forgemodloader"
   ftbLegacyJavaFixer: default
   # One of: peaceful, easy, normal, and hard
@@ -376,6 +402,7 @@ minecraftServer:
   # Set the external port of the service, usefull when using the LoadBalancer service type
   servicePort: 25565
   clusterIP:
+  loadBalancerClass:
   loadBalancerIP: 10.137.0.248
   # loadBalancerSourceRanges: []
   ## Set the externalTrafficPolicy in the Service to either Cluster or Local
@@ -404,9 +431,14 @@ minecraftServer:
 
   # A list of Modrinth project slugs with optional version after colon
   modrinth:
-    projects: []
+    projects:
+      - fabric-api
+      - worldedit:7.3.12-beta-02
+      - xaeros-world-map
+      - xaeros-minimap
+      - cloth-config
     # Downloads Modrinth project dependencies marked as optional
-    optionalDependencies: false
+    optionalDependencies: true
     # The version type is used to determine the newest version to use from each project. The allowed values are: release, beta, alpha
     allowedVersionType: release
 
@@ -415,7 +447,7 @@ minecraftServer:
     # CurseForge API key obtained from developer console
     apiKey:
       key: "CHANGEME!"
-      existingSecret: ""
+      existingSecret: "minecraft-player-secrets"
       secretKey: cf-api-key
     # Link to modpack in general or a specific file
     # NOTE: In case of specific file - do not point at server file
@@ -458,10 +490,14 @@ minecraftServer:
     ## Set the external port if the rcon serviceType is NodePort
     nodePort:
     clusterIP:
+    loadBalancerClass:
     loadBalancerIP:
     # loadBalancerSourceRanges: []
     ## Set the externalTrafficPolicy in the Service to either Cluster or Local
     # externalTrafficPolicy: Cluster
+
+  ## set this to false to not have colorized logs
+  tty: true
 
   extraPorts:
     []
@@ -679,13 +715,27 @@ mcbackup:
     smb:
       server: "//nas-01.storage.lajas.tech/"
       shareName: "minecraft_world_backup/bluffcraft"
+      secret: "smb-creds"
 
     # NFS Configuration
     nfs:
       server: "nas-01.storage.lajas.tech"
       path: "/mnt/user/minecraft-worlds"
 
-opSecret:
+#opSecret:
+#  vault: "z3emsr5qi5xqk33wthv5fpmfqa"
+#  item: "wczp2hwip4lt7zxbjjkajcpnsy"
+#  secretName: "spectrum-secrets"
+
+opSecrets:
   vault: "z3emsr5qi5xqk33wthv5fpmfqa"
-  item: "wczp2hwip4lt7zxbjjkajcpnsy"
-  secretName: "spectrum-secrets"
+  secrets:
+    - name: spectrum-secrets
+      item: "wczp2hwip4lt7zxbjjkajcpnsy"
+      secretName: "spectrum-secrets"
+    - name: smb-creds
+      item: "ygmkhtq6qsphcymjceabnfhniq"
+      secretName: "smb-creds"
+    - name: minecraft-player-secrets
+      item: "weatiwfamdvnxzf7bapu6ow2wy"
+      secretName: "minecraft-player-secrets"

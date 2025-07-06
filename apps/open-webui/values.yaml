@@ -3,13 +3,19 @@ open-webui:
     ollama:
       models:
         pull:
-          - llama3.2:3b
-          - gemma2:9b
-          - hermes3:8b
-          - qwen2.5-coder:7b
-          - deepseek-r1:8b
           - deepseek-coder:6.7b
+          - deepseek-r1:14b
+          - deepseek-r1:8b
+          - gemma2:9b
+          - gemma3:12b
           - granite-code:8b
+          - hermes3:8b
+          - llama3.2-vision:11b
+          - llama3.2:3b
+          - llava:13b
+          - phi4:14b
+          - qwen2.5-coder:14b
+          - qwen2.5-coder:7b
     runtimeClassName: nvidia
     ingress:
       enabled: true
@@ -32,17 +38,16 @@ open-webui:
         value: "all"
     persistentVolume:
       enabled: true
-      size: 50Gi
+      size: 100Gi
     affinity:
       nodeAffinity:
-        preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
-            preference:
-              matchExpressions:
-                - key: nvidia.com/gpu.compute.major
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: nvidia.com/gpu.memory
                   operator: In
                   values:
-                    - "7"
+                    - "12288"
   ingress:
     enabled: true
     class: nginx
@@ -60,7 +65,7 @@ open-webui:
     - name: OAUTH_CLIENT_SECRET
       valueFrom:
         secretKeyRef:
-          name: open-webui-oauth
+          name: &oauthSecret open-webui-oauth
           key: client_secret
     - name: OPENID_PROVIDER_URL
       value: "https://dex.lajas.tech/.well-known/openid-configuration"
@@ -78,3 +83,9 @@ open-webui:
       value: *openwebuihost
     - name: BYPASS_MODEL_ACCESS_CONTROL
       value: "true"
+
+opSecrets:
+  vault: "z3emsr5qi5xqk33wthv5fpmfqa"
+  oauth:
+    item: "rznaz276pelmmcgsvgyun4expy"
+    secretName: *oauthSecret

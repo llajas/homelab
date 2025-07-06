@@ -1,0 +1,12 @@
+apiVersion: v2
+appVersion: 2.0.0-rc.3
+dependencies:
+  - alias: postgresql
+    condition: postgresql.enabled
+    name: postgresql
+    repository: https://charts.bitnami.com/bitnami
+    version: 16.6.6
+description: A Helm chart to deploy PLANKA and it's dependencies.
+name: planka
+type: application
+version: 1.0.3

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.persistence.consume.existingClaim }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.consume.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.consume.size }}
+  storageClassName: {{ .Values.persistence.consume.storageClass }}
+  volumeName: {{ .Values.persistence.consume.existingClaim }}

@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Release.Name }}-consume-smb
+  namespace: {{ .Release.Namespace }}
+spec:
+  capacity:
+    storage: {{ .Values.persistence.consume.size }}
+  accessModes:
+    - {{ .Values.persistence.consume.accessMode }}
+  csi:
+    driver: {{ .Values.persistence.consume.driver }}
+    volumeHandle: {{ .Release.name }}-consume
+    volumeAttributes:
+      source: {{ .Values.persistence.consume.server }}
+      subDir: {{ .Values.persistence.consume.path }}
+    nodeStageSecretRef:
+      name: {{ .Values.persistence.consume.secretName }}
+      namespace: {{ .Release.Namespace }}
+  # set the reclaim policy to Retain if the values file sets it to True otherwise set it to delete
+  persistentVolumeReclaimPolicy: {{ if .Values.persistence.consume.reclaimPolicy }}{{ .Values.persistence.consume.reclaimPolicy }}{{ else }}Retain{{ end }}
+  storageClassName: {{ .Values.persistence.consume.storageClass }}
+  mountOptions:
+    - dir_mode=0777
+    - file_mode=0777
+    - uid=1000
+    - gid=1000
+    - cache=strict
+    - noserverino
+    - nobrl

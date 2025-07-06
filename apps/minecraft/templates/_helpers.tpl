@@ -3,17 +3,44 @@
 Expand the name of the chart.
 */}}
 {{- define "minecraft.name" -}}
-{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- $nameOverride := (and .Values (get .Values "nameOverride")) }}
+{{- default .Chart.Name $nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
+
+{{/*
+Set the chart fullname
+We truncate at 63 chars because some Kubernetes name fields are limited to this (by the labels spec).
+We change "+" with "_" for OCI compatibility
+*/}}
+{{- define "chart.fullname" -}}
+{{- printf "%s-%s" .Chart.Name (.Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-") -}}
+{{- end }}
+
+{{/*
+Set the chart version
+We truncate at 63 chars because some Kubernetes name fields are limited to this (by the labels spec).
+We change "+" with "_" for OCI compatibility
+*/}}
+{{- define "chart.version" -}}
+{{- default .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
+{{- end }}
 
 {{/*
 Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 */}}
 {{- define "minecraft.fullname" -}}
-{{- $name := default .Chart.Name .Values.nameOverride -}}
-{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
+{{- if and .Values (hasKey .Values "fullnameOverride") .Values.fullnameOverride }}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- $name := default .Chart.Name (and .Values (get .Values "nameOverride")) }}
+{{- if contains $name .Release.Name }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+{{- end }}
 
 {{- define "minecraft.ingress.apiVersion" -}}
 {{- if semverCompare "<1.14-0" .Capabilities.KubeVersion.Version -}}
@@ -26,20 +53,15 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 {{- end -}}
 
 {{- define "minecraft.envMap" }}
-{{- if index . 1 }}
-        - name: {{ index . 0 }}
-          value: {{ index . 1 | quote }}
-{{- end }}
-{{- end }}
-
-{{- define "minecraft.envBoolMap" }}
 {{- if ne (toString (index . 1)) "default" }}
+{{- if or (index . 1) (kindIs "float64" (index . 1)) (kindIs "bool" (index . 1)) }}
         - name: {{ index . 0 }}
           value: {{ index . 1 | quote }}
 {{- end }}
 {{- end }}
+{{- end }}
 
-{{- define "extraDeploy.render" -}}
+{{- define "tplRender" -}}
 {{- $value := typeIs "string" .value | ternary .value (.value | toYaml) }}
 {{- if contains "{{" (toJson .value) }}
   {{- if .scope }}

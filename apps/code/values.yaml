@@ -1,0 +1,69 @@
+app-template:
+  controllers:
+    main:
+      containers:
+        main:
+          image:
+            repository: registry.lajas.tech/vscode-tunnel
+            tag: latest
+            pullPolicy: Always
+          env:
+            TZ: "America/Chicago"
+            TUNNEL_NAME: &host "sector-vsc"
+            PROVIDER: "github"
+            GIT_USER_NAME: "llajas"
+            GIT_USER_EMAIL: "29675370+llajas@users.noreply.github.com"
+            DOCKER_HOST: ssh://root@unraid.mgmt.lajas.tech
+            PRIVATE_KEY: "false"
+            SSH_PRIVATE:
+              valueFrom:
+                secretKeyRef:
+                  name: sector-vsc
+                  key: private-key
+            SSH_PUBLIC:
+              valueFrom:
+                secretKeyRef:
+                  name: sector-vsc
+                  key: public-key
+            CHEZMOI_REPO: "https://github.com/llajas/dotfiles.git"
+            CHEZMOI_BRANCH: "main"
+            OP_CONNECT_TOKEN:
+              valueFrom:
+                secretKeyRef:
+                  name: sector-vsc
+                  key: "token"
+            OP_CONNECT_HOST:
+              valueFrom:
+                secretKeyRef:
+                  name: sector-vsc
+                  key: "host"
+            GH_TOKEN:
+              valueFrom:
+                secretKeyRef:
+                  name: sector-vsc
+                  key: "github-token"
+          probes:
+            liveness:
+              enabled: false
+            readiness:
+              enabled: false
+            startup:
+              enabled: false
+  service:
+    main:
+      enabled: false
+  persistence:
+    data:
+      accessMode: ReadWriteOnce
+      size: 15Gi
+      advancedMounts:
+        main:
+          main:
+            - path: /home/red
+  defaultPodOptions:
+    hostname: *host
+    securityContext:
+      fsGroup: 1000
+    annotations:
+      operator.1password.io/item-path: "vaults/z3emsr5qi5xqk33wthv5fpmfqa/items/6zxgtfn6jcfaw6kt6yeuyeo2qu"
+      operator.1password.io/item-name: "sector-vsc"

@@ -11,7 +11,7 @@ image:
   # -- Image pull policy
   pullPolicy: IfNotPresent
   # -- Image tag
-  tag: 2.13.5
+  tag: 2.15.3
 
 # -- Environment variables [[ref]](https://docs.paperless-ngx.com/configuration/)
 # @default -- See [values.yaml](./values.yaml)
@@ -22,6 +22,7 @@ env:
   PAPERLESS_PORT: 8000
   PAPERLESS_ADMIN_USER: root
   PAPERLESS_URL: https://paperless.lajas.tech
+  PAPERLESS_CONSUMER_POLLING: 10
 
 envFrom:
   - secretRef:
@@ -85,9 +86,14 @@ persistence:
     enabled: true
     retain: true
     mountPath: /usr/src/paperless/consume
-    storageClass: ""
+    storageClass: "smb"
     accessMode: ReadWriteOnce
     size: 4Gi
+    existingClaim: "paperless-consume-smb"
+    server: "//nas-01.storage.lajas.tech/"
+    path: "documents/"
+    driver: "smb.csi.k8s.io"
+    secretName: cifs.creds.smb
 
 # -- Enable and configure postgresql database subchart under this key.
 #    If enabled, the app's db envs will be set for you.
@@ -153,3 +159,6 @@ opSecrets:
   paperless:
     item: "k4k4iiq2soj5bjxtya35c3bxx4"
     secretName: "paperless-secret"
+  consume:
+    item: "lqvk4ql32rlorykjtxgf22echm"
+    secretName: "cifs.creds.smb"

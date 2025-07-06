@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema",
-    "required": ["minecraftServer"],
+    "required": ["minecraftServer", "initContainers", "sidecarContainers"],
     "properties": {
         "minecraftServer": {
             "type": "object",
@@ -30,10 +30,16 @@
                     "type": "string"
                 },
                 "maxPlayers": {
-                    "type": "integer"
+                    "oneOf": [
+                        {"type": "integer"},
+                        {"enum": ["default"]}
+                    ]
                 },
                 "maxWorldSize": {
-                    "type": "integer"
+                    "oneOf": [
+                        {"type": "integer"},
+                        {"enum": ["default"]}
+                    ]
                 },
                 "modrinth": {
                     "type": "object",
@@ -46,11 +52,11 @@
                             },
                             "uniqueItems": true
                         },
-                        "optionalDependencies": {
-                            "type": "boolean"
+                        "downloadDependencies": {
+                            "enum": ["none", "required", "optional"]
                         },
                         "allowedVersionType": {
-                            "enum": ["release", "beta", "alpha"]
+                            "enum": ["release", "beta", "alpha", "default"]
                         }
                     }
                 },
@@ -135,13 +141,28 @@
                     }
                 },
                 "maxBuildHeight": {
-                    "type": "integer"
+                    "oneOf": [
+                        {"type": "integer"},
+                        {"enum": ["default"]}
+                    ]
                 },
                 "maxTickTime": {
-                    "type": "integer"
+                    "oneOf": [
+                        {"type": "integer"},
+                        {"enum": ["default"]}
+                    ]
                 },
                 "spawnProtection": {
-                    "type": "integer"
+                    "oneOf": [
+                        {"type": "integer"},
+                        {"enum": ["default"]}
+                    ]
+                },
+                "viewDistance": {
+                    "oneOf": [
+                        {"type": "integer"},
+                        {"enum": ["default"]}
+                    ]
                 },
                 "ftbLegacyJavaFixer": {
                     "anyOf": [{"type": "string", "enum": ["default"]}, {"type": "boolean"}]},
@@ -184,13 +205,35 @@
                     "enum": [
                         "tar",
                         "restic",
-                        "rclone"
+                        "rclone",
+                        "rsync"
                     ]
                 },
                 "resticRepository": {
                     "type": "string"
                 }
             }
+        },
+        "extraPodSpec": {
+            "type": "object"
+        },
+        "initContainers": {
+            "items": {
+                "type": ["object", "string"]
+            },
+            "type": "array"
+        },
+        "sidecarContainers": {
+            "items": {
+                "type": ["object", "string"]
+            },
+            "type": "array"
+        },
+        "extraDeploy": {
+            "items": {
+                "type": ["object", "string"]
+            },
+            "type": "array"
         }
     }
 }

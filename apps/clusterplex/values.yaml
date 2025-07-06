@@ -6,7 +6,7 @@ global:
     repository: linuxserver/plex
 
     # -- The image tag to use
-    tag: 1.40.5
+    tag: 1.41.8
 
     # -- Defines when the image should be pulled. Options are Always (default), IfNotPresent, and Never
     imagePullPolicy: Always
@@ -123,14 +123,14 @@ pms:
   #      value: UTC
   # F) - name: TZ
   #      value: '{{ .Release.Name }}'
-  #  runtimeClassName: nvidia
-  #  env:
-  #    - name: FFMPEG_HWACCEL
-  #      value: nvdec
-  #    - name: NVIDIA_VISIBLE_DEVICES
-  #      value: all
-  #    - name: NVIDIA_DRIVER_CAPABILITIES
-  #      value: all
+  runtimeClassName: nvidia
+  env:
+    - name: FFMPEG_HWACCEL
+      value: cuda
+    - name: NVIDIA_VISIBLE_DEVICES
+      value: all
+    - name: NVIDIA_DRIVER_CAPABILITIES
+      value: all
   # -- Supply the configuration items used to configure the PMS component
   # @default -- See below
   config:
@@ -162,6 +162,10 @@ pms:
     # -- The IP address that plex is using. This is only utilized if you disable the localRelayEnabled option above.
     pmsIP: ""
 
+    # -- kubernetes secert for SSL certificate, should contain a pkcs12 (.p12) key for Plex to use
+    # Secret will be mounted at `/ssl`
+    sslSecret: plex-tls-certificate
+
   # -- Configure the kubernetes service associated with the the PMS component
   # @default -- See below
   serviceConfig:
@@ -178,6 +182,9 @@ pms:
     # -- Provide additional labels which may be required.
     labels: {}
 
+    # -- Enable ports 80/443 on service
+    enableHttpPorts: false
+
   # -- Configure the ingress for plex here.
   # @default -- See below
   ingressConfig:
@@ -187,8 +194,8 @@ pms:
     # -- Provide additional annotations which may be required.
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-prod
-      #external-dns.alpha.kubernetes.io/target: "homelab-tunnel.lajas.tech"
-      #external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+      external-dns.alpha.kubernetes.io/target: "homelab-tunnel.lajas.tech"
+      external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
       # kubernetes.io/ingress.class: nginx
       # kubernetes.io/tls-acme: "true"
 
@@ -201,7 +208,7 @@ pms:
     ## Configure the hosts for the ingress
     hosts:
       - # -- Host address. Helm template can be passed.
-        host: &host pleks.lajas.tech
+        host: &host plex.lajas.tech
         ## Configure the paths for the host
         paths:
           - # -- Path.  Helm template can be passed.
@@ -215,7 +222,7 @@ pms:
 
     # -- Configure TLS for the ingress. Both secretName and hosts can process a Helm template.
     tls:
-      - secretName: pleks-tls-certificate
+      - secretName: plex-tls-certificate
         hosts:
           - *host
 
@@ -429,7 +436,7 @@ worker:
   runtimeClassName: nvidia
   env:
     - name: FFMPEG_HWACCEL
-      value: nvdec
+      value: "cuda"
     - name: NVIDIA_VISIBLE_DEVICES
       value: all
     - name: NVIDIA_DRIVER_CAPABILITIES
@@ -514,12 +521,18 @@ worker:
       # -- Memory Request Amount
       memory: 3Gi
 
+      # -- GPU Request amount
+      nvidia.com/gpu: 1
+
     limits:
       # -- CPU Limit amount
       #cpu: []
 
       # -- Memory Limit amount
       memory: 6Gi
+
+      # -- GPU Limit amount
+      nvidia.com/gpu: 1
 
   # -- Configure the affinity rules for the worker pods. This helps prevent multiple worker pods from
   # being scheduled on the same node as another worker pod or as the main plex media server.
