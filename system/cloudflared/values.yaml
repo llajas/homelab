@@ -1,7 +1,7 @@
 app-template:
   controllers:
     cloudflared:
-      replicas: 3
+      replicas: 1
       strategy: RollingUpdate
       containers:
         app:
