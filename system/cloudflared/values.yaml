@@ -1,7 +1,7 @@
 app-template:
   controllers:
     cloudflared:
-      replicas: 2
+      replicas: 3
       strategy: RollingUpdate
       containers:
         app:
@@ -13,16 +13,19 @@ app-template:
             - --config
             - /etc/cloudflared/config.yaml
             - run
-      affinity:
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            - labelSelector:
-                matchExpressions:
-                  - key: app.kubernetes.io/name
-                    operator: In
-                    values:
-                      - cloudflared
-              topologyKey: "kubernetes.io/hostname"
+
+  defaultPodOptions:
+    affinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+                - key: app.kubernetes.io/name
+                  operator: In
+                  values:
+                    - cloudflared
+            topologyKey: "kubernetes.io/hostname"
+
   configMaps:
     config:
       enabled: true
