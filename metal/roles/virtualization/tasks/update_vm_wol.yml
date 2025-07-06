@@ -1,4 +1,19 @@
 # SPDX-License-Identifier: MIT-0
+#
+# Role Name: update_vm_wol
+#
+# This role modifies the /boot/config/wol.json file on an Unraid machine to add virtual nodes specified in the inventory, allowing those hosts to be powered on via WoL magic packets.
+#
+# Requirements:
+#   - The 'python3' package must be installed on the target machine for Ansible to run (installable via NerdPack in Unraid GUI).
+#   - The community plugin WOLforServices for Unraid must be installed (https://github.com/SimonFair/WOLforServices/).
+#
+# Variables:
+#   - This role has no variables, but reads the Unraid address from global Ansible variables.
+#
+# Dependencies:
+#   - WOLforServices (https://github.com/SimonFair/WOLforServices/)
+#
 ---
 # tasks file for updating wol.json
 

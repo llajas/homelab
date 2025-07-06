@@ -2,12 +2,10 @@
   hosts: metal
   gather_facts: true
 
-  roles:
-    - role: vm_install_packages
-      when: hostvars[inventory_hostname].virtual | default(false)
-
-    - role: gpu_install_drivers
-      when: hostvars[inventory_hostname].gpu_type is defined
+  tasks:
+    - import_role:
+        name: virtualization
+        tasks_from: cluster
 
 - name: Create Kubernetes cluster
   hosts: metal

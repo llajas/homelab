@@ -44,7 +44,7 @@
       terraform -chdir={{ playbook_dir }}/virtual apply
       -var "hypervisor_user={{ hypervisor_user }}"
       -var "hypervisor_host={{ hypervisor_host }}"
-      -var "keyfile=/home/red/.ssh/id_ed25519"
+      -var "keyfile={{ keyfile }}"
       -var "storage_pool_path={{ storage_pool_path }}"
       -var "storage_pool_name={{ storage_pool_name }}"
       -var "bridge_interface={{ bridge_interface }}"
