@@ -196,7 +196,7 @@ pms:
       cert-manager.io/cluster-issuer: letsencrypt-prod
       external-dns.alpha.kubernetes.io/target: "homelab-tunnel.lajas.tech"
       nginx.ingress.kubernetes.io/real-ip-header: "CF-Connecting-IP"
-      nginx.ingress.kubernetes.io/proxy-real-ip-cidr: "10.42.0.0/16"
+      nginx.ingress.kubernetes.io/set-real-ip-from: 10.42.0.0/16     # <- valid
       nginx.ingress.kubernetes.io/use-forwarded-headers: "true"
 
     # -- Provide additional labels which may be required.
