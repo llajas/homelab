@@ -1,0 +1,30 @@
+container:
+  name: spectrum-sync
+  image: "registry.lajas.tech/minecraft-spectrum-sync:latest"
+  env:
+    - name: API_TOKEN
+      valueFrom:
+        secretKeyRef:
+          name: spectrum-secrets
+          key: cloudflare_api_token
+    - name: ZONE_ID
+      valueFrom:
+        secretKeyRef:
+          name: spectrum-secrets
+          key: cloudflare_zone_id
+    - name: CUSTOM_DOMAIN
+      valueFrom:
+        secretKeyRef:
+          name: spectrum-secrets
+          key: custom_domain
+    - name: SPECTRUM_PROTOCOL
+      value: "ssh"
+    - name: SPECTRUM_PORT
+      value: "22"
+
+opSecrets:
+  vault: "z3emsr5qi5xqk33wthv5fpmfqa"
+  secrets:
+    - name: spectrum-secrets
+      item: "4xwvjow2efo6nakzrgta5guuqi"
+      secretName: "spectrum-secrets"
