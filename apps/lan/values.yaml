@@ -2,7 +2,7 @@ unraidHttp:
   enabled: true
   name: unraid-http
   service:
-    port: 80
+    port: 8080
     targetPort: 80
   endpoints:
     ip: 10.33.0.5
