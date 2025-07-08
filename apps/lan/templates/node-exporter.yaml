@@ -31,3 +31,16 @@ spec:
     - port: {{ .Values.nodeExporter.service.portName }}
       interval: {{ .Values.nodeExporter.serviceMonitor.interval }}
 {{- end }}
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: {{ .Values.nodeExporter.name }}
+  namespace: {{ .Release.Namespace }}
+subsets:
+  - addresses:
+      - ip: {{ .Values.unraidHttp.endpoints.ip }}
+    ports:
+      - name: {{ .Values.nodeExporter.service.portName }}
+        port: {{ .Values.nodeExporter.service.port }}
+        protocol: TCP

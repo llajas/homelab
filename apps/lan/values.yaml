@@ -25,7 +25,7 @@ nodeExporter:
   namespace: monitoring-system
   service:
     type: ExternalName
-    externalName: 10.8.0.8
+    externalName: unraid.mgmt.lajas.tech
     portName: metrics
     port: 9100
   serviceMonitor:
