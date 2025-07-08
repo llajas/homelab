@@ -24,9 +24,10 @@ nodeExporter:
   name: unraid-node-exporter
   namespace: monitoring-system
   service:
+    type: ExternalName
     externalName: 10.8.0.8
+    portName: metrics
     port: 9100
-    targetPort: 9100
   serviceMonitor:
     enabled: true
     releaseLabel: prometheus
