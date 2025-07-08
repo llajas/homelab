@@ -1,0 +1,25 @@
+{{- if .Values.unraidHttp.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.unraidHttp.ingress.name }}
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    {{- toYaml .Values.unraidHttp.ingress.annotations | nindent 4 }}
+spec:
+  ingressClassName: {{ .Values.unraidHttp.ingress.className }}
+  tls:
+  - hosts: [{{ .Values.unraidHttp.ingress.host }}]
+    secretName: {{ .Values.unraidHttp.ingress.tlsSecret }}
+  rules:
+  - host: {{ .Values.unraidHttp.ingress.host }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Values.unraidHttp.name }}
+            port:
+              number: {{ .Values.unraidHttp.service.port }}
+{{- end }}

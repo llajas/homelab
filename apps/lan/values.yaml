@@ -1,0 +1,33 @@
+unraidHttp:
+  enabled: true
+  name: unraid-http
+  service:
+    port: 80
+    targetPort: 80
+  endpoints:
+    ip: 10.33.0.5
+  ingress:
+    enabled: true
+    name: unraid
+    className: nginx
+    host: unraid.lajas.tech
+    tlsSecret: unraid-tls
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+      nginx.ingress.kubernetes.io/proxy-ssl-verify: "off"
+      external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+      external-dns.alpha.kubernetes.io/target: "homelab-tunnel.lajas.tech"
+
+nodeExporter:
+  enabled: true
+  name: unraid-node-exporter
+  namespace: monitoring-system
+  service:
+    externalName: 10.8.0.8
+    port: 9100
+    targetPort: 9100
+  serviceMonitor:
+    enabled: true
+    releaseLabel: prometheus
+    interval: 30s
