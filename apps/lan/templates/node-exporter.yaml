@@ -1,0 +1,33 @@
+{{- if .Values.nodeExporter.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.nodeExporter.name }}
+  namespace: {{ .Values.nodeExporter.namespace }}
+  labels:
+    app: {{ .Values.nodeExporter.name }}
+spec:
+  type: {{ .Values.nodeExporter.service.type }}
+  externalName: {{ .Values.nodeExporter.service.externalName }}
+  ports:
+    - port: {{ .Values.nodeExporter.service.port }}
+      targetPort: {{ .Values.nodeExporter.service.port }}
+      protocol: TCP
+      name: {{ .Values.nodeExporter.service.portName }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Values.nodeExporter.name }}
+  namespace: {{ .Values.nodeExporter.namespace }}
+  labels:
+    release: {{ .Values.nodeExporter.serviceMonitor.releaseLabel }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.nodeExporter.name }}
+  endpoints:
+    - port: {{ .Values.nodeExporter.service.portName }}
+      interval: {{ .Values.nodeExporter.serviceMonitor.interval }}
+{{- end }}
