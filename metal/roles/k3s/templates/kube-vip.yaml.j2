@@ -30,6 +30,10 @@ spec:
           value: "64513"
         - name: bgp_peers
           value: 10.137.0.1:64512
+        - name: bgp_router_id
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
       securityContext:
         capabilities:
           add:
