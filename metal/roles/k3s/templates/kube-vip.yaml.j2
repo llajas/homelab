@@ -12,14 +12,26 @@ spec:
       env:
         - name: address
           value: {{ control_plane_endpoint }}
+        - name: port
+          value: "6443"
+        - name: cp_namespace
+          value: "kube-system"
         - name: vip_arp
-          value: "true"
+          value: "false"
         - name: cp_enable
           value: "true"
         - name: vip_leaderelection
           value: "true"
         - name: lb_enable
           value: "false"
+        - name: bgp_enable
+          value: "true"
+        - name: bgp_as
+          value: "64513"
+        - name: bgp_routerid
+          value: "auto"
+        - name: bgp_peers
+          value: 10.137.0.1:64512
       securityContext:
         capabilities:
           add:
