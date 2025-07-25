@@ -1,6 +1,6 @@
 ---
 apiVersion: v2
-appVersion: 3.0.2
+appVersion: 4.0.9
 description: Node-RED is low-code programming for event-driven applications
 name: node-red
 version: 10.3.3
