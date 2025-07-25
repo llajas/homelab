@@ -762,7 +762,6 @@ podDnsConfig:
   nameservers:
     - 10.43.0.10
     - 127.0.0.1
-    - 8.8.8.8
 
 # -- configure a Pod Disruption Budget
 podDisruptionBudget:
