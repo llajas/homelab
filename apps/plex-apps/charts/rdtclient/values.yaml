@@ -2,6 +2,11 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+env:
+  PUID: 1000
+  PGID: 1000
+  TZ: "America/Chicago"
+
 image:
   repository: rogerfar/rdtclient
   pullPolicy: IfNotPresent
@@ -19,10 +24,6 @@ strategy:
 service:
   type: ClusterIP
   port: 6500
-
-securityContext:
-  runAsUser: 911
-  runAsGroup: 911
 
 ingress:
   main:
