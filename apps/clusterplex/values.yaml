@@ -1,4 +1,7 @@
 global:
+  annotations:
+    operator.1password.io/item-path: "vaults/z3emsr5qi5xqk33wthv5fpmfqa/items/rxttnci2h7lcpwoey5ih4wkwp4"
+    operator.1password.io/item-name: &secret "cifs.creds.plex.media"
   # -- Configure the plex image that will be used for the PMS and Worker components
   # @default -- See below
   plexImage:
@@ -79,7 +82,7 @@ global:
       server: "//nas-01.storage.lajas.tech/"
       path: "media/"
       driver: "smb.csi.k8s.io"
-      secretName: cifs.creds.plex.media
+      secretName: *secret
 
     # -- Use this section to add additional media mounts if necessary. You can copy the contents of the above media
     additionalMediaVolumes:
@@ -557,7 +560,3 @@ worker:
                 operator: In
                 values:
                   - "true"
-
-opSecret:
-  vault: "z3emsr5qi5xqk33wthv5fpmfqa"
-  item: "rxttnci2h7lcpwoey5ih4wkwp4"
