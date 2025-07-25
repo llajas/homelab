@@ -18,10 +18,6 @@ longhorn:
       cert-manager.io/cluster-issuer: letsencrypt-prod
       hajimari.io/appName: Longhorn-UI
       hajimari.io/icon: harddisk
+      operator.1password.io/item-path: "vaults/z3emsr5qi5xqk33wthv5fpmfqa/items/yspbvafwzgsnq4yihwtbwipcsy"
+      operator.1password.io/item-name: *backupSecret
 
-
-opSecrets:
-  vault: "z3emsr5qi5xqk33wthv5fpmfqa"
-  backup:
-    item: "yspbvafwzgsnq4yihwtbwipcsy"
-    secretName: *backupSecret
