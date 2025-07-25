@@ -3,9 +3,9 @@
 # Declare variables to be passed into your templates.
 
 env:
-  PUID: 1000
-  PGID: 1000
-  TZ: "America/Chicago"
+  - PUID: 1000
+  - PGID: 1000
+  - TZ: "America/Chicago"
 
 image:
   repository: rogerfar/rdtclient
