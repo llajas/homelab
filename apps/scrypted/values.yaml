@@ -8,7 +8,7 @@ image:
   repository: koush/scrypted
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
+  tag: "v0.141.0-noble-nvidia"
 
 imagePullSecrets: []
 nameOverride: ""
@@ -74,7 +74,17 @@ nodeSelector: {}
 
 tolerations: []
 
-affinity: {}
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: nvidia.com/gpu.present
+              operator: In
+              values:
+                - "true"
+
+runtimeClassName: "nvidia"
 
 persistence:
   size: 10Gi
