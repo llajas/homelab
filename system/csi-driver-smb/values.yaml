@@ -48,8 +48,8 @@ controller:
   metricsPort: 29644
   livenessProbe:
     healthPort: 29642
-  runOnMaster: true
-  runOnControlPlane: true
+  runOnMaster: false
+  runOnControlPlane: false
   logLevel: 5
   workingMountDir: "/tmp"
   resources:
@@ -78,8 +78,7 @@ controller:
         cpu: 10m
         memory: 20Mi
   affinity: {}
-  nodeSelector:
-    kubernetes.io/os: linux
+  nodeSelector: {}
   tolerations: []
 
 node:
