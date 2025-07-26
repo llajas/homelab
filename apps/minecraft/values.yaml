@@ -435,7 +435,7 @@ minecraftServer:
   modrinth:
     projects:
       - fabric-api
-      - worldedit:7.3.12-beta-02
+      - worldedit
       - xaeros-world-map
       - xaeros-minimap
       - cloth-config
