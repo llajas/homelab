@@ -24,6 +24,11 @@ securityContext:
 externalSecrets:
   name: &secret unifibrowser-secrets
 
+# Deployment Annotations
+deploymentAnnotations:
+  operator.1password.io/item-path: "vaults/z3emsr5qi5xqk33wthv5fpmfqa/items/tctuxkhkkgfsprh2jpoanop5ku"
+  operator.1password.io/item-name: *secret
+
 # Other non-sensitive settings
 port: 443
 displayname: "My Unifi Site"
@@ -35,8 +40,6 @@ ingress:
     ingressclassName: nginx
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-prod
-      operator.1password.io/item-path: "vaults/z3emsr5qi5xqk33wthv5fpmfqa/items/tctuxkhkkgfsprh2jpoanop5ku"
-      operator.1password.io/item-name: *secret
     host: &host unifi-browser.lajas.tech
     path: /
     pathType: Prefix

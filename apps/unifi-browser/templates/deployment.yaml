@@ -5,6 +5,10 @@ metadata:
   namespace: {{ .Values.namespaceOverride | default .Release.Namespace }}
   labels:
     app: unifibrowser
+  {{- with .Values.deploymentAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
