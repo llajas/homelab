@@ -86,4 +86,3 @@ open-webui:
   annotations:
     operator.1password.io/item-path: "vaults/z3emsr5qi5xqk33wthv5fpmfqa/items/rznaz276pelmmcgsvgyun4expy"
     operator.1password.io/item-name: *oauthSecret
-
