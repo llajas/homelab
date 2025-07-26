@@ -35,6 +35,14 @@ spec:
         ports:
         - containerPort: 6500
           name: http
+        env:
+        {{- range .Values.env }}
+        {{- $pair := . | toYaml | fromYaml }}
+        {{- range $key, $value := $pair }}
+        - name: {{ $key }}
+          value: "{{ $value }}"
+        {{- end }}
+        {{- end }}
         volumeMounts:
         - name: "{{ template "rdtclient.fullname" . }}-downloads"
           mountPath: "{{ .Values.volumes.downloads.pvc.mountPath }}"

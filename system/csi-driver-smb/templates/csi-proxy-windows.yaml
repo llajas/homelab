@@ -25,7 +25,7 @@ spec:
       securityContext:
         windowsOptions:
           hostProcess: true
-          runAsUserName: {{ .Values.windows.csiproxy.username | quote }}
+          runAsUserName: {{ .Values.windows.csiproxy.username | quote }} 
       hostNetwork: true
       nodeSelector:
 {{- with .Values.windows.csiproxy.nodeSelector }}

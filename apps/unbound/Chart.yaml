@@ -1,13 +1,13 @@
 apiVersion: v1
-appVersion: 1.17.1
 description: Unbound is a fast caching DNS resolver
 home: https://www.unbound.net/
-maintainers:
-  - email: thulata@pixelfederation.com
-    name: Tomas Hulata
 name: unbound
+version: 0.1.4
+appVersion: 1.17.1
 sources:
-  - https://github.com/pixelfederation/unbound/
-  - http://unbound.nlnetlabs.nl/svn/
-  - https://github.com/kubernetes/contrib/tree/master/exec-healthz
-version: 0.0.8
+- https://github.com/pixelfederation/unbound/
+- http://unbound.nlnetlabs.nl/svn/
+- https://github.com/kubernetes/contrib/tree/master/exec-healthz
+maintainers:
+- name: tombokombo
+  email: thulata@pixelfederation.com

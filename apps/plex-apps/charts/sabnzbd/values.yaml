@@ -13,9 +13,15 @@ image:
   # -- image repository
   repository: quay.io/linuxserver.io/sabnzbd
   # -- image tag
-  tag: 4.4.1
+  tag: 4.5.2
   # -- image pull policy
   pullPolicy: IfNotPresent
+
+podSecurityContext:
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  fsGroupChangePolicy: "OnRootMismatch"
 
 # -- environment variables.
 # @default -- See below

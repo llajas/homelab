@@ -19,9 +19,7 @@ longhorn:
       hajimari.io/appName: Longhorn-UI
       hajimari.io/icon: harddisk
 
-
-opSecrets:
+opSecret:
   vault: "z3emsr5qi5xqk33wthv5fpmfqa"
-  backup:
-    item: "yspbvafwzgsnq4yihwtbwipcsy"
-    secretName: *backupSecret
+  item: "yspbvafwzgsnq4yihwtbwipcsy"
+  secretName: *backupSecret

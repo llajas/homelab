@@ -6,7 +6,7 @@ global:
     repository: linuxserver/plex
 
     # -- The image tag to use
-    tag: 1.41.8
+    tag: 1.41.9
 
     # -- Defines when the image should be pulled. Options are Always (default), IfNotPresent, and Never
     imagePullPolicy: Always
@@ -79,7 +79,8 @@ global:
       server: "//nas-01.storage.lajas.tech/"
       path: "media/"
       driver: "smb.csi.k8s.io"
-      secretName: cifs.creds.plex.media
+      secretName: &secret "cifs.creds.plex.media"
+      # -- Annotations used for the Persistent Volume - Used in conjunction with 1Password Operator
 
     # -- Use this section to add additional media mounts if necessary. You can copy the contents of the above media
     additionalMediaVolumes:
@@ -105,6 +106,10 @@ pms:
   controller:
     labels:
       smb-dependent: "true"
+    annotations:
+      # -- Annotations used for the Persistent Volume - Used in conjunction with 1Password Operator
+      operator.1password.io/item-path: "vaults/z3emsr5qi5xqk33wthv5fpmfqa/items/rxttnci2h7lcpwoey5ih4wkwp4"
+      operator.1password.io/item-name: *secret
   # -- Additional environment variables. Template enabled.
   # Syntax options:
   # A) TZ: UTC
@@ -558,6 +563,3 @@ worker:
                 values:
                   - "true"
 
-opSecret:
-  vault: "z3emsr5qi5xqk33wthv5fpmfqa"
-  item: "rxttnci2h7lcpwoey5ih4wkwp4"

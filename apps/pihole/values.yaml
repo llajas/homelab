@@ -34,7 +34,6 @@ dnsHostPort:
 
 # -- Configuration for the DNS service on port 53
 serviceDns:
-
   # -- deploys a mixed (TCP + UDP) Service instead of separate ones
   mixedService: true
 
@@ -54,15 +53,20 @@ serviceDns:
   loadBalancerIP: "10.137.0.253"
   # -- A fixed `spec.loadBalancerIP` for the IPv6 DNS Service
   loadBalancerIPv6: ""
+  # -- `spec.loadBalancerClass` for the DNS Service. Only used if type is LoadBalancer.
+  loadBalancerClass: ""
 
   # -- Annotations for the DNS service
   annotations: {}
     # metallb.universe.tf/address-pool: network-services
     # metallb.universe.tf/allow-shared-ip: pihole-svc
 
+  # -- Labels for the DNS service
+  extraLabels:
+    {}
+
 # -- Configuration for the DHCP service on port 67
 serviceDhcp:
-
   # -- Generate a Service resource for DHCP traffic
   enabled: false
 
@@ -82,17 +86,21 @@ serviceDhcp:
   loadBalancerIP: ""
   # -- A fixed `spec.loadBalancerIP` for the IPv6 DHCP Service
   loadBalancerIPv6: ""
+  # -- `spec.loadBalancerClass` for the DHCP Service. Only used if type is LoadBalancer.
+  loadBalancerClass: ""
 
   # -- Annotations for the DHCP service
   annotations: {}
     # metallb.universe.tf/address-pool: network-services
     # metallb.universe.tf/allow-shared-ip: pihole-svc
+  # -- Labels for the DHCP service
+  extraLabels:
+    {}
 
 # -- Configuration for the web interface service
 serviceWeb:
   # -- Configuration for the HTTP web interface listener
   http:
-
     # -- Generate a service for HTTP traffic
     enabled: true
 
@@ -123,11 +131,17 @@ serviceWeb:
   loadBalancerIP: ""
   # -- A fixed `spec.loadBalancerIP` for the IPv6 web interface Service
   loadBalancerIPv6: ""
+  # -- `spec.loadBalancerClass` for the web interface Service. Only used if type is LoadBalancer.
+  loadBalancerClass: ""
 
   # -- Annotations for the DHCP service
   annotations: {}
     # metallb.universe.tf/address-pool: network-services
     # metallb.universe.tf/allow-shared-ip: pihole-svc
+
+  # -- Labels for the web interface service
+  extraLabels:
+    {}
 
 virtualHost: pihole.lajas.tech
 
@@ -144,31 +158,52 @@ ingress:
     cert-manager.io/cluster-issuer: letsencrypt-prod
     hajimari.io/appName: Pihole
     hajimari.io/icon: pi-hole
+  path: /
+  pathType: ImplementationSpecific
   hosts:
     # virtualHost (default value is pi.hole) will be appended to the hosts
     - pihole.lajas.tech
   tls:
     - secretName: pihole-tls-certificate
       hosts:
-  #     #- virtualHost (default value is pi.hole) will be appended to the hosts
         - pihole.lajas.tech
+  #     #- virtualHost (default value is pi.hole) will be appended to the hosts
+  #      - chart-example.local
 
 # -- Probes configuration
 probes:
   # -- probes.liveness -- Configure the healthcheck for the ingress controller
   liveness:
     # -- Generate a liveness probe
+    # 'type' defaults to command, can be set to 'httpGet' to use a HTTP GET type liveness probe.
+    type: command
+    command:
+      - /bin/sh
+      - -c
+      - "curl --silent http://localhost/api/info/login | jq 'if (.dns | not) then halt_error(1) end'"
     enabled: true
+    # -- wait time before trying the liveness probe
     initialDelaySeconds: 60
+    # -- threshold until the probe is considered failing
     failureThreshold: 10
+    # -- timeout in seconds
     timeoutSeconds: 5
     port: http
     scheme: HTTP
   readiness:
     # -- Generate a readiness probe
+    # 'type' defaults to command, can be set to 'httpGet' to use a HTTP GET type readiness probe.
+    type: command
+    command:
+      - /bin/sh
+      - -c
+      - "curl --silent http://localhost/api/info/login | jq 'if (.dns | not) then halt_error(1) end'"
     enabled: true
+    # -- wait time before trying the readiness probe
     initialDelaySeconds: 60
-    failureThreshold: 3
+    # -- threshold until the probe is considered failing
+    failureThreshold: 10
+    # -- timeout in seconds
     timeoutSeconds: 5
     port: http
     scheme: HTTP
@@ -199,6 +234,7 @@ persistentVolumeClaim:
   accessModes:
     - ReadWriteOnce
 
+  # -- volume claim size
   size: "3Gi"
 
   ## If defined, storageClassName: <storageClass>
@@ -214,8 +250,10 @@ persistentVolumeClaim:
 
   ## subPath: "pihole"
 
+# -- Node selector values
 nodeSelector: {}
 
+# -- Toleration
 tolerations: []
 
 # -- Specify a priorityClassName
@@ -235,15 +273,28 @@ adminPassword: "admin"
 
 # -- Use an existing secret for the admin password.
 admin:
+  # -- If set to false admin password will be disabled, adminPassword specified above and the pre-existing secret (if specified) will be ignored.
+  enabled: true
   # -- Specify an existing secret to use as admin password
   existingSecret: "pihole-admin-secret"
   # -- Specify the key inside the secret to use
   passwordKey: "adminPassword"
+  # -- Specify [annotations](docs/Values.md#admin.annotations) to be added to the secret
+  annotations:
+    # reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
+    # reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "external-dns"
 
-# -- extraEnvironmentVars is a list of extra enviroment variables to set for pihole to use
+# -- extraEnvironmentVars is a list of extra enviroment variables to set for pihole to use. You can use either scalars or project cm, secrets or pod fields via valueFrom
 extraEnvVars:
+  # issue 360
+  FTLCONF_dns_listeningMode: 'all'
   TZ: CST
-  # TZ: UTC
+  # Project a variable
+  # SOME_VAR:
+  #   valueFrom:
+  #     configMapKeyRef:
+  #       key: some-var
+  #       name: my-config-map
 
 # -- extraEnvVarsSecret is a list of secrets to load in as environment variables.
 extraEnvVarsSecret: {}
@@ -264,18 +315,24 @@ antiaff:
   avoidRelease: pihole1
   # -- Here you can choose between preferred or required
   strict: true
+  # -- Here you can pass namespaces to be part of those inclueded in anti-affinity
+  namespaces: []
 
 doh:
   # -- set to true to enabled DNS over HTTPs via cloudflared
   enabled: false
+  # -- name
   name: "cloudflared"
+  # -- repository
   repository: "crazymax/cloudflared"
   tag: latest
+  # -- Pull policy
   pullPolicy: IfNotPresent
   # -- Here you can pass environment variables to the DoH container, for example:
   envVars: {}
     # TUNNEL_DNS_UPSTREAM: "https://1.1.1.2/dns-query,https://1.0.0.2/dns-query"
-
+  # -- Custom command to the DoH container
+  command: []
   # -- Probes configuration
   probes:
     # -- Configure the healthcheck for the doh container
@@ -289,15 +346,38 @@ doh:
             - nslookup
             - -po=5053
             - cloudflare.com
-            - '127.0.0.1'
+            - "127.0.0.1"
       # -- defines the initial delay for the liveness probe
       initialDelaySeconds: 60
       # -- defines the failure threshold for the liveness probe
       failureThreshold: 10
       # -- defines the timeout in secondes for the liveness probe
       timeoutSeconds: 5
-
+    readiness:
+      # -- set to true to enable readiness probe
+      enabled: true
+      # -- customize the readiness probe
+      probe:
+        exec:
+          command:
+            - nslookup
+            - -po=5053
+            - cloudflare.com
+            - "127.0.0.1"
+      # -- defines the initial delay for the readiness probe
+      initialDelaySeconds: 60
+      # -- defines the failure threshold for the readiness probe
+      failureThreshold: 10
+      # -- defines the timeout in secondes for the readiness probe
+      timeoutSeconds: 5
+  monitoring:
+    podMonitor:
+      enabled: false
+# -- DNS MASQ settings
 dnsmasq:
+  # -- Load custom user configuration files from /etc/dnsmasq.d
+  enableCustomDnsMasq: true
+
   # -- Add upstream dns servers. All lines will be added to the pihole dnsmasq configuration
   upstreamServers:
     - server=/mgmt.lajas.tech/10.0.0.1
@@ -491,8 +571,8 @@ dnsmasq:
 
   # -- Other options
   customSettings:
-  # otherSettings:
-  # - rebind-domain-ok=/plex.direct/
+  # otherSettings: |
+  #   rebind-domain-ok=/plex.direct/
 
   # -- Here we specify custom cname entries that should point to `A` records or
   # elements in customDnsEntries array.
@@ -529,11 +609,16 @@ regex: {}
   # Add regular expression blacklist items
   # - (^|\.)facebook\.com$
 
-# -- values that should be added to pihole-FTL.conf
+# -- values that should be added to pihole-FTL.conf. You can use either scalars or project cm, secrets or pod fields via valueFrom
 ftl:
   BLOCK_ICLOUD_PR: false
   # Add values for pihole-FTL.conf
   # MAXDBDAYS: 14
+  # Project a variable
+  # LOCAL_IPV4:
+  #   valueFrom:
+  #     fieldRef:
+  #       fieldPath: status.podIP
 
 # -- port the container should use to expose HTTP traffic
 webHttp: "80"
@@ -549,6 +634,11 @@ hostNetwork: "false"
 
 # -- should container run in privileged mode
 privileged: "false"
+
+# linux capabilities container should run with
+capabilities: {}
+  # add:
+  # - NET_ADMIN
 
 customVolumes:
   # -- set this to true to enable custom volumes
@@ -569,6 +659,21 @@ extraVolumeMounts: {}
   # external-conf:
   #   mountPath: /etc/lighttpd/external.conf
   #   subPath: external.conf
+
+extraContainers: []
+  # - name: pihole-logwatcher
+  #   image: your-registry/pihole-logwatcher
+  #   imagePullPolicy: Always
+  #   resources:
+  #     requests:
+  #       cpu: 100m
+  #       memory: 5Mi
+  #     limits:
+  #       cpu: 100m
+  #       memory: 5Mi
+  #   volumeMounts:
+  #   - name: pihole-logs
+  #     mountPath: /var/log/pihole
 
 # -- any extra kubernetes manifests you might want
 extraObjects: []
@@ -603,11 +708,31 @@ extraObjects: []
   #         }
   #       }
 
+# -- Additional annotations for the deployment
+deploymentAnnotations: {}
+  # reloader.stakater.com/auto: "true"
+
 # -- Additional annotations for pods
 podAnnotations:
   # Example below allows Prometheus to scape on metric port (requires pihole-exporter sidecar enabled)
   prometheus.io/port: '9617'
   prometheus.io/scrape: 'true'
+
+# -- any initContainers you might want to run before starting pihole
+extraInitContainers: []
+  # - name: copy-config
+  #   image: busybox
+  #   args:
+  #     - sh
+  #     - -c
+  #     - |
+  #       cp /etc/lighttpd-cm/external.conf /etc/lighttpd/
+  #       ls -l /etc/lighttpd/
+  #   volumeMounts:
+  #     - name: external-conf-cm
+  #       mountPath: /etc/lighttpd-cm/
+  #     - name: external-conf
+  #       mountPath: /etc/lighttpd/
 
 monitoring:
   # -- Preferably adding prometheus scrape annotations rather than enabling podMonitor.
@@ -620,6 +745,7 @@ monitoring:
     enabled: true
     port: 9617
     image:
+      # -- the repository to use
       repository: ekofr/pihole-exporter
       tag: v1.0.1
       pullPolicy: IfNotPresent
@@ -636,3 +762,12 @@ podDnsConfig:
   nameservers:
     - 10.43.0.10
     - 127.0.0.1
+
+# -- configure a Pod Disruption Budget
+podDisruptionBudget:
+  # -- set to true to enable creating the PDB
+  enabled: false
+  # -- minimum number of pods Kubernetes should try to have running at all times
+  minAvailable: 1
+  # -- maximum number of pods Kubernetes will allow to be unavailable. Cannot set both `minAvailable` and `maxAvailable`
+  # maxUnavailable: 1

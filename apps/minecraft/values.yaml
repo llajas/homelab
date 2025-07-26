@@ -43,6 +43,8 @@ tolerations: []
 
 affinity: {}
 
+revisionHistoryLimit: 10
+
 podSecurityContext:
   runAsUser: 1000
   runAsGroup: 3000
@@ -277,7 +279,7 @@ minecraftServer:
   # This must be overridden, since we can't accept this for the user.
   eula: "TRUE"
   # One of: LATEST, SNAPSHOT, or a specific version (ie: "1.7.9").
-  version: "1.21.5"
+  version: "1.21.6"
   ## The type of Minecraft server to run, check for related settings below
   ## Common types: "VANILLA", "FABRIC", "FORGE", "SPIGOT", "BUKKIT", "PAPER",
   ## "FTBA", "SPONGEVANILLA", "AUTO_CURSEFORGE"
@@ -433,7 +435,7 @@ minecraftServer:
   modrinth:
     projects:
       - fabric-api
-      - worldedit:7.3.12-beta-02
+      - worldedit
       - xaeros-world-map
       - xaeros-minimap
       - cloth-config
@@ -688,6 +690,7 @@ mcbackup:
       cpu: 500m
 
   persistence:
+    annotations: {}
     ## minecraft data Persistent Volume Storage Class
     ## If defined, storageClassName: <storageClass>
     ## If set to "-", storageClassName: "", which disables dynamic provisioning

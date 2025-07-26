@@ -83,9 +83,7 @@ open-webui:
       value: *openwebuihost
     - name: BYPASS_MODEL_ACCESS_CONTROL
       value: "true"
-
-opSecrets:
+opSecret:
   vault: "z3emsr5qi5xqk33wthv5fpmfqa"
-  oauth:
-    item: "rznaz276pelmmcgsvgyun4expy"
-    secretName: *oauthSecret
+  item: "rznaz276pelmmcgsvgyun4expy"
+  secretName: *oauthSecret
