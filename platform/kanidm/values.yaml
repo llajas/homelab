@@ -32,6 +32,8 @@ app-template:
       ports:
         http:
           enabled: false
+          port: 80
+          protocol: HTTP
         https:
           port: 443
           protocol: HTTPS
@@ -52,7 +54,7 @@ app-template:
               pathType: Prefix
               service:
                 name: main
-                port: https
+                port: 443
       tls:
         - hosts:
             - *host
