@@ -4,7 +4,9 @@ kind: Ingress
 metadata:
   name: {{ include "unifi-browser.fullname" . }}
   annotations:
-    cert-manager.io/cluster-issuer: {{ .Values.ingress.main.annotations.certManagerClusterIssuer }}
+    {{- range $key, $value := .Values.ingress.main.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
 spec:
   ingressClassName: {{ .Values.ingress.main.ingressclassName }}
   rules:

@@ -22,7 +22,7 @@ securityContext:
 
 # External secrets settings
 externalSecrets:
-  name: unifibrowser-secrets
+  name: &secret unifibrowser-secrets
 
 # Other non-sensitive settings
 port: 443
@@ -34,10 +34,12 @@ ingress:
     enabled: true
     ingressclassName: nginx
     annotations:
-      certManagerClusterIssuer: letsencrypt-prod
-    host: unifi-browser.lajas.tech
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      operator.1password.io/item-path: "vaults/z3emsr5qi5xqk33wthv5fpmfqa/items/tctuxkhkkgfsprh2jpoanop5ku"
+      operator.1password.io/item-name: *secret
+    host: &host unifi-browser.lajas.tech
     path: /
     pathType: Prefix
     tls:
       secretName: unifibrowser-tls
-      host: unifi-browser.lajas.tech
+      host: *host
