@@ -23,12 +23,13 @@ env:
     valueFrom:
       secretKeyRef:
         name: unifi-poller-secret
-        key: unifiPassword
+        key: password
   UP_UNIFI_DEFAULT_SAVE_DPI: "true"
   UP_UNIFI_DEFAULT_SAVE_IDS: "true"
   UP_UNIFI_DEFAULT_SAVE_EVENTS: "true"
   UP_UNIFI_DEFAULT_SAVE_ALARMS: "true"
   UP_UNIFI_DEFAULT_SAVE_ANOMALIES: "true"
+  UP_UNIFI_DEFAULT_SAVE_SITES: "true"
   UP_PROMETHEUS_DISABLE: false
   UP_INFLUXDB_DISABLE: true
     # UP_WEBSERVER_ENABLE: true
@@ -97,3 +98,7 @@ metrics:
         for: 5m
         labels:
           severity: critical
+
+podAnnotations:
+  operator.1password.io/item-path: "vaults/z3emsr5qi5xqk33wthv5fpmfqa/items/xllogkl2fokq5bmxr47lv4xtnu"
+  operator.1password.io/item-name: "unifi-poller-secret"
