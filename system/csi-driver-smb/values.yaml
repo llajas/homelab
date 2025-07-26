@@ -5,16 +5,20 @@ image:
     tag: canary
     pullPolicy: IfNotPresent
   csiProvisioner:
-    repository: registry.k8s.io/sig-storage/csi-provisioner
-    tag: v4.0.0
+    repository: /csi-provisioner
+    tag: v5.3.0
+    pullPolicy: IfNotPresent
+  csiResizer:
+    repository: registry.k8s.io/sig-storage/csi-resizer
+    tag: v1.14.0
     pullPolicy: IfNotPresent
   livenessProbe:
-    repository: registry.k8s.io/sig-storage/livenessprobe
-    tag: v2.12.0
+    repository: /livenessprobe
+    tag: v2.16.0
     pullPolicy: IfNotPresent
   nodeDriverRegistrar:
-    repository: registry.k8s.io/sig-storage/csi-node-driver-registrar
-    tag: v2.10.0
+    repository: /csi-node-driver-registrar
+    tag: v2.14.0
     pullPolicy: IfNotPresent
   csiproxy:
     repository: ghcr.io/kubernetes-sigs/sig-windows/csi-proxy
@@ -35,6 +39,7 @@ driver:
 
 feature:
   enableGetVolumeStats: true
+  enableInlineVolume: true
 
 controller:
   name: csi-smb-controller
@@ -50,7 +55,13 @@ controller:
   resources:
     csiProvisioner:
       limits:
-        memory: 300Mi
+        memory: 400Mi
+      requests:
+        cpu: 10m
+        memory: 20Mi
+    csiResizer:
+      limits:
+        memory: 400Mi
       requests:
         cpu: 10m
         memory: 20Mi
@@ -76,6 +87,9 @@ controller:
       operator: "Exists"
       effect: "NoSchedule"
     - key: "node-role.kubernetes.io/control-plane"
+      operator: "Exists"
+      effect: "NoSchedule"
+    - key: "CriticalAddonsOnly"
       operator: "Exists"
       effect: "NoSchedule"
 
@@ -117,7 +131,8 @@ linux:
         memory: 20Mi
 
 windows:
-  enabled: false # Unless you already had csi proxy installed, windows.csiproxy.enabled=true is required
+  enabled: false
+  useHostProcessContainers: true
   dsName: csi-smb-node-win # daemonset name
   kubelet: 'C:\var\lib\kubelet'
   removeSMBMappingDuringUnmount: true
@@ -140,12 +155,12 @@ windows:
         memory: 40Mi
     smb:
       limits:
-        memory: 200Mi
+        memory: 600Mi
       requests:
         cpu: 10m
         memory: 40Mi
   csiproxy:
-    enabled: false # required if windows.enabled is true, but may be installed manually also
+    enabled: false # required if windows.enabled is true and useHostProcessContainers is false, but may be installed manually also
     dsName: csi-proxy-win # daemonset name
     tolerations: {}
     affinity: {}
@@ -164,4 +179,4 @@ priorityClassName: system-cluster-critical
 ## Security context give the opportunity to run container as nonroot by setting a securityContext
 ## by example :
 ## securityContext: { runAsUser: 1001 }
-securityContext: {seccompProfile: {type: RuntimeDefault}}
+securityContext: { seccompProfile: {type: RuntimeDefault} }

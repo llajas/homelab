@@ -24,10 +24,27 @@ spec:
 {{ toYaml .Values.podAnnotations | indent 8 }}
 {{- end }}
     spec:
-{{- with .Values.controller.affinity }}
+    # runOnControlPlane=true or runOnMaster=true only takes effect if affinity is not set
+    {{- if tpl "{{ .Values.controller.affinity }}" . | contains "nodeSelectorTerms" }}
+      {{- with .Values.controller.affinity }}
       affinity:
 {{ toYaml . | indent 8 }}
-{{- end }}
+      {{- end }}
+    {{- else if or .Values.controller.runOnControlPlane .Values.controller.runOnMaster}}
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                {{- if .Values.controller.runOnControlPlane}}
+                - key: node-role.kubernetes.io/control-plane
+                  operator: Exists
+                {{- end}}
+                {{- if .Values.controller.runOnMaster}}
+                - key: node-role.kubernetes.io/master
+                  operator: Exists
+                {{- end}}
+    {{- end }}
       hostNetwork: true
       dnsPolicy: {{ .Values.controller.dnsPolicy }}
       serviceAccountName: {{ .Values.serviceAccount.controller }}
@@ -37,10 +54,7 @@ spec:
 {{- end }}
         kubernetes.io/os: linux
         {{- if .Values.controller.runOnMaster}}
-        node-role.kubernetes.io/master: "true"
-        {{- end}}
-        {{- if .Values.controller.runOnControlPlane}}
-        node-role.kubernetes.io/control-plane: "true"
+        node-role.kubernetes.io/master: ""
         {{- end}}
       priorityClassName: {{ .Values.priorityClassName | quote }}
       {{- if .Values.securityContext }}
@@ -64,6 +78,8 @@ spec:
             - "--leader-election"
             - "--leader-election-namespace={{ .Release.Namespace }}"
             - "--extra-create-metadata=true"
+            - "--feature-gates=HonorPVReclaimPolicy=true"
+            - "--retry-interval-max=30m"
           env:
             - name: ADDRESS
               value: /csi/csi.sock
@@ -74,6 +90,33 @@ spec:
           resources: {{- toYaml .Values.controller.resources.csiProvisioner | nindent 12 }}
           securityContext:
             readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+              - ALL
+        - name: csi-resizer
+{{- if hasPrefix "/" .Values.image.csiResizer.repository }}
+          image: "{{ .Values.image.baseRepo }}{{ .Values.image.csiResizer.repository }}:{{ .Values.image.csiResizer.tag }}"
+{{- else }}
+          image: "{{ .Values.image.csiResizer.repository }}:{{ .Values.image.csiResizer.tag }}"
+{{- end }}
+          args:
+            - "-csi-address=$(ADDRESS)"
+            - "-v=2"
+            - "-leader-election"
+            - "--leader-election-namespace={{ .Release.Namespace }}"
+            - '-handle-volume-inuse-error=false'
+          env:
+            - name: ADDRESS
+              value: /csi/csi.sock
+          imagePullPolicy: {{ .Values.image.csiResizer.pullPolicy }}
+          volumeMounts:
+            - name: socket-dir
+              mountPath: /csi
+          resources: {{- toYaml .Values.controller.resources.csiResizer | nindent 12 }}
+          securityContext:
+            capabilities:
+              drop:
+              - ALL
         - name: liveness-probe
 {{- if hasPrefix "/" .Values.image.livenessProbe.repository }}
           image: "{{ .Values.image.baseRepo }}{{ .Values.image.livenessProbe.repository }}:{{ .Values.image.livenessProbe.tag }}"
@@ -83,7 +126,7 @@ spec:
           args:
             - --csi-address=/csi/csi.sock
             - --probe-timeout=3s
-            - --health-port={{ .Values.controller.livenessProbe.healthPort }}
+            - --http-endpoint=localhost:{{ .Values.controller.livenessProbe.healthPort }}
             - --v=2
           imagePullPolicy: {{ .Values.image.livenessProbe.pullPolicy }}
           volumeMounts:
@@ -92,6 +135,9 @@ spec:
           resources: {{- toYaml .Values.controller.resources.livenessProbe | nindent 12 }}
           securityContext:
             readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+              - ALL
         - name: smb
 {{- if hasPrefix "/" .Values.image.smb.repository }}
           image: "{{ .Values.image.baseRepo }}{{ .Values.image.smb.repository }}:{{ .Values.image.smb.tag }}"
@@ -106,17 +152,15 @@ spec:
             - "--drivername={{ .Values.driver.name }}"
             - "--working-mount-dir={{ .Values.controller.workingMountDir }}"
           ports:
-            - containerPort: {{ .Values.controller.livenessProbe.healthPort }}
-              name: healthz
-              protocol: TCP
             - containerPort: {{ .Values.controller.metricsPort }}
               name: metrics
               protocol: TCP
           livenessProbe:
             failureThreshold: 5
             httpGet:
+              host: localhost
               path: /healthz
-              port: healthz
+              port: {{ .Values.controller.livenessProbe.healthPort }}
             initialDelaySeconds: 30
             timeoutSeconds: 10
             periodSeconds: 30
@@ -125,15 +169,13 @@ spec:
               value: unix:///csi/csi.sock
           securityContext:
             privileged: true
-            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+              - ALL
           volumeMounts:
             - mountPath: /csi
               name: socket-dir
-            - mountPath: {{ .Values.controller.workingMountDir }}
-              name: tmp-dir
           resources: {{- toYaml .Values.controller.resources.smb | nindent 12 }}
       volumes:
         - name: socket-dir
-          emptyDir: {}
-        - name: tmp-dir
           emptyDir: {}
