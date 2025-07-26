@@ -7,11 +7,6 @@ image:
 
 timezone: America/Chicago
 
-opSecret:
-  vault: "z3emsr5qi5xqk33wthv5fpmfqa"
-  item: "df5fpdjwattvubs6i6xglzjfpq"
-  secretName: "foodtracker-secrets"
-
 secrets:
   DISCORD_BOT_TOKEN: true
   DISCORD_CHANNEL_ID: true
@@ -24,5 +19,7 @@ secrets:
   PHONE_NUMBER: true
   UBER_EATS_SESSION_ID: true
 
-onePassword:
-  enabled: true
+deploymentAnnotations:
+  operator.1password.io/auto-restart: "true"
+  operator.1password.io/item-path: "vaults/z3emsr5qi5xqk33wthv5fpmfqa/items/df5fpdjwattvubs6i6xglzjfpq"
+  operator.1password.io/item-name: "foodtracker-secrets"
