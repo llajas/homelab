@@ -101,23 +101,11 @@ persistence:
 # @default -- See [values.yaml](./values.yaml)
 postgresql:
   enabled: true
-
-  # --- 1) tell the chart which image tag to use
-  image:
-    tag: 17.5.0-debian-11-r0   # (this is the tag shipped with chart 16.7.21)
-
-  # --- 2) run the pg_upgrade job
-  postgresqlUpgrade:
-    enabled: true              # create the one-off Job
-    oldVersion: "16"           # current engine major
-    newVersion: "17"           # target engine major
-
-  # --- 3) your existing settings
   auth:
     database: paperless
+    #postgresPassword: changeme
     existingSecret: paperless-secret
     existingSecretPasswordKey: postgres-password
-
   primary:
     persistence:
       enabled: true
