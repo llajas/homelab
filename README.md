@@ -30,11 +30,41 @@ More information can be found in [the roadmap](#roadmap) below.
 - 6 × Lenovo `ThinkCentre M700`:
     - CPU: `Intel Core i5-6600T @ 2.70GHz`
     - RAM: `16GB DDR4`
+    - SSD: `1TB`
+
+- 1 x [Unifi](https://techspecs.ui.com/unifi/cameras-nvrs/uck-g2-plus#datasheet) `CloudKey Gen2+` (All Unifi software removed; base image and OS replaced with Debian Bookworm - Re-purposed as a bastion host for cluster initialization and management):
+    - CPU: `Octa-core Arm® Cortex®-A53 @2.2GHz`
+    - RAM: `3GB LPDDR3`
     - SSD: `512GB`
-- 1 x Dell `Latitude e5430` (Controller & PXE Host Running Arch Linux):
-    - CPU: `Intel Core i3-3110M @ 2.40GHz`
-    - RAM: `16GB DDR3`
-    - SSD: `128GB`
+    - eMMC: `32GB`
+    - microSD: `64GB`
+
+- 1 x Custom `NAS` (Network Attached Storage):
+    - CPU: `Intel Xeon E5-2699 v4 @ 2.20GHz`
+    - Motherboard: `MSI X99A SLI PLUS`
+    - RAM: `128GB DDR4`
+    - HBA: `LSI 9305-16i`
+    - Network:
+        - 1 × `X520-DA1` 10GbE via SFP+ (Data Plane)
+        - 1 × `I218-V` 1GbE (Management Plane)
+    - SSD: `13TB` (`6.7TB` usable via RAID10)
+        - 13 × `1TB` TEAMGROUP m2 SATA SSDs
+    - HDD: `100TB` (`80TB` usable)
+        - 4 × `20TB` Seagate Exos X22
+        - 1 × `20TB` Western Digital Red Plus (Parity)
+    - GPU:
+        - 1 x `NVIDIA GeForce GTX 2060` 12GB VRAM
+        - 1 x `NVIDIA GeForce GTX 2060` 6GB VRAM
+
+### Virtual Nodes
+
+- 2 x qemu/kvm virtual machines (VMs) - *Created and managed via Terraform in `metal/virtual/`*
+    - CPU: `6` vCPU (host-passthrough)
+    - RAM: `16GB`
+    - HDD: `1TB`
+    - GPU: `NVIDIA GeForce GTX 2060`
+
+Virtualization is done using [KVM](https://www.linux-kvm.org/page/Main_Page) with [Libvirt](https://libvirt.org/) and [QEMU](https://www.qemu.org/). The virtual machines are provisioned and managed as Infrastructure as Code using [Terraform](https://www.terraform.io/) with the [Libvirt provider](https://registry.terraform.io/providers/dmacvicar/libvirt/latest) on top of the `NAS` hardware.
 
 ### Features
 
@@ -55,7 +85,7 @@ More information can be found in [the roadmap](#roadmap) below.
 - [x] Support multiple environments (dev, prod)
 - [ ] Monitoring and alerting 🚧
 - [ ] Automated offsite backups 🚧
-- [ ] Single sign-on 🚧
+- [x] Single sign-on
 - [x] Infrastructure testing
 
 Some demo videos and screenshots are shown here.
@@ -229,7 +259,7 @@ Please see [contributing guide](https://homelab.lajas.tech/reference/contributin
 
 ## License
 
-Copyright &copy; 2020 - 2023 Lauren Lajas - Based on [khuedoan/homelab](https://github.com/khuedoan/homelab)
+Copyright &copy; 2020 - 2025 Lauren Lajas - Based on [khuedoan/homelab](https://github.com/khuedoan/homelab)
 
 Distributed under the GPLv3 License.
 See [license page](https://homelab.lajas.tech/reference/license) or `LICENSE.md` file for more information.
