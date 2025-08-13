@@ -2,3 +2,17 @@ loki-stack:
   loki:
     serviceMonitor:
       enabled: true
+    ingress:
+      enabled: true
+      ingressClassName: nginx
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+        nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+      hosts:
+        - host: &host loki.lajas.tech
+          paths:
+            - /
+      tls:
+        - secretName: loki.lajas.tech-tls
+          hosts:
+            - *host
