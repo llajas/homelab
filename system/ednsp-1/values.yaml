@@ -8,6 +8,7 @@ external-dns:
           key: adminPassword
   extraArgs:
     - --pihole-server=http://pihole-web.pihole.svc.cluster.local
+    - --pihole-api-version=6
   interval: 24h
   triggerLoopOnEvent: true
   metrics:
