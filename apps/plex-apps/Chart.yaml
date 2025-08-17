@@ -29,3 +29,7 @@ dependencies:
   - name: common
     version: 4.5.2
     repository: "file://./charts/common"
+  - name: byparr
+    version: 0.1.0
+    repository: "file://./charts/byparr"
+ 

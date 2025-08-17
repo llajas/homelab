@@ -12,6 +12,8 @@ sonarr: {}
 
 tautulli: {}
 
+byparr: {}
+
 volumes:
   media:
     volumeName: cifs-plex-media
