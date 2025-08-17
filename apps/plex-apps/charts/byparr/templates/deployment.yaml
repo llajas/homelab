@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "byparr.fullname" . }}
-  labels: []
+  labels: {}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
