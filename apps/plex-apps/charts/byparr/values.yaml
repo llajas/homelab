@@ -33,10 +33,10 @@ ingress:
     ingressclassName: nginx
     annotations:
       certManagerClusterIssuer: letsencrypt-prod
-    host: *host byparr.lajas.tech
+    host: &host byparr.lajas.tech
     path: /
     pathType: Prefix
     tls:
       secretName: byparr-tls-certificate
-      host: &host
+      host: *host
 
