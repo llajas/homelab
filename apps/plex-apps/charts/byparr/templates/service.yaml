@@ -9,9 +9,9 @@ spec:
   type: ClusterIP
   ports:
     - port: {{ .Values.service.port }}
-      targetPort: {{ include "byparr.fullname" . }}
+      targetPort: {{ .Chart.Name }}
       protocol: TCP
-      name: {{ include "byparr.fullname" . }}
+      name: {{ .Chart.Name }}
   selector:
     app.kubernetes.io/name: {{ include "byparr.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
