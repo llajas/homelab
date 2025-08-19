@@ -9,7 +9,7 @@ spec:
   type: ClusterIP
   ports:
     - port: {{ .Values.service.port }}
-      targetPort: {{ .Chart.Name }}
+      targetPort: {{ include "byparr.fullname" . }}
       protocol: TCP
       name: {{ include "byparr.fullname" . }}
   selector:
