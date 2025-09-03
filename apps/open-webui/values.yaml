@@ -16,6 +16,7 @@ open-webui:
           - phi4:14b
           - qwen2.5-coder:14b
           - qwen2.5-coder:7b
+          - gpt-oss:20b
     runtimeClassName: nvidia
     ingress:
       enabled: true
