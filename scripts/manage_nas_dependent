@@ -5,19 +5,6 @@
 # 2. GPU resource dependencies (via nvidia runtime class on VM nodes)
 # Both types of dependencies require the VMs that run on the NAS infrastructure
 # Enable strict error handling: exit on error, treat unset variables as errors, and catch errors in pipelines
-set -euo pipefail    echo "Removing 'vm-dependent=scaled' labels from workloads in namespace: $ns"
-    # Remove label for deployments
-    for resource in $(kubectl get deployments -n "$ns" -l vm-dependent=scaled -o name); do
-      kubectl label -n "$ns" "$resource" --overwrite vm-dependent-
-    done
-    # Remove label for statefulsets
-    for resource in $(kubectl get statefulsets -n "$ns" -l vm-dependent=scaled -o name); do
-      kubectl label -n "$ns" "$resource" --overwrite vm-dependent-
-    done
-    # Remove label for daemonsets
-    for resource in $(kubectl get daemonsets -n "$ns" -l vm-dependent=scaled -o name); do
-      kubectl label -n "$ns" "$resource" --overwrite vm-dependent-
-    done pipelines
 set -euo pipefail
 
 # Function to ensure required commands are available
