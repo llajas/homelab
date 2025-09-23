@@ -11,7 +11,7 @@ image:
   repository: rogerfar/rdtclient
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: 2.0.114
+  tag: 2.0.116
 
 replicaCount: 1
 
