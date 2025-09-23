@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "cleanuparr.fullname" . }}-service
+  name: {{ include "cleanuparr.fullname" . }}
   labels:
     {{- include "cleanuparr.labels" . | nindent 4 }}
   annotations:
