@@ -14,6 +14,8 @@ tautulli: {}
 
 byparr: {}
 
+cleanuparr: {}
+
 volumes:
   media:
     volumeName: cifs-plex-media

@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "cleanuparr.fullname" . }}-config
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  {{- with .Values.persistentVolume.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  accessModes:
+    - {{ .Values.persistentVolume.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.persistentVolume.size }}
+  {{- if .Values.persistentVolume.storageClassName }}
+  storageClassName: {{ .Values.persistentVolume.storageClassName }}
+  {{- end }}

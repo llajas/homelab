@@ -1,0 +1,52 @@
+# Default values for cleanuparr.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+env:
+  - PUID: 1000
+  - PGID: 1000
+  - TZ: "America/Chicago"
+  - USE_HEADLESS: default
+  
+
+image:
+  repository: ghcr.io/cleanuparr/cleanuparr
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: 2
+
+replicaCount: 1
+
+strategy:
+  type: Recreate # Change to Recreate if you want to use the Recreate strategy
+  rollingUpdate:
+    maxSurge: 25%
+    maxUnavailable: 25%
+
+service:
+  type: ClusterIP
+  port: 11011
+
+ingress:
+  main:
+    enabled: true
+    ingressclassName: nginx
+    annotations:
+      certManagerClusterIssuer: letsencrypt-prod
+    host: &host cleanuparr.lajas.tech
+    path: /
+    pathType: Prefix
+    tls:
+      secretName: cleanuparr-tls-certificate
+      host: *host
+
+# Persistent storage configuration
+persistentVolume:
+  enabled: true
+  # If true, a PVC will be created and mounted at /config
+  accessMode: ReadWriteOnce
+  size: 1Gi
+  storageClassName: ""
+  annotations: {}
+  existingClaim: "" # If set, use this existing PVC instead of creating a new one
+
