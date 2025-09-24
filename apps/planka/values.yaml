@@ -217,7 +217,9 @@ oidc:
 ##     secretName: k8s-secret-name
 ##     key: key-inside-the-secret
 ##
-extraEnv: []
+extraEnv:
+  - name: OIDC_IGNORE_USERNAME
+    value: "true"
 
 ## 1Password Secrets
 opSecrets:
