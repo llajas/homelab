@@ -227,3 +227,12 @@ opSecrets:
       item: "turevh2buhm3mpcntfccwbsjja"
       secretName: *adminSecret
 
+global:
+  postgresql:
+    auth:
+      existingSecret: admin-secrets
+      secretKeys:
+        adminPasswordKey: postgres-password
+        userPasswordKey: password
+        replicationPasswordKey: replication-password
+
