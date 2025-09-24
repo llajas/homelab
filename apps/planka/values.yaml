@@ -220,7 +220,12 @@ oidc:
 extraEnv:
   - name: OIDC_IGNORE_USERNAME
     value: "true"
-
+  - name: OIDC_ROLES_ATTRIBUTE
+    value: "groups"
+  - name: OIDC_ADMIN_ROLES
+    value: "planka_admins"
+  - name: OIDC_PROJECT_OWNER_ROLES
+    value: "planka_admins"
 ## 1Password Secrets
 opSecrets:
   vault: "z3emsr5qi5xqk33wthv5fpmfqa"
