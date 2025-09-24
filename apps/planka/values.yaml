@@ -186,7 +186,7 @@ oidc:
   ## If empty will default to `openid`, `profile` and `email`
   ## NOTE: PLANKA needs the email and name claims
   ##
-  scopes: []
+  scopes: ["openid", "profile", "email", "groups"]
 
   ## Admin permissions configuration
   admin:
@@ -203,8 +203,8 @@ oidc:
 
     ## @param oidc.admin.roles The names of the admin groups
     ##
-    roles: []
-      # - planka-admin
+    roles:
+      - planka_admins
 
 ## Extra environment variables for planka deployment
 ## Supports hard coded and getting values from a k8s secret
