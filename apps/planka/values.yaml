@@ -131,7 +131,7 @@ dburl:
 ## NOTE: Must contain key `uri`
 ## NOTE: When it's set, the `dburl` parameter is ignored
 ##
-existingDburlSecret:
+existingDburlSecret: *adminSecret
 
 ## PVC-based data storage configuration
 persistence:

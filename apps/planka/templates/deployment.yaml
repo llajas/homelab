@@ -88,23 +88,25 @@ spec:
           {{- end }}
           {{- end }}
           {{- end }}
-          {{- if not .Values.postgresql.enabled }}
+          {{/* NEW LOGIC: always honor explicit secret/url first */}}
           {{- if .Values.existingDburlSecret }}
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.existingDburlSecret }}
                   key: uri
-          {{- else }}
+          {{- else if .Values.dburl }}
             - name: DATABASE_URL
-              value: {{ required "If the included postgresql deployment is disabled you need to provide an existing secret in .Values.existingDburlSecret or define a Database URL in 'dburl'" .Values.dburl }}
-          {{- end }}
-          {{- else }}
+              value: {{ .Values.dburl | quote }}
+          {{- else if .Values.postgresql.enabled }}
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
                   name: {{ include "planka.fullname" . }}-postgresql-svcbind-custom-user
                   key: uri
+          {{- else }}
+            - name: DATABASE_URL
+              value: {{ required "If the included postgresql deployment is disabled you need to provide an existing secret in .Values.existingDburlSecret or define a Database URL in 'dburl'" .Values.dburl }}
           {{- end }}
             - name: BASE_URL
               {{- if .Values.baseUrl }}
