@@ -180,7 +180,7 @@ oidc:
 
   ## @param oidc.issuerUrl The OpenID connect metadata document endpoint
   ##
-  issuerUrl: "https://dex.lajas.tech/.well-known/openid-configuration"
+  issuerUrl: "https://dex.lajas.tech"
 
   ## @param oidc.scopes A list of scopes required for OIDC client.
   ## If empty will default to `openid`, `profile` and `email`
