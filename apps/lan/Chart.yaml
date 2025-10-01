@@ -1,6 +1,6 @@
 apiVersion: v2
 name: lab-access
-description: A Helm chart for lab-access
+description: Expose external metrics endpoints and optional HTTP ingress
 type: application
-version: 0.1.0
-appVersion: "1.0"
+version: 0.2.0
+appVersion: "1.0.0"

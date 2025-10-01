@@ -1,0 +1,75 @@
+{{- /*
+Iterates over .Values.exporters and creates:
+- Service (ClusterIP, no selector)
+- Endpoints (IP + port list)
+- ServiceMonitor (if enabled)
+
+Each exporter item:
+  name: cloudkey-node
+  ip: 10.33.0.25
+  port: 9100
+  portName: metrics
+  interval: 30s
+  labels: { role: edge-appliance }
+  serviceMonitor:
+    enabled: true
+    releaseLabel: prometheus
+*/ -}}
+{{- if .Values.exporters }}
+{{- range $i, $exp := .Values.exporters }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $exp.name }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    app: {{ $exp.name }}
+    {{- with $exp.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  # Do NOT use ExternalName for ServiceMonitor discovery.
+  type: ClusterIP
+  ports:
+    - name: {{ $exp.portName | default "metrics" }}
+      port: {{ $exp.port }}
+      targetPort: {{ $exp.port }}
+      protocol: TCP
+
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: {{ $exp.name }}
+  namespace: {{ $.Release.Namespace }}
+subsets:
+  - addresses:
+      - ip: {{ $exp.ip }}
+    ports:
+      - name: {{ $exp.portName | default "metrics" }}
+        port: {{ $exp.port }}
+        protocol: TCP
+
+{{- if $exp.serviceMonitor.enabled }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ $exp.name }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    # This label must match your Prometheus release’s selector
+    release: {{ $exp.serviceMonitor.releaseLabel | default "prometheus" }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ $exp.name }}
+  namespaceSelector:
+    matchNames: [{{ $.Release.Namespace | quote }}]
+  endpoints:
+    - port: {{ $exp.portName | default "metrics" }}
+      interval: {{ $exp.interval | default "30s" }}
+{{- end }}
+{{- end }}
+{{- end }}

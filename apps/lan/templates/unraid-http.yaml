@@ -1,4 +1,31 @@
+{{- if .Values.unraidHttp.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.unraidHttp.name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  type: ClusterIP
+  ports:
+  - port: {{ .Values.unraidHttp.service.port }}
+    targetPort: {{ .Values.unraidHttp.service.targetPort }}
+    protocol: TCP
+
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: {{ .Values.unraidHttp.name }}
+  namespace: {{ .Release.Namespace }}
+subsets:
+- addresses:
+  - ip: {{ .Values.unraidHttp.endpoints.ip }}
+  ports:
+  - port: {{ .Values.unraidHttp.service.port }}
+
 {{- if .Values.unraidHttp.ingress.enabled }}
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -22,4 +49,5 @@ spec:
             name: {{ .Values.unraidHttp.name }}
             port:
               number: {{ .Values.unraidHttp.service.port }}
+{{- end }}
 {{- end }}
