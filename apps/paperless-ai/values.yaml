@@ -160,6 +160,8 @@ envs:
     value: "3000"
   - name: TZ
     value: "America/Chicago"
+  - name: CUSTOM_FIELDS
+    value: '{"custom_fields": []}'
 
 nodeSelector: {}
 
