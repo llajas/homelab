@@ -28,10 +28,13 @@ gitea:
     storageClass: longhorn
   postgresql:
     enabled: true
+    image:
+      tag: "16.6.0-debian-12-r2"
     persistence:
       storageClass: longhorn
   postgresql-ha:
     enabled: false
-  redis-cluster:
+  valkey-cluster:
     cluster:
       nodes: 6
+
