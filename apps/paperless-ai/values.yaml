@@ -110,7 +110,7 @@ ai:
   # Be sure that the below is wrapped in quotes to avoid issues with the yaml parser setting it as 'true' or 'false'
   addProcessedTag: "yes"
   processedTagName: ai-processed
-  initialSetup: "no"
+  initialSetup: "yes"
 
 prompt:
   # Be sure that the below is wrapped in quotes to avoid issues with the yaml parser setting it as 'true' or 'false'
