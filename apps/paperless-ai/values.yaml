@@ -127,16 +127,7 @@ ollama:
 
 scanInterval: "*/30 * * * *"
 
-systemPrompt: |-
-  Return the result EXCLUSIVELY as a JSON object. The Tags and Title MUST be in the language that is used in the document.:
-
-  {
-    "title": "xxxxx",
-    "correspondent": "xxxxxxxx",
-    "tags": ["Tag1", "Tag2", "Tag3", "Tag4"],
-    "document_date": "YYYY-MM-DD",
-    "language": "en/de/es/..."
-  }
+systemPrompt: "Return ONLY JSON with keys: title, correspondent, tags (array), document_date (YYYY-MM-DD), language."
 processPredefinedDocuments: "no"
 tags: "indexed,indexed2"
 
@@ -168,11 +159,15 @@ envs:
     value: "/app/data/.env"
   - name: SYSTEM_PROMPT
     value: "Return ONLY JSON with keys: title, correspondent, tags (array), document_date (YYYY-MM-DD), language."
-
   - name: AI_PROMPT_TEMPLATE
     value: "Summarize and extract fields from the document below. Return ONLY the JSON object described in SYSTEM_PROMPT.\n\n{{CONTENT}}"
-
   - name: AI_TAGS_TEMPLATE
+    value: "From the following text, extract 3–5 short tags (lowercase, hyphenated). Return a comma-separated list only.\n\n{{CONTENT}}"
+  - name: PROMPT_TEMPLATE
+    value: "Summarize and extract fields from the document below. Return ONLY the JSON object described in SYSTEM_PROMPT.\n\n{{CONTENT}}"
+  - name: PROMPT
+    value: "Summarize and extract fields from the document below. Return ONLY the JSON object described in SYSTEM_PROMPT.\n\n{{CONTENT}}"
+  - name: TAGS_PROMPT
     value: "From the following text, extract 3–5 short tags (lowercase, hyphenated). Return a comma-separated list only.\n\n{{CONTENT}}"
 
 nodeSelector: {}
