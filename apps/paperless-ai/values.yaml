@@ -156,7 +156,7 @@ envs:
   - name: NODE_OPTIONS
     value: "--require dotenv/config"
   - name: DOTENV_CONFIG_PATH
-    value: "/app/data/.env"
+    value: "/app/.env"
   - name: SYSTEM_PROMPT
     value: "Return ONLY JSON with keys: title, correspondent, tags (array), document_date (YYYY-MM-DD), language."
   - name: AI_PROMPT_TEMPLATE
