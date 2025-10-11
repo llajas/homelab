@@ -169,6 +169,8 @@ envs:
     value: "Summarize and extract fields from the document below. Return ONLY the JSON object described in SYSTEM_PROMPT.\n\n{{CONTENT}}"
   - name: TAGS_PROMPT
     value: "From the following text, extract 3–5 short tags (lowercase, hyphenated). Return a comma-separated list only.\n\n{{CONTENT}}"
+  - name: PAPERLESS_AI_INITIAL_SETUP
+    value: "yes"
 
 nodeSelector: {}
 
