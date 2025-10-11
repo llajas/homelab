@@ -166,6 +166,14 @@ envs:
     value: "--require dotenv/config"
   - name: DOTENV_CONFIG_PATH
     value: "/app/data/.env"
+  - name: SYSTEM_PROMPT
+    value: "Return ONLY JSON with keys: title, correspondent, tags (array), document_date (YYYY-MM-DD), language."
+
+  - name: AI_PROMPT_TEMPLATE
+    value: "Summarize and extract fields from the document below. Return ONLY the JSON object described in SYSTEM_PROMPT.\n\n{{CONTENT}}"
+
+  - name: AI_TAGS_TEMPLATE
+    value: "From the following text, extract 3–5 short tags (lowercase, hyphenated). Return a comma-separated list only.\n\n{{CONTENT}}"
 
 nodeSelector: {}
 
