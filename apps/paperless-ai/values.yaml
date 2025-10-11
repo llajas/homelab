@@ -162,6 +162,10 @@ envs:
     value: "America/Chicago"
   - name: CUSTOM_FIELDS
     value: '{"custom_fields": []}'
+  - name: NODE_OPTIONS
+    value: "--require dotenv/config"
+  - name: DOTENV_CONFIG_PATH
+    value: "/app/data/.env"
 
 nodeSelector: {}
 
