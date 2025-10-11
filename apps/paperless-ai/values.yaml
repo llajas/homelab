@@ -175,7 +175,7 @@ persistence:
     mountPath: "/app/config/config.js"
     subPath: "config.js"
   envfile:
-    mountPath: "app/.env"
+    mountPath: "/app/.env"
     subPath: ".env"
   data:
     enabled: true
