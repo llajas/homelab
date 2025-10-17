@@ -39,7 +39,7 @@ open-webui:
         value: "all"
     persistentVolume:
       enabled: true
-      size: 100Gi
+      size: 120Gi
     affinity:
       nodeAffinity:
         requiredDuringSchedulingIgnoredDuringExecution:
