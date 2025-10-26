@@ -21,6 +21,9 @@ spec:
       labels:
         {{- include "homebridge.selectorLabels" . | nindent 8 }}
     spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+
       {{- if .Values.initContainers.enabled }}
       initContainers:
         - name: copy-ssh-key
@@ -34,12 +37,10 @@ spec:
                 chmod 600 /homebridge/sleep_only_key &&
                 echo "Copied sleepKey to /homebridge/sleep_only_key and set permissions to 600";
               }
-
               set_chmod() {
                 chmod 600 /homebridge/sleep_only_key &&
                 echo "Set permissions to 600 for /homebridge/sleep_only_key";
               }
-
               if [ ! -f /homebridge/sleep_only_key ] ||
                  [ "$(md5sum /homebridge/sleep_only_key | cut -d ' ' -f 1)" != "$(md5sum /secrets/sleepKey | cut -d ' ' -f 1)" ]; then
                 copy_and_chmod
@@ -58,40 +59,66 @@ spec:
               mountPath: /secrets
               readOnly: true
       {{- end }}
+
+      # === Volumes: add USB; (optional) DBus socket ===
       volumes:
-      - name: homebridge
-        persistentVolumeClaim:
-          claimName: homebridge
-      - name: ssh-key-secret
-        secret:
-          secretName: homebridge.sleepkey
-      hostNetwork: true
+        - name: homebridge
+          persistentVolumeClaim:
+            claimName: {{ include "homebridge.fullname" . }}
+        - name: ssh-key-secret
+          secret:
+            secretName: homebridge.sleepkey
+        - name: usb
+          hostPath:
+            path: /dev/bus/usb
+            type: Directory
+        # Optional but handy for BlueZ tools
+        - name: dbus
+          hostPath:
+            path: /run/dbus/system_bus_socket
+            type: Socket
+
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "homebridge.serviceAccountName" . }}
+
+      # pod-level security context (fsGroup from values)
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+
       containers:
         - name: {{ .Chart.Name }}
-          volumeMounts:
-            - mountPath: "/homebridge"
-              name: homebridge
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+
+          # === Mounts: PVC, USB bus, optional DBus ===
+          volumeMounts:
+            - name: homebridge
+              mountPath: /homebridge
+            - name: usb
+              mountPath: /dev/bus/usb
+            - name: dbus
+              mountPath: /run/dbus/system_bus_socket
+              readOnly: true
+
+          # === Container security context from values (with NET_ADMIN/NET_RAW) ===
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+
           env:
             - name: TERMINATE_ON_ERROR
               value: "1"
           {{- if .Values.extraEnvs }}
             {{- toYaml .Values.extraEnvs | nindent 12 }}
           {{- end }}
+
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
+
           livenessProbe:
             httpGet:
               path: /
@@ -106,8 +133,7 @@ spec:
               port: {{ .Values.service.port }}
             failureThreshold: 30
             periodSeconds: 10
-          resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

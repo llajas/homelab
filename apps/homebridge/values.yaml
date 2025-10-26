@@ -34,6 +34,8 @@ extraEnvs:
     value: "1"
   - name: HOMEBRIDGE_CONFIG_UI_PORT
     value: "8090"
+  - name: NOBLE_HCI_DEVICE_ID
+    value: "0"
 
 podSecurityContext:
   fsGroup: 2000
@@ -46,6 +48,10 @@ securityContext:
   runAsNonRoot: false
   allowPrivilegeEscalation: true
   #runAsUser: 1000
+  capabilities:
+    add:
+      - NET_ADMIN
+      - NET_RAW
 
 service:
   port: 8090
@@ -88,8 +94,8 @@ persistence:
   ## persistence.skipuninstall -- Do not delete the pvc upon helm uninstall
   skipuninstall: false
 
-    #nodeSelector:
-    #  feature.node.kubernetes.io/bluetooth-ready-node: "true"
+nodeSelector:
+  feature.node.kubernetes.io/bluetooth-ready-node: "true"
 
 initContainers:
   enabled: true
