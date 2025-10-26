@@ -22,7 +22,7 @@ resource "libvirt_domain" "virtual_nodes" {
   firmware = "/usr/share/qemu/ovmf-x64/OVMF_CODE-pure-efi.fd"
 
   nvram {
-    file     = "/etc/libvirt/qemu/nvram/${each.value.name}_VARS-pure-efi.fd"
+    file     = "/var/lib/libvirt/qemu/nvram/${each.value.name}_VARS-pure-efi.fd"
     template = "/usr/share/qemu/ovmf-x64/OVMF_VARS-pure-efi.fd"
   }
 
