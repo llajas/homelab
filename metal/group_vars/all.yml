@@ -7,6 +7,7 @@ hypervisor_address: "unraid.mgmt.lajas.tech"
 bridge_interface: "br0.137"
 storage_pool_name: "default_pool"
 storage_pool_path: "/mnt/user/domains/default_pool"
-default_memory: 16384
-default_vcpu: 6
-default_disk_size: 250 # in GB
+default_memory: 18432
+default_vcpu: 12
+default_disk_size: 512 # in GB
+
