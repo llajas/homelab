@@ -6,6 +6,7 @@ provider "registry.terraform.io/dmacvicar/libvirt" {
   constraints = "0.8.1"
   hashes = [
     "h1:IKy4tvKIxwGjzvLwVp/gfm9Ce8Iegqx0u3tuPXlwYLM=",
+    "h1:KUGB3qu7THug9hwg+Witf8PInTeMarpT1VnjeHIPE9Y=",
     "zh:126b9c265f5c2c4faf9b6ea6abfd3f86639d6301ba99d11cb87caae65e91eca4",
     "zh:282527a99f75468fe20a59e207ccc71f5de545548f1b0c6a4d235cc3664ff095",
     "zh:3b44aba6825ef5c909607ac5ec7e2f286de4e8ecc36cc00e3a0780bba372f248",
