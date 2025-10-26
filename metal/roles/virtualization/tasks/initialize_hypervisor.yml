@@ -26,26 +26,64 @@
     msg: "Error: /etc/libvirt/libvirtd.conf does not exist on the hypervisor."
   when: not libvirtd_conf.stat.exists
 
-- name: Check if listen_addr setting exists in libvirtd.conf
-  shell: grep -Fxq 'listen_addr = "0.0.0.0"' /etc/libvirt/libvirtd.conf
+# Detect systemctl (Unraid typically doesn't have it)
+- name: Detect systemctl on hypervisor
+  ansible.builtin.command: test -x /bin/systemctl
+  register: has_systemctl
   delegate_to: "{{ hypervisor_address }}"
-  register: listen_addr_check
-  ignore_errors: true
   changed_when: false
+  failed_when: false
 
-- name: Add listen_addr setting to libvirtd.conf if missing
-  blockinfile:
-    path: /etc/libvirt/libvirtd.conf
-    marker: "# {mark} Added by Ansible for Terraform/Unraid"
-    block: |
-      listen_addr = "0.0.0.0"
-  delegate_to: "{{ hypervisor_address }}"
-  when: listen_addr_check.rc != 0
+# Enforce libvirtd TCP listen settings idempotently
+- name: Ensure libvirtd TCP settings are present
+  vars:
+    libvirt_tcp_lines:
+      - { key: 'listen_tls',  line: 'listen_tls = 0' }
+      - { key: 'listen_tcp',  line: 'listen_tcp = 1' }
+      - { key: 'tcp_port',    line: 'tcp_port = "16509"' }
+      - { key: 'auth_tcp',    line: 'auth_tcp = "none"' }  # change to "sasl" if you want auth
+      - { key: 'listen_addr', line: 'listen_addr = "0.0.0.0"' }
+  block:
+    - name: "{{ item.key }} in libvirtd.conf"
+      ansible.builtin.lineinfile:
+        path: /etc/libvirt/libvirtd.conf
+        regexp: '^\s*{{ item.key }}\s*='
+        line: "{{ item.line }}"
+        state: present
+        backrefs: false
+      loop: "{{ libvirt_tcp_lines }}"
+      loop_control:
+        label: "{{ item.key }}"
+      register: libvirt_conf_edits
+      delegate_to: "{{ hypervisor_address }}"
+      become: true
 
-- name: Restart libvirtd service if configuration changed
-  systemd:
-    name: libvirtd
-    state: restarted
-    enabled: true
+    - name: Determine if any edits were made
+      ansible.builtin.set_fact:
+        libvirt_conf_changed: "{{ libvirt_conf_edits.results | selectattr('changed','equalto',true) | list | length > 0 }}"
+
+# Try to enable TCP socket on systemd hosts (harmless if already enabled)
+- name: Enable libvirt TCP socket (systemd hosts only)
+  ansible.builtin.command: systemctl enable --now libvirtd-tcp.socket
   delegate_to: "{{ hypervisor_address }}"
-  when: listen_addr_check.rc != 0
+  when: has_systemctl.rc == 0
+  changed_when: false
+  failed_when: false
+
+# Restart libvirt only if config changed
+- name: Restart libvirt (systemd)
+  ansible.builtin.command: systemctl restart libvirtd
+  delegate_to: "{{ hypervisor_address }}"
+  when:
+    - has_systemctl.rc == 0
+    - libvirt_conf_changed
+  changed_when: true
+
+- name: Restart libvirt (Unraid/rc script)
+  ansible.builtin.command: /etc/rc.d/rc.libvirt restart
+  delegate_to: "{{ hypervisor_address }}"
+  when:
+    - has_systemctl.rc != 0
+    - libvirt_conf_changed
+  changed_when: true
+
