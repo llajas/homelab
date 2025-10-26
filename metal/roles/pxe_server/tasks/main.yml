@@ -40,8 +40,89 @@
     mode: 0644
   loop: "{{ groups['metal'] }}"
 
-- name: Start the ephemeral PXE server
+# Detect whether DOCKER_HOST is remote (ssh:// or tcp://). If not set, treat as local.
+- name: Detect DOCKER_HOST and whether it's remote
+  ansible.builtin.set_fact:
+    docker_host_env: "{{ lookup('env','DOCKER_HOST') | default('', true) }}"
+    docker_is_remote: "{{ (lookup('env','DOCKER_HOST') | default('', true)) is search('^(ssh|tcp)://') }}"
+
+# Parse ssh://user@host:port safely (only when remote)
+- name: Extract remote docker URI without scheme
+  ansible.builtin.set_fact:
+    docker_remote_full: "{{ docker_host_env | regex_replace('^(ssh|tcp)://','') }}"
+  when: docker_is_remote | bool
+
+- name: Split user@host:port into parts
+  ansible.builtin.set_fact:
+    docker_remote_user: >-
+      {{ (docker_remote_full.split('@') | length > 1)
+         | ternary(docker_remote_full.split('@')[0], 'root') }}
+    docker_remote_host_port: "{{ docker_remote_full.split('@') | last }}"
+  when: docker_is_remote | bool
+
+- name: Separate host and optional port
+  ansible.builtin.set_fact:
+    docker_remote_host: "{{ docker_remote_host_port.split(':')[0] }}"
+    docker_remote_port: >-
+      {{ (docker_remote_host_port.split(':') | length > 1)
+         | ternary(docker_remote_host_port.split(':')[1], '') }}
+  when: docker_is_remote | bool
+
+# Stage the role's files/ tree onto the remote docker host so bind mounts resolve there.
+- name: Ensure PXE staging dir on remote daemon host
+  ansible.builtin.command: >
+    ssh {{ docker_remote_user }}@{{ docker_remote_host }} "mkdir -p /root/pxe"
+  when: docker_is_remote
+  changed_when: false
+
+- name: Rsync PXE files to remote daemon host
+  ansible.builtin.command: >
+    rsync -az --delete "{{ role_path }}/files/" "{{ docker_remote_user }}@{{ docker_remote_host }}:/root/pxe/"
+  when: docker_is_remote
+
+# Start containers on the REMOTE engine (directory mounts to avoid file/dir mismatch)
+- name: Start HTTP (nginx) on remote daemon
+  community.docker.docker_container:
+    name: files-http-1
+    image: "nginx:1.27-alpine"
+    state: started
+    recreate: true
+    restart_policy: unless-stopped
+    network_mode: host
+    docker_host: "{{ docker_host_env }}"
+    pull: yes
+    volumes:
+      - "/root/pxe/data/os:/usr/share/nginx/html/os:ro"
+      - "/root/pxe/data/init-config:/usr/share/nginx/html/init-config:ro"
+  when: docker_is_remote
+
+- name: Start dnsmasq on remote daemon (dir mounts; avoids file-vs-dir issues)
+  community.docker.docker_container:
+    name: files-dnsmasq-1
+    image: "alpine:3.20"
+    state: started
+    recreate: true
+    restart_policy: unless-stopped
+    network_mode: host
+    docker_host: "{{ docker_host_env }}"
+    capabilities:
+      - NET_ADMIN
+      - NET_RAW
+    command: >
+      sh -lc 'apk add --no-cache dnsmasq &&
+              exec dnsmasq -k --conf-file=/pxe/dnsmasq.conf'
+    volumes:
+      - "/root/pxe/data/pxe-config:/pxe:ro"
+      - "/root/pxe/data/os:/tftp:ro"
+  when: docker_is_remote
+
+# Local fallback: keep your original Compose flow when the engine is local
+- name: Start the ephemeral PXE server (local engine via Compose)
   community.docker.docker_compose_v2:
     project_src: "{{ role_path }}/files"
     state: present
     build: always
+  when: not docker_is_remote
+
+# === END PATCH ===
+
