@@ -1,5 +1,4 @@
 # metal/roles/gpu_install_drivers/tasks/main.yml
-
 - name: Install NVIDIA drivers on GPU nodes
   block:
 
@@ -15,9 +14,12 @@
         test_command: uptime
       when: update_result.changed
 
-    - name: Install pciutils package
+    - name: Ensure basic tools
       dnf:
-        name: pciutils
+        name:
+          - ca-certificates
+          - curl
+          - pciutils
         state: present
 
     - name: Detect NVIDIA GPU
@@ -36,49 +38,130 @@
             unknown
           {%- endif -%}
 
-    - name: Import RPMFusion Free GPG Key
+    #######################################################################
+    # Keys: download on controller, copy to hosts, import locally
+    #######################################################################
+
+    - name: Prepare temp dir on controller for keys
+      tempfile:
+        state: directory
+        suffix: ansible-keys
+      register: key_tmpdir
+      delegate_to: localhost
+      run_once: true
+
+    - name: Download RPMFusion Free GPG key (controller)
+      get_url:
+        url: https://download1.rpmfusion.org/free/fedora/RPM-GPG-KEY-rpmfusion-free-fedora-2020
+        dest: "{{ key_tmpdir.path }}/RPM-GPG-KEY-rpmfusion-free-fedora-2020"
+        mode: '0644'
+      delegate_to: localhost
+      run_once: true
+
+    - name: Download RPMFusion Nonfree GPG key (controller)
+      get_url:
+        url: https://download1.rpmfusion.org/nonfree/fedora/RPM-GPG-KEY-rpmfusion-nonfree-fedora-2020
+        dest: "{{ key_tmpdir.path }}/RPM-GPG-KEY-rpmfusion-nonfree-fedora-2020"
+        mode: '0644'
+      delegate_to: localhost
+      run_once: true
+
+    - name: Download NVIDIA GPG key (controller)
+      get_url:
+        url: https://nvidia.github.io/libnvidia-container/gpgkey
+        dest: "{{ key_tmpdir.path }}/RPM-GPG-KEY-nvidia"
+        mode: '0644'
+      delegate_to: localhost
+      run_once: true
+
+    - name: Copy keys to hosts
+      copy:
+        src: "{{ item.src }}"
+        dest: "/etc/pki/rpm-gpg/{{ item.dest }}"
+        mode: '0644'
+      loop:
+        - { src: "{{ key_tmpdir.path }}/RPM-GPG-KEY-rpmfusion-free-fedora-2020",     dest: "RPM-GPG-KEY-rpmfusion-free-fedora-2020" }
+        - { src: "{{ key_tmpdir.path }}/RPM-GPG-KEY-rpmfusion-nonfree-fedora-2020",  dest: "RPM-GPG-KEY-rpmfusion-nonfree-fedora-2020" }
+        - { src: "{{ key_tmpdir.path }}/RPM-GPG-KEY-nvidia",                         dest: "RPM-GPG-KEY-nvidia" }
+
+    - name: Import RPMFusion Free GPG key (from local file)
       rpm_key:
         state: present
-        key: "https://download1.rpmfusion.org/free/fedora/RPM-GPG-KEY-rpmfusion-free-fedora-2020"
+        key: /etc/pki/rpm-gpg/RPM-GPG-KEY-rpmfusion-free-fedora-2020
 
-    - name: Import RPMFusion Non-Free GPG Key
+    - name: Import RPMFusion Nonfree GPG key (from local file)
       rpm_key:
         state: present
-        key: "https://download1.rpmfusion.org/nonfree/fedora/RPM-GPG-KEY-rpmfusion-nonfree-fedora-2020"
+        key: /etc/pki/rpm-gpg/RPM-GPG-KEY-rpmfusion-nonfree-fedora-2020
 
-    - name: Import NVIDIA GPG key
+    - name: Import NVIDIA GPG key (from local file)
       rpm_key:
         state: present
-        key: "https://nvidia.github.io/libnvidia-container/gpgkey"
+        key: /etc/pki/rpm-gpg/RPM-GPG-KEY-nvidia
 
-    - name: Install RPMFusion repositories
+    #######################################################################
+    # Repos: download on controller, copy to hosts, install locally
+    #######################################################################
+
+    - name: Download RPMFusion Free release RPM (controller)
+      get_url:
+        url: "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-{{ ansible_facts['distribution_version'] }}.noarch.rpm"
+        dest: "{{ key_tmpdir.path }}/rpmfusion-free-release-{{ ansible_facts['distribution_version'] }}.noarch.rpm"
+        mode: '0644'
+      delegate_to: localhost
+      run_once: true
+
+    - name: Download RPMFusion Nonfree release RPM (controller)
+      get_url:
+        url: "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-{{ ansible_facts['distribution_version'] }}.noarch.rpm"
+        dest: "{{ key_tmpdir.path }}/rpmfusion-nonfree-release-{{ ansible_facts['distribution_version'] }}.noarch.rpm"
+        mode: '0644'
+      delegate_to: localhost
+      run_once: true
+
+    - name: Copy RPMFusion release RPMs to hosts
+      copy:
+        src: "{{ item }}"
+        dest: "/tmp/{{ item | basename }}"
+        mode: '0644'
+      loop:
+        - "{{ key_tmpdir.path }}/rpmfusion-free-release-{{ ansible_facts['distribution_version'] }}.noarch.rpm"
+        - "{{ key_tmpdir.path }}/rpmfusion-nonfree-release-{{ ansible_facts['distribution_version'] }}.noarch.rpm"
+
+    - name: Install RPMFusion release RPMs from local files
       dnf:
         name:
-          - "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-{{ ansible_facts['distribution_version'] }}.noarch.rpm"
-          - "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-{{ ansible_facts['distribution_version'] }}.noarch.rpm"
+          - "/tmp/rpmfusion-free-release-{{ ansible_facts['distribution_version'] }}.noarch.rpm"
+          - "/tmp/rpmfusion-nonfree-release-{{ ansible_facts['distribution_version'] }}.noarch.rpm"
         state: present
-    # ── CUDA REPO SETUP ─────────────────────────────────────────────────
 
     - name: Determine Fedora major version for CUDA repo
       set_fact:
         cuda_repo_version: "{{ ansible_facts['distribution_version'].split('.')[0] }}"
       when: gpu_type == 'rtx_gtx'
 
-    - name: Debug CUDA repo version
-      debug:
-        msg: "Using Fedora{{ cuda_repo_version }} for CUDA repo"
-      when: gpu_type == 'rtx_gtx'
-
-    - name: Add NVIDIA CUDA repository
+    - name: Fetch NVIDIA CUDA repo file (controller)
       get_url:
         url: "https://developer.download.nvidia.com/compute/cuda/repos/fedora{{ cuda_repo_version }}/x86_64/cuda-fedora{{ cuda_repo_version }}.repo"
-        dest: "/etc/yum.repos.d/cuda-fedora.repo"
+        dest: "{{ key_tmpdir.path }}/cuda-fedora.repo"
+        mode: '0644'
+      delegate_to: localhost
+      run_once: true
       when: gpu_type == 'rtx_gtx'
 
-    - name: Add NVIDIA container toolkit repository
+    - name: Install NVIDIA CUDA repo file
+      copy:
+        src: "{{ key_tmpdir.path }}/cuda-fedora.repo"
+        dest: "/etc/yum.repos.d/cuda-fedora.repo"
+        mode: '0644'
+      when: gpu_type == 'rtx_gtx'
+
+    - name: Add NVIDIA container toolkit repo (via curl)
       shell: |
         curl -sL https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo \
           | tee /etc/yum.repos.d/nvidia-container-toolkit.repo
+      args:
+        executable: /bin/bash
       when: gpu_type == 'rtx_gtx'
 
     - name: Clean package metadata cache
@@ -89,7 +172,9 @@
       command: dnf makecache --refresh -y
       changed_when: false
 
-    # ── DRIVER INSTALL & SMART REBOOT ──────────────────────────────────────
+    #######################################################################
+    # Driver install & smart reboot
+    #######################################################################
 
     - name: Install Open DKMS NVIDIA Driver
       dnf:
@@ -138,7 +223,9 @@
       changed_when: false
       failed_when: nvidia_smi_result.rc != 0
 
-    # ── POST-INSTALL CUDA & TOOLKIT (nobest fallback) ──────────────────────────────
+    #######################################################################
+    # Post-install CUDA & toolkit
+    #######################################################################
 
     - name: Install CUDA Toolkit & Persistence Daemon (nobest fallback)
       command: >
@@ -182,3 +269,4 @@
         state: link
 
   when: gpu_type is defined
+
