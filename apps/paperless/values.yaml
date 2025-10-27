@@ -111,6 +111,9 @@ postgresql:
       enabled: true
       storageClass: ""
       size: 8Gi
+  image:
+    repository: bitnamilegacy/postgresql
+    tag: 16.2.0-debian-11-r1
 
 # -- Enable and configure mariadb database subchart under this key.
 #    If enabled, the app's db envs will be set for you.
@@ -147,6 +150,9 @@ redis:
       enabled: true
   replica:
     replicaCount: 3
+  image:
+    repository: bitnamilegacy/redis
+    tag: 8.0.3-debian-12-r1
 
 opSecrets:
   vault: "z3emsr5qi5xqk33wthv5fpmfqa"
