@@ -18,9 +18,10 @@ partition / --fstype=ext4 --grow
 # Network information
 network --bootproto=static --device={{ hostvars[item]['network_interface'] }} --ip={{ hostvars[item]['ansible_host'] }} --gateway={{ ansible_default_ipv4.gateway }} --nameserver={{ dns_server }} --netmask={{ ansible_default_ipv4.netmask }} --ipv6=auto --hostname={{ hostvars[item]['inventory_hostname'] }} --activate
 
-# Use network installation
-repo --name="Repository" --baseurl=http://{{ ansible_default_ipv4.address }}/os
-url --url="http://{{ ansible_default_ipv4.address }}/os"
+# Use network installation (HTTP, not TFTP)
+repo --name="Repository" --baseurl=http://{{ pxe_vlan_ip }}/os
+url --url="http://{{ pxe_vlan_ip }}/os"
+
 # Disable Setup Agent on first boot
 firstboot --disable
 # Do not configure the X Window System
@@ -54,3 +55,4 @@ cifs-utils
 services --enable=iscsid
 
 reboot
+

@@ -1,8 +1,17 @@
+set default=0
 set timeout=1
 
+# The IP on the PXE VLAN (the one dnsmasq listens on)
+set tftp_server={{ pxe_vlan_ip }}
+set root=(tftp,${tftp_server})
+
 menuentry '{{ iso_url | basename | splitext | first }} (PXE)' {
-    linux vmlinuz \
+    # Kernel/initrd from TFTP (correct paths for Fedora/RHEL ISOs)
+    linuxefi (tftp)/images/pxeboot/vmlinuz \
         ip=dhcp \
-        inst.ks=http://{{ ansible_default_ipv4.address }}/init-config/${net_default_mac}.ks
-    initrd initrd.img
+        inst.stage2=http://{{ pxe_vlan_ip }}/os \
+        inst.repo=http://{{ pxe_vlan_ip }}/os \
+        inst.ks=http://{{ pxe_vlan_ip }}/init-config/${net_default_mac}.ks
+    initrdefi (tftp)/images/pxeboot/initrd.img
 }
+

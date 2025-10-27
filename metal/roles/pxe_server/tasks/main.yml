@@ -105,15 +105,14 @@
     restart_policy: unless-stopped
     network_mode: host
     docker_host: "{{ docker_host_env }}"
-    capabilities:
-      - NET_ADMIN
-      - NET_RAW
+    capabilities: [NET_ADMIN, NET_RAW]
     command: >
       sh -lc 'apk add --no-cache dnsmasq &&
               exec dnsmasq -k --conf-file=/pxe/dnsmasq.conf'
     volumes:
       - "/root/pxe/data/pxe-config:/pxe:ro"
       - "/root/pxe/data/os:/tftp:ro"
+      - "/root/pxe/data/pxe-config/grub.cfg:/tftp/EFI/BOOT/grub.cfg:ro"
   when: docker_is_remote
 
 # Local fallback: keep your original Compose flow when the engine is local
