@@ -1,53 +1,80 @@
+# metal/roles/k3s/templates/kube-vip.yaml.j2
 apiVersion: v1
 kind: Pod
 metadata:
   name: kube-vip
   namespace: kube-system
 spec:
+  hostNetwork: true
   containers:
     - name: kube-vip
       image: ghcr.io/kube-vip/kube-vip:v0.9.2
-      args:
-        - manager
+      imagePullPolicy: IfNotPresent
+      args: ["manager"]
       env:
+        # VIP (APIServer) address/port
         - name: address
-          value: {{ control_plane_endpoint }}
+          value: "{{ control_plane_endpoint }}"
         - name: port
           value: "6443"
+
+        # Control-plane leader election
         - name: cp_namespace
           value: "kube-system"
-        - name: vip_arp
-          value: "false"
         - name: cp_enable
           value: "true"
         - name: vip_leaderelection
           value: "true"
+
+        # L4 LB not used here
         - name: lb_enable
           value: "false"
+
+        # VIP advertising mode (BGP on, ARP off by default)
+        - name: vip_arp
+          value: "{{ kubevip_vip_arp | default('false') }}"
         - name: bgp_enable
-          value: "true"
+          value: "{{ kubevip_bgp_enable | default('true') }}"
+
+        # Optional: pin interface (e.g., eno1)
+        {% if kubevip_interface is defined %}
+        - name: vip_interface
+          value: "{{ kubevip_interface }}"
+        {% endif %}
+
+        # Local ASN for this node
         - name: bgp_as
-          value: "64513"
+          value: "{{ kubevip_bgp_asn | default('64513') }}"
+
+        # BGP peers (JSON string, single line)
         - name: bgp_peers
-          value: 10.137.0.1:64512
-        - name: bgp_router_id
+          value: '{{ kubevip_bgp_peers | default('10.137.0.1:64512') }}'
+
+        # Router ID must be IPv4. Use hostIP by default; allow explicit override.
+{% if kubevip_router_id is defined %}
+        - name: bgp_routerid
+          value: "{{ kubevip_router_id }}"
+{% else %}
+        - name: bgp_routerid
           valueFrom:
             fieldRef:
               fieldPath: status.hostIP
+{% endif %}
+
       securityContext:
         capabilities:
-          add:
-            - NET_ADMIN
-            - NET_RAW
+          add: ["NET_ADMIN", "NET_RAW"]
+
       volumeMounts:
         - mountPath: /etc/kubernetes/admin.conf
           name: kubeconfig
+
   hostAliases:
-    - hostnames:
-        - kubernetes
-      ip: 127.0.0.1
-  hostNetwork: true
+    - ip: 127.0.0.1
+      hostnames: ["kubernetes"]
+
   volumes:
     - hostPath:
-        path: {{ k3s_kubeconfig_file }}
+        path: "{{ k3s_kubeconfig_file }}"
       name: kubeconfig
+

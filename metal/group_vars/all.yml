@@ -10,4 +10,7 @@ storage_pool_path: "/mnt/user/domains/default_pool"
 default_memory: 18432
 default_vcpu: 12
 default_disk_size: 512 # in GB
+pxe_interface: "br0.137"
+pxe_vlan_ip: "10.137.0.155"
+dhcp_proxy: true
 
