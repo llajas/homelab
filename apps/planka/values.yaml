@@ -68,6 +68,7 @@ service:
 ingress:
   enabled: true
   className: "nginx"
+  labels: {}
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     # kubernetes.io/ingress.class: nginx
@@ -123,6 +124,11 @@ postgresql:
       replicationPasswordKey: replication-password
   serviceBindings:
     enabled: true
+  global:
+    security:
+      allowInsecureImages: true
+  image:
+    repository: bitnamilegacy/postgresql
 
 ## Set this or existingDburlSecret if you disable the built-in postgresql deployment
 dburl:
