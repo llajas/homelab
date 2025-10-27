@@ -154,6 +154,10 @@ redis:
     repository: bitnamilegacy/redis
     tag: 8.0.3-debian-12-r1
 
+global:
+  security:
+    allowInsecureImages: true
+
 opSecrets:
   vault: "z3emsr5qi5xqk33wthv5fpmfqa"
   redis:
