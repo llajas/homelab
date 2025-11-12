@@ -17,6 +17,7 @@ ingress-nginx:
 
       proxy-real-ip-cidr: "10.42.0.0/16"
       compute-full-forwarded-for: "true"
+      annotations-risk-level: Critical
 
   tcp:
     22: gitea/gitea-ssh:22
