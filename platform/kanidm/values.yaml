@@ -7,6 +7,56 @@ app-template:
           image:
             repository: docker.io/kanidm/server
             tag: 1.7.4
+
+          probes:
+            readiness:
+              enabled: true
+              custom: true
+              spec:
+                httpGet:
+                  scheme: HTTPS
+                  port: 443
+                  path: /
+                  httpHeaders:
+                    - name: Host
+                      value: auth.lajas.tech
+                periodSeconds: 10
+                timeoutSeconds: 3
+                failureThreshold: 3
+                successThreshold: 1
+
+            liveness:
+              enabled: true
+              custom: true
+              spec:
+                httpGet:
+                  scheme: HTTPS
+                  port: 443
+                  path: /
+                  httpHeaders:
+                    - name: Host
+                      value: auth.lajas.tech
+                periodSeconds: 10
+                timeoutSeconds: 3
+                failureThreshold: 3
+                successThreshold: 1
+
+            startup:
+              enabled: true
+              custom: true
+              spec:
+                httpGet:
+                  scheme: HTTPS
+                  port: 443
+                  path: /
+                  httpHeaders:
+                    - name: Host
+                      value: auth.lajas.tech
+                periodSeconds: 5
+                timeoutSeconds: 3
+                # Give Kanidm plenty of time to come up on first boot/migrations
+                failureThreshold: 60
+                successThreshold: 1
       statefulset:
         volumeClaimTemplates:
           - name: data
