@@ -1,0 +1,138 @@
+app-template:
+  defaultPodOptions:
+    annotations:
+      operator.1password.io/item-path: "vaults/z3emsr5qi5xqk33wthv5fpmfqa/items/juneskn2alhutvm54mxzevi4lu"
+      operator.1password.io/item-name: "secrets"
+    securityContext:
+      runAsUser: 0
+      runAsGroup: 0
+      fsGroup: 0
+
+  controllers:
+    main:
+      containers:
+        main:
+          image:
+            repository: ghcr.io/m1k1o/neko/microsoft-edge
+            tag: 3.0.8
+            pullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: webrtctcp
+              containerPort: 52100
+              protocol: TCP
+            - name: webrtcudp
+              containerPort: 52100
+              protocol: UDP
+          env:
+            # --- server ---
+            NEKO_SERVER_BIND: ":8080"
+            NEKO_SERVER_PATH_PREFIX: "/"
+            NEKO_SERVER_PROXY: "true"
+            NEKO_SERVER_CORS: "*"
+
+            # --- session/ui (as you had) ---
+            NEKO_DESKTOP_SCREEN: "1920x1080@30"
+            NEKO_SESSION_CONTROL_PROTECTION: "false"
+            NEKO_SESSION_IMPLICIT_HOSTING: "false"
+            NEKO_SESSION_COOKIE_ENABLED: "false"
+            NEKO_MEMBER_PROVIDER: "multiuser"
+            NEKO_MEMBER_MULTIUSER_USER_PASSWORD:
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: member-multiuser-user-password
+            NEKO_MEMBER_MULTIUSER_ADMIN_PASSWORD:
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: member-multiuser-admin-password
+            NEKO_FILE_TRANSFER_ENABLED: "true"
+            NEKO_FILE_TRANSFER_PATH: "/home/neko/Downloads"
+
+            # --- webrtc (correct keys) ---
+            NEKO_WEBRTC_EPR: "0-0"                    # disable ephemeral port range
+            NEKO_WEBRTC_UDPMUX: "52100"
+            NEKO_WEBRTC_TCPMUX: "52100"
+            NEKO_WEBRTC_ICELITE: "true"
+            NEKO_WEBRTC_ICETRICKLE: "true"
+            NEKO_WEBRTC_ICESERVERS_FRONTEND: '[{"urls":["stun:stun.l.google.com:19302"]}]'
+            NEKO_WEBRTC_ICESERVERS_BACKEND: '[{"urls":["stun:stun.l.google.com:19302"]}]'
+            NEKO_WEBRTC_NAT1TO1: "10.137.0.231"
+
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+            readOnlyRootFilesystem: false
+
+  service:
+    main:
+      controller: main
+      primary: true
+      ports:
+        http:
+          port: 8080
+          targetPort: http
+          protocol: HTTP
+          primary: true
+
+    webrtc:
+      controller: main
+      type: LoadBalancer
+      externalTrafficPolicy: Local
+      loadBalancerIP: 10.137.0.231
+      annotations:
+        metallb.universe.tf/ip-allocated-from-pool: default
+      ports:
+        tcpmux:
+          port: 52100
+          targetPort: 52100
+          protocol: TCP
+        udpmux:
+          port: 52100
+          targetPort: 52100
+          protocol: UDP
+
+  ingress:
+    main:
+      className: nginx
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+        nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+        nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
+        nginx.ingress.kubernetes.io/enable-websocket: "true"
+        nginx.ingress.kubernetes.io/upstream-vhost: "localhost"
+        nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+        nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+        nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+        nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      hosts:
+        - host: neko.lajas.tech
+          paths:
+            - path: /
+              pathType: Prefix
+              service:
+                identifier: main
+                port: http
+      tls:
+        - secretName: neko-tls
+          hosts:
+            - neko.lajas.tech
+
+  persistence:
+    data:
+      accessMode: ReadWriteOnce
+      size: 10Gi
+      advancedMounts:
+        main:
+          main:
+            - path: /home/neko/.local/share/neko
+    downloads:
+      accessMode: ReadWriteOnce
+      size: 10Gi
+      advancedMounts:
+        main:
+          main:
+            - path: /home/neko/Downloads
