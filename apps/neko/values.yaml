@@ -51,6 +51,8 @@ app-template:
                   key: member-multiuser-admin-password
             NEKO_FILE_TRANSFER_ENABLED: "true"
             NEKO_FILE_TRANSFER_PATH: "/home/neko/Downloads"
+            NEKO_DESKTOP_INPUT_ENABLED: true
+            NEKO_DESKTOP_INPUT_SOCKET: "/tmp/xf86-input-neko.sock"
 
             # --- webrtc (correct keys) ---
             NEKO_WEBRTC_EPR: "0-0"                    # disable ephemeral port range
