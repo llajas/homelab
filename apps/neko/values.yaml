@@ -13,8 +13,8 @@ app-template:
       containers:
         main:
           image:
-            repository: ghcr.io/m1k1o/neko/microsoft-edge
-            tag: 3.0.8
+            repository: ghcr.io/m1k1o/neko/nvidia-microsoft-edge
+            tag: 3.0.7
             pullPolicy: IfNotPresent
           ports:
             - name: http
