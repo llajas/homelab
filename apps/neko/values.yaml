@@ -61,8 +61,32 @@ app-template:
                   key: member-multiuser-admin-password
             NEKO_FILE_TRANSFER_ENABLED: "true"
             NEKO_FILE_TRANSFER_PATH: "/home/neko/Downloads"
+
+            # --- desktop/input ---
             NEKO_DESKTOP_INPUT_ENABLED: true
             NEKO_DESKTOP_INPUT_SOCKET: "/tmp/xf86-input-neko.sock"
+
+            # --- nvidia/gpu ---
+            NVIDIA_VISIBLE_DEVICES: all
+            NVIDIA_DRIVER_CAPABILITIES: all
+            NEKO_CAPTURE_VIDEO_PIPELINE: |
+              ximagesrc display-name={display} show-pointer=true use-damage=false
+                ! video/x-raw,framerate=25/1
+                ! videoconvert ! queue
+                ! video/x-raw,format=NV12
+                ! nvh264enc
+                  name=encoder
+                  preset=2
+                  gop-size=25
+                  spatial-aq=true
+                  temporal-aq=true
+                  bitrate=4096
+                  vbv-buffer-size=4096
+                  rc-mode=6
+                ! h264parse config-interval=-1
+                ! video/x-h264,stream-format=byte-stream
+                ! appsink name=appsink
+            NEKO_CAPTURE_VIDEO_CODEC: "h264"
 
             # --- webrtc (correct keys) ---
             NEKO_WEBRTC_EPR: "0-0"                    # disable ephemeral port range
