@@ -20,7 +20,7 @@ app-template:
                       operator: In
                       values:
                         - "true"
-      runtimeClass: nvidia
+        runtimeClass: nvidia
       containers:
         main:
           image:
