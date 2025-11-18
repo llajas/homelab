@@ -72,8 +72,8 @@ app-template:
             NEKO_CAPTURE_VIDEO_PIPELINE: |
               ximagesrc display-name={display} show-pointer=true use-damage=false
                 ! video/x-raw,framerate=25/1
-                ! videoconvert ! queue
-                ! video/x-raw,format=NV12
+                ! cudaupload ! cudaconvert ! queue
+                ! video/x-raw(memory:CUDAMemory),format=NV12
                 ! nvh264enc
                   name=encoder
                   preset=2
