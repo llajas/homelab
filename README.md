@@ -27,42 +27,17 @@ More information can be found in [the roadmap](#roadmap) below.
 
 ![Hardware](https://user-images.githubusercontent.com/29675370/208781819-c0a4b94b-8554-4518-b17f-75eee7f22a5f.png)
 
-- 6 × Lenovo `ThinkCentre M700`:
-    - CPU: `Intel Core i5-6600T @ 2.70GHz`
-    - RAM: `16GB DDR4`
-    - SSD: `1TB`
-
-- 1 x [Unifi](https://techspecs.ui.com/unifi/cameras-nvrs/uck-g2-plus#datasheet) `CloudKey Gen2+` (All Unifi software removed; base image and OS replaced with Debian Bookworm - Re-purposed as a bastion host for cluster initialization and management):
-    - CPU: `Octa-core Arm® Cortex®-A53 @2.2GHz`
-    - RAM: `3GB LPDDR3`
-    - SSD: `512GB`
-    - eMMC: `32GB`
-    - microSD: `64GB`
-
-- 1 x Custom `NAS` (Network Attached Storage):
-    - CPU: `Intel Xeon E5-2699 v4 @ 2.20GHz`
-    - Motherboard: `MSI X99A SLI PLUS`
-    - RAM: `128GB DDR4`
-    - HBA: `LSI 9305-16i`
-    - Network:
-        - 1 × `X520-DA1` 10GbE via SFP+ (Data Plane)
-        - 1 × `I218-V` 1GbE (Management Plane)
-    - SSD: `13TB` (`6.7TB` usable via RAID10)
-        - 13 × `1TB` TEAMGROUP m2 SATA SSDs
-    - HDD: `100TB` (`80TB` usable)
-        - 4 × `20TB` Seagate Exos X22
-        - 1 × `20TB` Western Digital Red Plus (Parity)
-    - GPU:
-        - 1 x `NVIDIA GeForce GTX 2060` 12GB VRAM
-        - 1 x `NVIDIA GeForce GTX 2060` 6GB VRAM
+| Device | Count | Specifications |
+| :--- | :---: | :--- |
+| **Lenovo ThinkCentre M700** | 6 | **CPU:** Intel Core i5-6600T @ 2.70GHz<br>**RAM:** 16GB DDR4<br>**SSD:** 1TB |
+| [**Unifi CloudKey Gen2+**](docs/reference/hardware/cloudkey.md)<br>*(Bastion Host)* | 1 | **CPU:** Octa-core Arm® Cortex®-A53 @ 2.2GHz<br>**RAM:** 3GB LPDDR3<br>**Storage:** 512GB SSD, 32GB eMMC, 64GB microSD |
+| **Custom NAS** | 1 | **CPU:** Intel Xeon E5-2699 v4 @ 2.20GHz<br>**RAM:** 128GB DDR4<br>**Storage:** 13TB SSD (6.7TB usable), 100TB HDD (80TB usable)<br>**Network:** 10GbE SFP+, 1GbE Mgmt<br>**GPU:** 1x NVIDIA GeForce GTX 2060 12GB, 1x NVIDIA GeForce GTX 2060 6GB |
 
 ### Virtual Nodes
 
-- 2 x qemu/kvm virtual machines (VMs) - *Created and managed via Terraform in `metal/virtual/`*
-    - CPU: `6` vCPU (host-passthrough)
-    - RAM: `16GB`
-    - HDD: `1TB`
-    - GPU: `NVIDIA GeForce GTX 2060`
+| Node Type | Count | Specifications |
+| :--- | :---: | :--- |
+| **QEMU/KVM VM** | 2 | **vCPU:** 6 (host-passthrough)<br>**RAM:** 16GB<br>**Storage:** 1TB HDD<br>**GPU:** NVIDIA GeForce GTX 2060 |
 
 Virtualization is done using [KVM](https://www.linux-kvm.org/page/Main_Page) with [Libvirt](https://libvirt.org/) and [QEMU](https://www.qemu.org/). The virtual machines are provisioned and managed as Infrastructure as Code using [Terraform](https://www.terraform.io/) with the [Libvirt provider](https://registry.terraform.io/providers/dmacvicar/libvirt/latest) on top of the `NAS` hardware.
 
