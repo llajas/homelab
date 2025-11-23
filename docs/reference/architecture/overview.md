@@ -109,8 +109,14 @@ Below is the pseudo code for the entire process, you don't have to read it right
                     TFTP server
                     HTTP server
                 create init config for each machine
-                turn the machines on via WoL
-                the machines boot:
+            setup virtual machines:
+                check inventory for virtual nodes
+                initialize hypervisor connection
+                apply Terraform configuration to create VMs
+            turn the machines on via WoL:
+                standard WoL for physical machines
+                broadcast WoL to hypervisor for virtual machines
+            the machines boot:
                     select network boot automatically
                     broadcast DHCP request
                     DHCP server reply:
@@ -131,6 +137,14 @@ Below is the pseudo code for the entire process, you don't have to read it right
                     reboot to the new OS
                 controller see the machines are ready
             build a Kubernetes cluster:
+                install system packages and drivers:
+                    if virtual node:
+                        install qemu-guest-agent
+                    if GPU node:
+                        detect NVIDIA GPU type (Tesla K80 or RTX/GTX)
+                        install RPMFusion and NVIDIA repos
+                        install NVIDIA drivers and CUDA toolkit
+                        rebuild kernel modules if needed
                 download k3s binary
                 generate cluster token
                 copy k3s config files
