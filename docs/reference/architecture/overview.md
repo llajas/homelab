@@ -20,7 +20,7 @@
 
 Main components:
 
-- `./metal`: bare metal management, install Linux and Kubernetes
+- `./metal`: bare metal and virtual machine management, install Linux, drivers, and Kubernetes
 - `./bootstrap`: GitOps bootstrap with ArgoCD
 - `./system`: critical system components for the cluster (load balancer, storage, ingress, operation tools...)
 - `./platform`: essential components for service hosting platform (git, build runners, dashboards...)
@@ -38,7 +38,9 @@ Everything is automated, after you edit the configuration files, you just need t
 
 - (1) Build the `./metal` layer:
     - Create an ephemeral, stateless PXE server
+    - Provision virtual machines via Terraform (if configured)
     - Install Linux on all servers in parallel
+    - Install system packages and drivers (including NVIDIA GPU drivers)
     - Build a Kubernetes cluster (based on k3s)
 - (2) Build the `./bootstrap` layer:
     - Install ArgoCD
@@ -53,7 +55,7 @@ From now on, ArgoCD will do the rest:
 ```mermaid
 flowchart TD
   subgraph metal[./metal]
-    pxe[PXE Server] -.-> linux[Fedora Server] --> k3s
+    pxe[PXE Server] -.-> linux[Fedora Server] --> drivers[Drivers/Agents] --> k3s
   end
 
   subgraph bootstrap[./bootstrap]
