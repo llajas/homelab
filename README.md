@@ -31,7 +31,7 @@ More information can be found in [the roadmap](#roadmap) below.
 | :--- | :---: | :--- |
 | **Lenovo ThinkCentre M700** | 6 | **CPU:** Intel Core i5-6600T @ 2.70GHz<br>**RAM:** 16GB DDR4<br>**SSD:** 1TB |
 | [**Unifi CloudKey Gen2+**](docs/reference/hardware/cloudkey.md)<br>*(Bastion Host)* | 1 | **CPU:** Octa-core Arm® Cortex®-A53 @ 2.2GHz<br>**RAM:** 3GB LPDDR3<br>**Storage:** 512GB SSD, 32GB eMMC, 64GB microSD |
-| **Custom NAS** | 1 | **CPU:** Intel Xeon E5-2699 v4 @ 2.20GHz<br>**RAM:** 128GB DDR4<br>**Storage:** 13TB SSD (6.7TB usable), 100TB HDD (80TB usable)<br>**Network:** 10GbE SFP+, 1GbE Mgmt<br>**GPU:** 1x NVIDIA GeForce GTX 2060 12GB, 1x NVIDIA GeForce GTX 2060 6GB |
+| **Custom NAS** | 1 | **CPU:** Intel Xeon E5-2699 v4 @ 2.20GHz<br>**RAM:** 128GB DDR4<br>**Storage:**<br>SSD: 13TB (6.7TB usable, RAID10)<br>HDD: 100TB (80TB usable, 5x Seagate Exos, 1x WD Red Parity)<br>**Network:** 10GbE SFP+, 1GbE Mgmt<br>**GPU:** 1x NVIDIA GeForce GTX 2060 12GB, 1x NVIDIA GeForce GTX 2060 6GB |
 
 ### Virtual Nodes
 
