@@ -93,19 +93,13 @@ websocket:
       type: ClusterIP
       labels: {}
       annotations: {}
+      portName: http
       port: 6379
       nodePort: ""
     tolerations: []
     affinity: {}
-    securityContext: {}
-
-redis-cluster:
-  enabled: false
-  fullnameOverride: open-webui-redis
-  auth:
-    enabled: false
-  replica:
-    replicaCount: 3
+    containerSecurityContext: {}
+    podSecurityContext: {}
 
 clusterDomain: cluster.local
 
@@ -206,10 +200,11 @@ enableOpenaiApi: true
 openaiBaseApiUrl: "https://api.openai.com/v1"
 openaiBaseApiUrls: []
 
+# OpenAI API key configuration (new in v8.19.0)
+openaiApiKey: "0p3n-w3bu!"
+
 # Configure core application settings
 extraEnvVars:
-  - name: OPENAI_API_KEY
-    value: "0p3n-w3bu!"
   - name: WEBUI_URL
     value: *openwebuihost
   - name: BYPASS_MODEL_ACCESS_CONTROL
@@ -287,26 +282,6 @@ sso:
 extraResources: []
 
 databaseUrl: ""
-
-postgresql:
-  enabled: false
-  fullnameOverride: open-webui-postgres
-  architecture: standalone
-  auth:
-    database: open-webui
-    postgresPassword: 0p3n-w3bu!
-    username: open-webui
-    password: 0p3n-w3bu!
-  primary:
-    persistence:
-      size: 1Gi
-    resources:
-      requests:
-        memory: 256Mi
-        cpu: 250m
-      limits:
-        memory: 512Mi
-        cpu: 500m
 
 logging:
   level: ""
