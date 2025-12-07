@@ -303,7 +303,7 @@ extraDeploy:
         unusable-space-block: "minecraft:barrier"
         metrics:
           enabled: false
-          uuid: ""
+          uuid: "433f7310-2203-47df-9eb2-54234c4f5da9"
         scoreboard-packet-threshold: 20
         enable-proxy-connections: false
         mtu: 1400
