@@ -1,0 +1,90 @@
+open-webui:
+  ollama:
+    ollama:
+      models:
+        pull:
+          - deepseek-coder:6.7b
+          - deepseek-r1:14b
+          - deepseek-r1:8b
+          - gemma2:9b
+          - gemma3:12b
+          - granite-code:8b
+          - hermes3:8b
+          - llama3.2-vision:11b
+          - llama3.2:3b
+          - llava:13b
+          - phi4:14b
+          - qwen2.5-coder:14b
+          - qwen2.5-coder:7b
+          - gpt-oss:20b
+    runtimeClassName: nvidia
+    ingress:
+      enabled: true
+      className: nginx
+      annotations:
+        cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      hosts:
+        - host: &ollamahost ollama.lajas.tech
+          paths:
+            - path: /
+              pathType: Prefix
+      tls:
+        - secretName: ollama-tls
+          hosts:
+            - *ollamahost
+    extraEnv:
+      - name: NVIDIA_VISIBLE_DEVICES
+        value: "all"
+      - name: NVIDIA_DRIVER_CAPABILITIES
+        value: "all"
+    persistentVolume:
+      enabled: true
+      size: 120Gi
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: nvidia.com/gpu.memory
+                  operator: In
+                  values:
+                    - "12288"
+  ingress:
+    enabled: true
+    class: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    host: &openwebuihost "open-webui.lajas.tech"
+    tls: true
+  extraEnvVars:
+    - name: ENABLE_LOGIN_FORM
+      value: "true"
+    - name: ENABLE_OAUTH_SIGNUP
+      value: "true"
+    - name: OAUTH_CLIENT_ID
+      value: "open-webui"
+    - name: OAUTH_CLIENT_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: &oauthSecret open-webui-oauth
+          key: client_secret
+    - name: OPENID_PROVIDER_URL
+      value: "https://dex.lajas.tech/.well-known/openid-configuration"
+    - name: OAUTH_PROVIDER_NAME
+      value: "Lajas.tech SSO"
+    - name: OAUTH_SCOPES
+      value: "openid email profile"
+    - name: OPENID_REDIRECT_URL
+      value: "https://open-webui.lajas.tech/oauth/callback"
+    - name: OAUTH_EMAIL_CLAIM
+      value: "email"
+    - name: OAUTH_USERNAME_CLAIM
+      value: "preferred_username"
+    - name: WEBUI_URL
+      value: *openwebuihost
+    - name: BYPASS_MODEL_ACCESS_CONTROL
+      value: "true"
+opSecret:
+  vault: "z3emsr5qi5xqk33wthv5fpmfqa"
+  item: "rznaz276pelmmcgsvgyun4expy"
+  secretName: *oauthSecret

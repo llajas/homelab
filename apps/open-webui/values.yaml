@@ -1,89 +1,352 @@
-open-webui:
+nameOverride: ""
+namespaceOverride: ""
+
+# Configure Ollama with custom models and GPU support
+ollama:
+  enabled: true
+  fullnameOverride: "open-webui-ollama"
   ollama:
-    ollama:
-      models:
-        pull:
-          - deepseek-coder:6.7b
-          - deepseek-r1:14b
-          - deepseek-r1:8b
-          - gemma2:9b
-          - gemma3:12b
-          - granite-code:8b
-          - hermes3:8b
-          - llama3.2-vision:11b
-          - llama3.2:3b
-          - llava:13b
-          - phi4:14b
-          - qwen2.5-coder:14b
-          - qwen2.5-coder:7b
-          - gpt-oss:20b
-    runtimeClassName: nvidia
-    ingress:
-      enabled: true
-      className: nginx
-      annotations:
-        cert-manager.io/cluster-issuer: "letsencrypt-prod"
-      hosts:
-        - host: &ollamahost ollama.lajas.tech
-          paths:
-            - path: /
-              pathType: Prefix
-      tls:
-        - secretName: ollama-tls
-          hosts:
-            - *ollamahost
-    extraEnv:
-      - name: NVIDIA_VISIBLE_DEVICES
-        value: "all"
-      - name: NVIDIA_DRIVER_CAPABILITIES
-        value: "all"
-    persistentVolume:
-      enabled: true
-      size: 120Gi
-    affinity:
-      nodeAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          nodeSelectorTerms:
-            - matchExpressions:
-                - key: nvidia.com/gpu.memory
-                  operator: In
-                  values:
-                    - "12288"
+    models:
+      pull:
+        - deepseek-coder:6.7b
+        - deepseek-r1:14b
+        - deepseek-r1:8b
+        - gemma2:9b
+        - gemma3:12b
+        - granite-code:8b
+        - hermes3:8b
+        - llama3.2-vision:11b
+        - llama3.2:3b
+        - llava:13b
+        - phi4:14b
+        - qwen2.5-coder:14b
+        - qwen2.5-coder:7b
+        - gpt-oss:20b
+  runtimeClassName: nvidia
   ingress:
     enabled: true
-    class: nginx
+    className: nginx
     annotations:
       cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    host: &openwebuihost "open-webui.lajas.tech"
-    tls: true
-  extraEnvVars:
-    - name: ENABLE_LOGIN_FORM
-      value: "true"
-    - name: ENABLE_OAUTH_SIGNUP
-      value: "true"
-    - name: OAUTH_CLIENT_ID
-      value: "open-webui"
-    - name: OAUTH_CLIENT_SECRET
-      valueFrom:
-        secretKeyRef:
-          name: &oauthSecret open-webui-oauth
-          key: client_secret
-    - name: OPENID_PROVIDER_URL
-      value: "https://dex.lajas.tech/.well-known/openid-configuration"
-    - name: OAUTH_PROVIDER_NAME
-      value: "Lajas.tech SSO"
-    - name: OAUTH_SCOPES
-      value: "openid email profile"
-    - name: OPENID_REDIRECT_URL
-      value: "https://open-webui.lajas.tech/oauth/callback"
-    - name: OAUTH_EMAIL_CLAIM
-      value: "email"
-    - name: OAUTH_USERNAME_CLAIM
-      value: "preferred_username"
-    - name: WEBUI_URL
-      value: *openwebuihost
-    - name: BYPASS_MODEL_ACCESS_CONTROL
-      value: "true"
+    hosts:
+      - host: &ollamahost ollama.lajas.tech
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: ollama-tls
+        hosts:
+          - *ollamahost
+  extraEnv:
+    - name: NVIDIA_VISIBLE_DEVICES
+      value: "all"
+    - name: NVIDIA_DRIVER_CAPABILITIES
+      value: "all"
+  persistentVolume:
+    enabled: true
+    size: 120Gi
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: nvidia.com/gpu.memory
+                operator: In
+                values:
+                  - "12288"
+
+# Configure pipelines
+pipelines:
+  enabled: true
+  extraEnvVars: []
+
+# Disable other optional services
+tika:
+  enabled: false
+
+websocket:
+  enabled: false
+  manager: redis
+  url: redis://open-webui-redis:6379/0
+  nodeSelector: {}
+  redis:
+    enabled: true
+    name: open-webui-redis
+    labels: {}
+    annotations: {}
+    pods:
+      labels: {}
+      annotations: {}
+    image:
+      repository: redis
+      tag: 7.4.2-alpine3.21
+      pullPolicy: IfNotPresent
+    command: []
+    args: []
+    resources: {}
+    service:
+      containerPort: 6379
+      type: ClusterIP
+      labels: {}
+      annotations: {}
+      port: 6379
+      nodePort: ""
+    tolerations: []
+    affinity: {}
+    securityContext: {}
+
+redis-cluster:
+  enabled: false
+  fullnameOverride: open-webui-redis
+  auth:
+    enabled: false
+  replica:
+    replicaCount: 3
+
+clusterDomain: cluster.local
+
+annotations: {}
+podAnnotations: {}
+podLabels: {}
+replicaCount: 1
+strategy: {}
+
+image:
+  repository: ghcr.io/open-webui/open-webui
+  tag: ""
+  pullPolicy: "IfNotPresent"
+
+serviceAccount:
+  enable: true
+  name: ""
+  annotations: {}
+  automountServiceAccountToken: false
+
+imagePullSecrets: []
+
+livenessProbe: {}
+readinessProbe: {}
+startupProbe: {}
+
+resources: {}
+
+copyAppData:
+  resources: {}
+
+managedCertificate:
+  enabled: false
+  name: "mydomain-chat-cert"
+  domains:
+    - chat.example.com
+
+# Configure ingress with custom domain and TLS
+ingress:
+  enabled: true
+  class: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  host: &openwebuihost "open-webui.lajas.tech"
+  additionalHosts: []
+  tls: true
+  existingSecret: ""
+  extraLabels: {}
+
+persistence:
+  enabled: true
+  size: 2Gi
+  existingClaim: ""
+  subPath: ""
+  accessModes:
+    - ReadWriteOnce
+  storageClass: ""
+  selector: {}
+  annotations: {}
+  provider: local
+  s3:
+    accessKey: ""
+    secretKey: ""
+    secretKeyExistingSecret: ""
+    secretKeyExistingSecretKey: ""
+    endpointUrl: ""
+    region: ""
+    bucket: ""
+    keyPrefix: ""
+  gcs:
+    appCredentialsJson: ""
+    appCredentialsJsonExistingSecret: ""
+    appCredentialsJsonExistingSecretKey: ""
+    bucket: ""
+  azure:
+    endpointUrl: ""
+    container: ""
+    key: ""
+    keyExistingSecret: ""
+    keyExistingSecretKey: ""
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+topologySpreadConstraints: []
+hostAliases: []
+
+service:
+  type: ClusterIP
+  annotations: {}
+  port: 80
+  containerPort: 8080
+  nodePort: ""
+  labels: {}
+  loadBalancerClass: ""
+
+enableOpenaiApi: true
+openaiBaseApiUrl: "https://api.openai.com/v1"
+openaiBaseApiUrls: []
+
+# Configure OAuth/SSO with existing environment variables approach
+extraEnvVars:
+  - name: OPENAI_API_KEY
+    value: "0p3n-w3bu!"
+  - name: ENABLE_LOGIN_FORM
+    value: "true"
+  - name: ENABLE_OAUTH_SIGNUP
+    value: "true"
+  - name: OAUTH_CLIENT_ID
+    value: "open-webui"
+  - name: OAUTH_CLIENT_SECRET
+    valueFrom:
+      secretKeyRef:
+        name: &oauthSecret open-webui-oauth
+        key: client_secret
+  - name: OPENID_PROVIDER_URL
+    value: "https://dex.lajas.tech/.well-known/openid-configuration"
+  - name: OAUTH_PROVIDER_NAME
+    value: "Lajas.tech SSO"
+  - name: OAUTH_SCOPES
+    value: "openid email profile"
+  - name: OPENID_REDIRECT_URL
+    value: "https://open-webui.lajas.tech/oauth/callback"
+  - name: OAUTH_EMAIL_CLAIM
+    value: "email"
+  - name: OAUTH_USERNAME_CLAIM
+    value: "preferred_username"
+  - name: WEBUI_URL
+    value: *openwebuihost
+  - name: BYPASS_MODEL_ACCESS_CONTROL
+    value: "true"
+
+commonEnvVars: []
+extraEnvFrom: []
+
+runtimeClassName: ""
+
+volumeMounts:
+  initContainer: []
+  container: []
+
+extraInitContainers: []
+
+volumes: []
+
+podSecurityContext: {}
+containerSecurityContext: {}
+
+# Configure SSO via native support (alternative to extraEnvVars approach)
+sso:
+  enabled: false
+  enableSignup: false
+  mergeAccountsByEmail: false
+  enableRoleManagement: false
+  enableGroupManagement: false
+
+  google:
+    enabled: false
+    clientId: ""
+    clientSecret: ""
+    clientExistingSecret: ""
+    clientExistingSecretKey: ""
+
+  microsoft:
+    enabled: false
+    clientId: ""
+    clientSecret: ""
+    clientExistingSecret: ""
+    clientExistingSecretKey: ""
+    tenantId: ""
+
+  github:
+    enabled: false
+    clientId: ""
+    clientSecret: ""
+    clientExistingSecret: ""
+    clientExistingSecretKey: ""
+
+  oidc:
+    enabled: false
+    clientId: ""
+    clientSecret: ""
+    clientExistingSecret: ""
+    clientExistingSecretKey: ""
+    providerUrl: ""
+    providerName: "SSO"
+    scopes: "openid email profile"
+
+  roleManagement:
+    rolesClaim: "roles"
+    allowedRoles: ""
+    adminRoles: ""
+
+  groupManagement:
+    groupsClaim: "groups"
+
+  trustedHeader:
+    enabled: false
+    emailHeader: ""
+    nameHeader: ""
+
+extraResources: []
+
+databaseUrl: ""
+
+postgresql:
+  enabled: false
+  fullnameOverride: open-webui-postgres
+  architecture: standalone
+  auth:
+    database: open-webui
+    postgresPassword: 0p3n-w3bu!
+    username: open-webui
+    password: 0p3n-w3bu!
+  primary:
+    persistence:
+      size: 1Gi
+    resources:
+      requests:
+        memory: 256Mi
+        cpu: 250m
+      limits:
+        memory: 512Mi
+        cpu: 500m
+
+logging:
+  level: ""
+  components:
+    audio: ""
+    comfyui: ""
+    config: ""
+    db: ""
+    images: ""
+    main: ""
+    models: ""
+    ollama: ""
+    openai: ""
+    rag: ""
+    retrieval: ""
+    tools: ""
+    ui: ""
+    utils: ""
+    webhook: ""
+
+# OnePassword secret configuration preserved
 opSecret:
   vault: "z3emsr5qi5xqk33wthv5fpmfqa"
   item: "rznaz276pelmmcgsvgyun4expy"
