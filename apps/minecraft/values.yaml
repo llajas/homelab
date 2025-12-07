@@ -85,183 +85,79 @@ startupProbe:
   failureThreshold: 30
   periodSeconds: 10
 
+## Array of initContainers to add to include in deployment (supports templating)
+##
 # initContainers:
 #   - name: do-something
 #     image: busybox
 #     command: ['do', 'something']
-#     volumesMounts:
+#     volumeMounts:
 #       - name: nfs
 #         mountPath: /mnt/volume
 #         readOnly: true
-initContainers:
-  - name: check-world-data
-    image: alpine:latest  # Using Alpine for the shell and tar utilities
-    command: ["/bin/sh", "-c"]
-    args:
-      - |
-        #!/bin/sh
-        # Check for the existence of the 'cat-pajamas' file in /data
-        if [ -f "/data/cat-pajamas" ]; then
-            echo "Unique identifier 'cat-pajamas' found. Proceeding with server startup."
-        else
-            echo "Unique identifier 'cat-pajamas' not found. Fetching the latest backup..."
-            # Find the latest backup file based on the naming convention and timestamp
-            LATEST_BACKUP=$(ls -t /backups/BluffCraft-*.tgz | head -1)
-            if [ -n "$LATEST_BACKUP" ]; then
-                echo "Restoring from backup: $LATEST_BACKUP"
-                # Create a temporary directory to extract the .tgz backup
-                TEMP_DIR=$(mktemp -d)
-                tar -xzf "$LATEST_BACKUP" -C "$TEMP_DIR"
-                # Find the .tar file inside the extracted directory
-                TAR_FILE=$(find "$TEMP_DIR" -name "*.tar")
-                if [ -n "$TAR_FILE" ]; then
-                    # Extract the .tar file contents
-                    tar -xf "$TAR_FILE" -C "$TEMP_DIR"
-                fi
-                # Identify the directory containing the actual data
-                DATA_DIR=$(find "$TEMP_DIR" -mindepth 1 -maxdepth 1 -type d -name '.')
-                if [ -n "$DATA_DIR" ]; then
-                    # Move contents of the '.' directory to /data
-                    cp -a "$DATA_DIR/." /data/
-                else
-                    # If no '.' directory, move all contents of TEMP_DIR
-                    cp -a "$TEMP_DIR/." /data/
-                fi
-                # Clean up the temporary directory
-                rm -rf "$TEMP_DIR"
-                echo "Backup restored into /data."
-            else
-                echo "No backup found in /backups."
-            fi
-        fi
-    volumeMounts:
-      - name: datadir
-        mountPath: /data
-      - name: backupdir
-        mountPath: /backups
+#   - |
+#     name: {{ template "minecraft.fullname" . }}-init
+#     image: busybox
+#     command: ['do', 'something']
+#     volumeMounts:
+#       - name: nfs
+#         mountPath: /mnt/volume
+#         readOnly: true
+initContainers: []
 
-sidecarContainers:
-  - name: geyser
-    image: "registry.lajas.tech/geyser:latest"
-    volumeMounts:
-      - name: geyser-data
-        mountPath: /app
-      - name: geyser-config-temp
-        mountPath: /config-temp
-    ports:
-      - name: geyser-mc
-        containerPort: 19132
-        protocol: UDP
-  - name: spectrum-sync
-    image: "registry.lajas.tech/minecraft-spectrum-sync:latest"
-    env:
-      - name: API_TOKEN
-        valueFrom:
-          secretKeyRef:
-            name: spectrum-secrets
-            key: cloudflare_api_token
-      - name: ZONE_ID
-        valueFrom:
-          secretKeyRef:
-            name: spectrum-secrets
-            key: cloudflare_zone_id
-      - name: CUSTOM_DOMAIN
-        valueFrom:
-          secretKeyRef:
-            name: spectrum-secrets
-            key: custom_domain
-      - name: SPECTRUM_PROTOCOL
-        value: "minecraft"
-      - name: SPECTRUM_PORT
-        value: "25565"
-extraVolumes:
-  - volumeMounts:
-      - name: geyser-config-temp
-        mountPath: /geyser-temp/config.yml
-        subPath: config.yml
-      - name: geyser-data
-        mountPath: /app
-    volumes:
-      - name: geyser-config-temp
-        configMap:
-          name: geyser-config
-      - name: geyser-data
-        persistentVolumeClaim:
-          claimName: geyser-data-pvc
+## Array of additional sidecards to include in the deployment (supports templating)
+##
+# sidecarContainers:
+#   - name: do-something
+#     image: busybox
+#     command: ['do', 'something']
+#     volumeMounts:
+#       - name: nfs
+#         mountPath: /mnt/volume
+#         readOnly: true
+#   - |
+#     name: {{ template "minecraft.fullname" . }}-sidecar
+#     image: busybox
+#     command: ['do', 'something', 'with', 'rcon']
+#     env:
+#       - name: RCON_PASSWORD
+#         valueFrom:
+#           secretKeyRef:
+#             name: '{{ .Values.minecraftServer.rcon.existingSecret | default (printf "%s-rcon" (include "minecraft.fullname" .)) }}'
+#             key: "{{ .Values.minecraftServer.rcon.secretKey | default "rcon-password" }}"
+sidecarContainers: []
 
-extraDeploy:
-  - |
-    apiVersion: v1
-    kind: ConfigMap
-    metadata:
-      name: geyser-config
-    data:
-      config.yml: |
-        bedrock:
-          port: 19132
-          clone-remote-port: false
-          motd1: "A Super Secret JAVA Server"
-          motd2: "Brought to you by Geyser-MC!"
-          server-name: "Bluffcraft.lajas.tech"
-          compression-level: 6
-          enable-proxy-protocol: false
-        remote:
-          address: "minecraft.minecraft.svc.cluster.local"
-          port: 25565
-          auth-type: "online"
-          allow-password-authentication: true
-          use-proxy-protocol: false
-          forward-hostname: false
-        floodgate-key-file: "key.pem"
-        saved-user-logins:
-          - SpecOp eX
-          - Aliizsa
-        pending-authentication-timeout: 120
-        command-suggestions: true
-        passthrough-motd: true
-        passthrough-player-counts: true
-        legacy-ping-passthrough: false
-        ping-passthrough-interval: 3
-        forward-player-ping: false
-        max-players: 100
-        debug-mode: false
-        allow-third-party-capes: false
-        allow-third-party-ears: false
-        show-cooldown: "title"
-        show-coordinates: true
-        disable-bedrock-scaffolding: false
-        emote-offhand-workaround: "disabled"
-        cache-images: 0
-        allow-custom-skulls: true
-        max-visible-custom-skulls: 128
-        custom-skull-render-distance: 32
-        add-non-bedrock-items: true
-        above-bedrock-nether-building: true
-        force-resource-packs: true
-        xbox-achievements-enabled: true
-        log-player-ip-addresses: true
-        notify-on-new-bedrock-update: true
-        unusable-space-block: "minecraft:barrier"
-        metrics:
-          enabled: false
-          uuid: ""
-        scoreboard-packet-threshold: 20
-        enable-proxy-connections: false
-        mtu: 1400
-        use-direct-connection: true
-        disable-compression: true
-        config-version: 4
-  - |
-    apiVersion: v1
-    kind: PersistentVolumeClaim
-    metadata:
-      name: geyser-data-pvc
-    spec:
-      accessModes:
-        - ReadWriteOnce
-      resources:
-        requests:
-          storage: 1Gi
+# extraVolumes:
+#   - volumeMounts:
+#       - name: nfs
+#         mountPath: /mnt/volume
+#         readOnly: true
+#     volumes:
+#       - name: nfs
+#         nfs:
+#           server: some.nfs.server.com
+#           path: /
+#           mountOptions:
+#             - port=2049
+#             - hard
+#             - vers=4
+extraVolumes: []
+
+
+## Array of extra objects to deploy with the release
+##
+# extraDeploy:
+#   - |
+#     apiVersion: v1
+#     kind: ConfigMap
+#     metadata:
+#       name: {{ template "minecraft.fullname" . }}-extra-cm
+#     data:
+#       key: |-
+#         {
+#           "key": "value"
+#         }
+extraDeploy: []
 
 ## Extra fields to set on the pod
 ##
@@ -277,14 +173,14 @@ extraPodSpec: {}
 
 minecraftServer:
   # This must be overridden, since we can't accept this for the user.
-  eula: "TRUE"
+  eula: "FALSE"
   # One of: LATEST, SNAPSHOT, or a specific version (ie: "1.7.9").
-  version: "1.21.10"
+  version: "LATEST"
   ## The type of Minecraft server to run, check for related settings below
   ## Common types: "VANILLA", "FABRIC", "FORGE", "SPIGOT", "BUKKIT", "PAPER",
   ## "FTBA", "SPONGEVANILLA", "AUTO_CURSEFORGE"
   ## ref: https://docker-minecraft-server.readthedocs.io/en/latest/types-and-platforms
-  type: "FABRIC"
+  type: "VANILLA"
   # If type is set to FORGE, this sets the version; this is ignored if forgeInstallerUrl is set
   forgeVersion:
   # If type is set to FORGE, this sets the URL to download the Forge installer
@@ -314,57 +210,57 @@ minecraftServer:
   # Set to true if running Feed The Beast and get an error like "unable to launch forgemodloader"
   ftbLegacyJavaFixer: default
   # One of: peaceful, easy, normal, and hard
-  difficulty: hard
+  difficulty: easy
   # A comma-separated list of player names to whitelist.
-  #whitelist: "$(WHITELIST)"
+  whitelist:
   # A comma-separated list of player names who should be admins.
-  #ops: "$(OPS)"
+  ops:
   # A server icon URL for server listings. Auto-scaled and transcoded.
   icon:
   # Max connected players.
-  maxPlayers: 20
+  maxPlayers: default
   # This sets the maximum possible size in blocks, expressed as a radius, that the world border can obtain.
-  maxWorldSize: 29999984
+  maxWorldSize: default
   # Allows players to travel to the Nether.
-  allowNether: true
+  allowNether: default
   # Allows server to announce when a player gets an achievement.
-  announcePlayerAchievements: true
+  announcePlayerAchievements: default
   # Enables command blocks.
   enableCommandBlock: default
   # If true, players will always join in the default gameMode even if they were previously set to something else.
   forcegameMode: default
   # Defines whether structures (such as villages) will be generated.
-  generateStructures: true
+  generateStructures: default
   # If set to true, players will be set to spectator mode if they die.
-  hardcore: false
+  hardcore: default
   # The maximum height in which building is allowed.
-  maxBuildHeight: 256
+  maxBuildHeight: default
   # The maximum number of milliseconds a single tick may take before the server watchdog stops the server with the message. -1 disables this entirely.
-  maxTickTime: 60000
+  maxTickTime: default
   # Determines if animals will be able to spawn.
-  spawnAnimals: true
+  spawnAnimals: default
   # Determines if monsters will be spawned.
-  spawnMonsters: true
+  spawnMonsters: default
   # Determines if villagers will be spawned.
-  spawnNPCs: true
+  spawnNPCs: default
   # Sets the area that non-ops can not edit (0 to disable)
-  spawnProtection: 16
+  spawnProtection: default
   # Max view distance (in chunks).
-  viewDistance: 10
+  viewDistance: default
   # Define this if you want a specific map generation seed.
   levelSeed:
   # One of: creative, survival, adventure, spectator
   gameMode: survival
   # Message of the Day
-  motd: "A Secret Java Server!"
+  motd: "Welcome to Minecraft on Kubernetes!"
   # If true, enable player-vs-player damage.
-  pvp: true
+  pvp: default
   # One of: DEFAULT, FLAT, LARGEBIOMES, AMPLIFIED, CUSTOMIZED
-  levelType: "minecraft:normal"
+  levelType: DEFAULT
   # When levelType == FLAT or CUSTOMIZED, this can be used to further customize map generation.
   # ref: https://hub.docker.com/r/itzg/minecraft-server/
   generatorSettings:
-  worldSaveName: BluffCraft
+  worldSaveName: world
   # If set, this URL will be downloaded at startup and used as a starting point
   downloadWorldUrl:
   # force re-download of server file
@@ -381,34 +277,31 @@ minecraftServer:
   # It is recommended to specify this, because it is used to verify the integrity of the resource pack.
   resourcePackSha:
   # When true, players will be prompted for a response and will be disconnected if they decline the required pack
-  resourcePackEnforce: true
+  resourcePackEnforce: false
   # Check accounts against Minecraft account service.
-  onlineMode: true
+  onlineMode: default
   # Require public key to be signed by Mojang to join
-  enforceSecureProfile: true
+  enforceSecureProfile: default
   # If you adjust this, you may need to adjust resources.requests above to match.
-  memory: 2048M
+  memory: 1024M
   # General JVM options to be passed to the Minecraft server invocation
   jvmOpts: ""
   # Options like -X that need to proceed general JVM options
   jvmXXOpts: ""
-  # By default, the server configuration will be created and set based on the following environment variables, but only the first time the server is started
-  # If you would like to override the server configuration each time the container starts up, you can set this to true
-  # see https://github.com/itzg/docker-minecraft-server#server-configuration
-  overrideServerProperties: false
+  overrideServerProperties: default
   # DEPRECATED: use top-level rconServiceAnnotations instead
   serviceAnnotations: {}
-  serviceType: LoadBalancer
+  serviceType: ClusterIP
   ## Set the port used if the serviceType is NodePort
-  #nodePort:
+  nodePort:
   # Set the external port of the service, usefull when using the LoadBalancer service type
   servicePort: 25565
   clusterIP:
   loadBalancerClass:
-  loadBalancerIP: 10.137.0.248
+  loadBalancerIP:
   # loadBalancerSourceRanges: []
   ## Set the externalTrafficPolicy in the Service to either Cluster or Local
-  externalTrafficPolicy: Cluster
+  # externalTrafficPolicy: Cluster
   externalIPs:
 
   # List with URLs and paths to jar files, additionally may be a directory with jars
@@ -420,36 +313,22 @@ minecraftServer:
   spigetResources: []
 
   # Additional service specs to be defined
-  extraServiceSpec:
-    ports:
-      - name: geyser-mc
-        port: 19132
-        targetPort: 19132
-        protocol: UDP
-      - name: minecraft
-        port: 25565
-        targetPort: minecraft
-        protocol: TCP
+  extraServiceSpec: {}
 
   # A list of Modrinth project slugs with optional version after colon
   modrinth:
-    projects:
-      - fabric-api
-      - worldedit
-      - xaeros-world-map
-      - xaeros-minimap
-      - cloth-config
-    # Downloads Modrinth project dependencies marked as optional
-    optionalDependencies: true
+    projects: []
+    # Specifies whether to download Modrinth dependencies. The allowed values are: none, required, optional
+    downloadDependencies: none
     # The version type is used to determine the newest version to use from each project. The allowed values are: release, beta, alpha
-    allowedVersionType: release
+    allowedVersionType: default
 
   # Config for AUTO_CURSEFORGE server type
   autoCurseForge:
     # CurseForge API key obtained from developer console
     apiKey:
       key: "CHANGEME!"
-      existingSecret: "minecraft-player-secrets"
+      existingSecret: ""
       secretKey: cf-api-key
     # Link to modpack in general or a specific file
     # NOTE: In case of specific file - do not point at server file
@@ -479,15 +358,15 @@ minecraftServer:
 
   rcon:
     # If you enable this, make SURE to change your password below.
-    enabled: true
+    enabled: false
     # By default, the container will generate a random password at startup
     # to ensure internal RCON tooling, including a backup container,
     # can be used, but the password is secure.
     withGeneratedPassword: false
     port: 25575
-      #password:
-    existingSecret: minecraft-player-secrets
-    secretKey: RCON_PASSWORD
+    password: "CHANGEME!"
+    existingSecret:
+    secretKey: rcon-password
     serviceType: ClusterIP
     ## Set the external port if the rcon serviceType is NodePort
     nodePort:
@@ -555,13 +434,13 @@ extraEnv:
 ## Additional environment variables to add to the minecraft container from
 ## ConfigMaps and Secrets
 ##
-envFrom:
-  - secretRef:
-      name: minecraft-player-secrets
+envFrom: []
 
 persistence:
   labels: {}
   annotations: {}
+  ## specify an alternative volume to be mounted to /data instead of datadir.
+  # altDataVolumeName: ""
   ## minecraft data Persistent Volume Storage Class
   ## If defined, storageClassName: <storageClass>
   ## If set to "-", storageClassName: "", which disables dynamic provisioning
@@ -572,8 +451,8 @@ persistence:
   # storageClass: "-"
   dataDir:
     # Set this to false if you don't care to persist state between restarts.
-    enabled: true
-    Size: 10Gi
+    enabled: false
+    Size: 1Gi
     accessModes:
       - ReadWriteOnce
     # existingClaim: nil
@@ -584,12 +463,9 @@ podAnnotations: {}
 podLabels: {}
 
 deploymentAnnotations: {}
-deploymentLabels:
-  smb-dependent: "true"
+deploymentLabels: {}
 
-serviceAnnotations:
-  external-dns.alpha.kubernetes.io/hostname: "bluffcraft-local.lajas.tech"
-  metallb.universe.tf/allow-shared-ip: "minecraft"
+serviceAnnotations: {}
 serviceLabels: {}
 
 rconServiceAnnotations: {}
@@ -597,7 +473,7 @@ rconServiceLabels: {}
 
 # PLEASE NOTE! rcon must be enabled above!  It does NOT require a nodePort or loadBalancerIP
 mcbackup:
-  enabled: true
+  enabled: false
 
   image:
     repository: itzg/mc-backup
@@ -607,13 +483,17 @@ mcbackup:
   #  wait 2 minutes before starting
   initialDelay: 2m
 
+  # Sets `BACKUP_NAME`, defaults to `minecraftServer.worldSaveName`
+  # WARN: When using restic and sharing the `mcbackup.resticRepository` across multiple minecraft server deployments: either `mcbackup.backupName` or `mcbackup.resticHostname` must be unique!
+  backupName:
+
   # ***set to 0 or smaller, script will run once and exit.  DO NOT SET TO 0 or smaller, this will cause K8s to kill your pod!***
   # backupInterval="1.5d" -> backup every one and a half days (36 hours)
   # backupInterval="2h 30m" -> backup every two and a half hours
-  backupInterval: 4h
+  backupInterval: 24h
 
   # option lets you pause backups if no players are online.
-  pauseIfNoPlayers: "true"
+  pauseIfNoPlayers: "false"
 
   # is set to a positive number, it'll delete old .tgz backup files from DEST_DIR. By default deletes backups older than a week.
   pruneBackupsDays: 7
@@ -626,7 +506,7 @@ mcbackup:
   # logs folder and cache (used by i.e. PaperMC server).
   excludes: "*.jar,cache,logs"
 
-  # backup methods, see https://github.com/itzg/docker-mc-backup e.g. tar, rclone, restic
+  # backup methods, see https://github.com/itzg/docker-mc-backup e.g. tar, rclone, restic, rsync
   backupMethod: tar
   # tar and rclone methods
   destDir: /backups
@@ -662,6 +542,10 @@ mcbackup:
   resticAdditionalTags: "mc_backups"
   # see https://restic.readthedocs.io/en/latest/060_forget.html
   pruneResticRetention: "--keep-daily 7 --keep-weekly 5 --keep-monthly 12 --keep-yearly 75"
+  # Sets `RESTIC_HOSTNAME`
+  # Required because the container hostname changes on every recreate of the pod which prevents restic from pruning snapshots from previous pods/hostnames
+  # WARN: When using restic and sharing the `mcbackup.resticRepository` across multiple minecraft server deployments: either `mcbackup.backupName` or `mcbackup.resticHostname` must be unique!
+  resticHostname:
 
   # At least one of RESTIC_PASSWORD* env variables need to be defined, see https://restic.readthedocs.io/en/latest/030_preparing_a_new_repo.html
   resticEnvs:
@@ -686,7 +570,7 @@ mcbackup:
 
   resources:
     requests:
-      memory: 512Mi
+      memory: 2Gi
       cpu: 500m
 
   persistence:
@@ -699,46 +583,32 @@ mcbackup:
     ##   GKE, AWS & OpenStack)
     ##
     # storageClass: "-"
+    # Set storageType to "smb" to use SMB-based persistent volume
+    storageType: ""
     backupDir:
       # Set this to false if you don't care to persist state between restarts.
-      enabled: true
-      Size: 63Ti
-      existingClaim: false
+      enabled: false
+      # existingClaim: nil
+      Size: 1Gi
       accessModes:
         - ReadWriteOnce
-    # Switch between "smb" and "nfs" as needed
-    storageType: "smb"
-    # Can be empty for NFS or 'smb' as appropriate
-    storageClass: "smb"
-    # Optional: Specify a volume name if using smb - Default it 'smb-pv-world-backup-hc'
-    volumeName: ""
-    annotations: {}
-
-    # SMB Configuration
+    # SMB-specific configuration (used when storageType: "smb")
     smb:
-      server: "//nas-01.storage.lajas.tech/"
-      shareName: "minecraft_world_backup/bluffcraft"
-      secret: "smb-creds"
+      server: ""
+      shareName: ""
+      secret: "" # Name from opSecrets.secrets
+# dnsPolicy: ClusterFirst
+# dnsConfig:
+#   options:
+#   - name: ndots
+#     value: '1'
 
-    # NFS Configuration
-    nfs:
-      server: "nas-01.storage.lajas.tech"
-      path: "/mnt/user/minecraft-worlds"
 
-#opSecret:
-#  vault: "z3emsr5qi5xqk33wthv5fpmfqa"
-#  item: "wczp2hwip4lt7zxbjjkajcpnsy"
-#  secretName: "spectrum-secrets"
-
+# Custom OnePassword integration
 opSecrets:
-  vault: "z3emsr5qi5xqk33wthv5fpmfqa"
-  secrets:
-    - name: spectrum-secrets
-      item: "wczp2hwip4lt7zxbjjkajcpnsy"
-      secretName: "spectrum-secrets"
-    - name: smb-creds
-      item: "ygmkhtq6qsphcymjceabnfhniq"
-      secretName: "smb-creds"
-    - name: minecraft-player-secrets
-      item: "weatiwfamdvnxzf7bapu6ow2wy"
-      secretName: "minecraft-player-secrets"
+  vault: ""
+  secrets: []
+  # Example:
+  # - name: smb-creds
+  #   secretName: smb-secret
+  #   item: "minecraft-smb-creds"
