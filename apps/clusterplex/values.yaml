@@ -6,7 +6,7 @@ global:
     repository: linuxserver/plex
 
     # -- The image tag to use
-    tag: 1.42.2
+    tag: latest
 
     # -- Defines when the image should be pulled. Options are Always (default), IfNotPresent, and Never
     imagePullPolicy: Always
@@ -45,7 +45,7 @@ global:
       subPath: # some-subpath
 
       # -- The size of the transcode volume.
-      size: 30Gi
+      size: 10Gi
 
       # -- Set to true to retain the PVC upon `helm uninstall`
       retain: true
@@ -62,40 +62,25 @@ global:
       # If set to something else, the given storageClass is used.
       # If undefined (the default) or set to null, no storageClassName spec is set, choosing the default provisioner.
       # NOTE: This class must support ReadWriteMany otherwise you will encounter errors.
-      storageClass: "smb"
+      storageClass: # "-"
 
       # -- If you want to reuse an existing claim, the name of the existing PVC can be passed here.
-      existingClaim: "clusterplex-media"
+      existingClaim: # your-claim
 
       # -- Used in conjunction with `existingClaim`. Specifies a sub-path inside the referenced volume instead of its root
       subPath: # some-subpath
 
       # -- The amount of storage that is requested for the persistent volume.
-      size: "63Ti"
+      size: 100Gi
 
       # -- Set to true to retain the PVC upon `helm uninstall`
       retain: true
 
-      server: "//nas-01.storage.lajas.tech/"
-      path: "media/"
-      driver: "smb.csi.k8s.io"
-      secretName: &secret "cifs.creds.plex.media"
-      # -- Annotations used for the Persistent Volume - Used in conjunction with 1Password Operator
-
     # -- Use this section to add additional media mounts if necessary. You can copy the contents of the above media
-    additionalMediaVolumes:
-      drivers:
-        enabled: true
-        size: "1Gi"
-        persistentVolumeClaim:
-        mountPath: /config/Library/Application Support/Plex Media Server/Drivers
-        retain: true
-      cache:
-        enabled: true
-        size: "5Gi"
-        persistentVolumeClaim:
-        mountPath: /config/Library/Application Support/Plex Media Server/Cache
-        retain: true
+    additionalMediaVolumes: {}
+
+
+
 
 # -- Configure the Plex Media Server component
 # @default -- See below
@@ -103,13 +88,7 @@ pms:
   # -- Enable or disable the Plex Media Server component
   enabled: true
 
-  controller:
-    labels:
-      smb-dependent: "true"
-    annotations:
-      # -- Annotations used for the Persistent Volume - Used in conjunction with 1Password Operator
-      operator.1password.io/item-path: "vaults/z3emsr5qi5xqk33wthv5fpmfqa/items/rxttnci2h7lcpwoey5ih4wkwp4"
-      operator.1password.io/item-name: *secret
+
   # -- Additional environment variables. Template enabled.
   # Syntax options:
   # A) TZ: UTC
@@ -128,23 +107,17 @@ pms:
   #      value: UTC
   # F) - name: TZ
   #      value: '{{ .Release.Name }}'
-  runtimeClassName: nvidia
   env:
-    - name: FFMPEG_HWACCEL
-      value: cuda
-    - name: NVIDIA_VISIBLE_DEVICES
-      value: all
-    - name: NVIDIA_DRIVER_CAPABILITIES
-      value: all
+
   # -- Supply the configuration items used to configure the PMS component
   # @default -- See below
   config:
     # -- Set this to 1 if you want only info logging from the transcoder or 0 if you want debugging logs
-    transcoderVerbose: 0
+    transcoderVerbose: 1
 
     # -- Set the transcode operating mode. Valid options are local (No workers), remote (only remote workers), both (default, remote first then local if remote fails).
     # If you disable the worker then this will be set to local automatically as that is the only valid option for that confguration.
-    transcodeOperatingMode: remote
+    transcodeOperatingMode: both
 
     # -- Set the Plex claim token obtained from https://plex.tv/claim
     plexClaimToken:
@@ -169,17 +142,17 @@ pms:
 
     # -- kubernetes secert for SSL certificate, should contain a pkcs12 (.p12) key for Plex to use
     # Secret will be mounted at `/ssl`
-    sslSecret: plex-tls-certificate
+    sslSecret: ""
 
   # -- Configure the kubernetes service associated with the the PMS component
   # @default -- See below
   serviceConfig:
     # Configure the type of service
-    type: LoadBalancer
+    type: ClusterIP
 
     # -- Specify the externalTrafficPolicy for the service. Options: Cluster, Local
     # [[ref](https://kubernetes.io/docs/tutorials/services/source-ip/)]
-    externalTrafficPolicy: Local
+    externalTrafficPolicy:
 
     # -- Provide additional annotations which may be required.
     annotations: {}
@@ -194,24 +167,24 @@ pms:
   # @default -- See below
   ingressConfig:
     # -- Enables or disables the ingress
-    enabled: true
+    enabled: false
 
     # -- Provide additional annotations which may be required.
     annotations:
-      cert-manager.io/cluster-issuer: letsencrypt-prod
-      external-dns.alpha.kubernetes.io/target: "homelab-tunnel.lajas.tech"
-      external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+      {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
 
     # -- Provide additional labels which may be required.
     labels: {}
 
     # -- Set the ingressClass that is used for this ingress.
-    ingressClassName: "nginx"
+    ingressClassName: # "nginx"
 
     ## Configure the hosts for the ingress
     hosts:
       - # -- Host address. Helm template can be passed.
-        host: &host plex.lajas.tech
+        host: chart-example.local
         ## Configure the paths for the host
         paths:
           - # -- Path.  Helm template can be passed.
@@ -224,10 +197,10 @@ pms:
               port:
 
     # -- Configure TLS for the ingress. Both secretName and hosts can process a Helm template.
-    tls:
-      - secretName: plex-tls-certificate
-        hosts:
-          - *host
+    tls: []
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - chart-example.local
 
   # -- Configure the volume that stores all the Plex configuration and metadata
   # @default -- See below
@@ -253,7 +226,7 @@ pms:
     accessMode: ReadWriteOnce
 
     # -- The amount of storage that is requested for the persistent volume.
-    size: 120Gi
+    size: 25Gi
 
     # -- Set to true to retain the PVC upon `helm uninstall`
     retain: true
@@ -282,30 +255,19 @@ pms:
 
     limits:
       # -- CPU Limit amount
-      #cpu: []
+      cpu: 4000m
 
       # -- Memory Limit amount
-      memory: 6Gi
+      memory: 4Gi
 
-  affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        nodeSelectorTerms:
-          - matchExpressions:
-              - key: nvidia.com/gpu.present
-                operator: In
-                values:
-                  - "true"
+
+
 
 # -- Configure the orchestrator component
 # @default -- See below
 orchestrator:
   # -- Enable or disable the Orchestrator component
   enabled: true
-
-  controller:
-    labels:
-      smb-dependent: "true"
 
   image:
     # -- image repository
@@ -333,6 +295,7 @@ orchestrator:
   # F) - name: TZ
   #      value: '{{ .Release.Name }}'
   env:
+
   # -- Supply the configuration items used to configure the Orchestrator component
   # @default -- See below
   config:
@@ -364,7 +327,7 @@ orchestrator:
   # @default -- See below
   prometheusServiceMonitor:
     # -- Enable the ServiceMonitor creation
-    enabled: true
+    enabled: false
 
     # -- Provide additional additions which may be required.
     annotations: {}
@@ -387,7 +350,7 @@ orchestrator:
   # If enabled, this creates a ConfigMap containing the dashboard JSON so that your Gradana instance can detect it.
   # This requires your grafana instance to have the grafana.sidecar.dashboards.enabled to be true and the searchNamespace
   # to be set to ALL otherwise this will not be discovered.
-  enableGrafanaDashboard: true
+  enableGrafanaDashboard: false
 
   # -- Enable or disable the various health check probes for this component
   # @default -- See below
@@ -418,15 +381,14 @@ orchestrator:
       # -- Memory Limit amount
       memory: 128Mi
 
+
+
+
 # -- Configure the worker component
 # @default -- See below
 worker:
   # -- Enable or disable the Worker component
   enabled: true
-
-  controller:
-    labels:
-      smb-dependent: "true"
 
   # -- Additional environment variables. Template enabled.
   # Syntax options:
@@ -446,14 +408,7 @@ worker:
   #      value: UTC
   # F) - name: TZ
   #      value: '{{ .Release.Name }}'
-  runtimeClassName: nvidia
   env:
-    - name: FFMPEG_HWACCEL
-      value: "cuda"
-    - name: NVIDIA_VISIBLE_DEVICES
-      value: all
-    - name: NVIDIA_DRIVER_CAPABILITIES
-      value: all
 
   # -- Supply the configuration items used to configure the worker component
   # @default -- See below
@@ -469,6 +424,9 @@ worker:
 
     # -- Controls usage of the EasyAudioDecoder 1 = ON (default) and 0 = OFF
     eaeSupport: 1
+
+    # -- Determines which controller to use for deploying workers (`statefulset` or `deployment`). Note that `worker.codecVolumes` may require additional configuration when using `deployment`, otherwise codecs will be fetched on every Pod startup.
+    type: statefulset
 
   # -- Configure the kubernetes service associated with the the PMS component
   # @default -- See below
@@ -534,22 +492,16 @@ worker:
       # -- Memory Request Amount
       memory: 3Gi
 
-      # -- GPU Request amount
-      nvidia.com/gpu: 1
-
     limits:
       # -- CPU Limit amount
-      #cpu: []
+      cpu: 4000m
 
       # -- Memory Limit amount
       memory: 6Gi
 
-      # -- GPU Limit amount
-      nvidia.com/gpu: 1
-
   # -- Configure the affinity rules for the worker pods. This helps prevent multiple worker pods from
   # being scheduled on the same node as another worker pod or as the main plex media server.
-  affinity:
+  affinity: {}
     # podAntiAffinity:
     #   preferredDuringSchedulingIgnoredDuringExecution:
     #   - podAffinityTerm:
@@ -564,12 +516,3 @@ worker:
     #           name: clusterplex-pms
     #       topologyKey: kubernetes.io/hostname
     #     weight: 50
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        nodeSelectorTerms:
-          - matchExpressions:
-              - key: nvidia.com/gpu.present
-                operator: In
-                values:
-                  - "true"
-

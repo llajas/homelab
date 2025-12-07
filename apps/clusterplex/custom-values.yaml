@@ -79,6 +79,9 @@ global:
     # -- Use this section to add additional media mounts if necessary. You can copy the contents of the above media
     additionalMediaVolumes: {}
 
+
+
+
 # -- Configure the Plex Media Server component
 # @default -- See below
 pms:
@@ -250,6 +253,9 @@ pms:
       # -- Memory Limit amount
       memory: 4Gi
 
+
+
+
 # -- Configure the orchestrator component
 # @default -- See below
 orchestrator:
@@ -367,6 +373,9 @@ orchestrator:
 
       # -- Memory Limit amount
       memory: 128Mi
+
+
+
 
 # -- Configure the worker component
 # @default -- See below
