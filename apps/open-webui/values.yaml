@@ -106,6 +106,7 @@ clusterDomain: cluster.local
 annotations: {}
 podAnnotations: {}
 podLabels: {}
+extraLabels: {}
 replicaCount: 1
 strategy: {}
 

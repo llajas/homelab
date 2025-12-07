@@ -234,23 +234,77 @@ Render a logging env var for a component, validating value
   value: {{ $level | quote | trim }}
 {{- end }}
 
+{{- define "open-webui.extraLabels" -}}
+{{- with .Values.extraLabels }}
+{{- toYaml . }}
+{{- end }}
+{{- end }}
+
+{{/*
+Return true if the user has defined a custom WEBUI_URL in extraEnvVars.
+Supports either a map or a list of maps.
+Usage: {{ include "open-webui.hasCustomWebUIUrl" . }}
+*/}}
+{{- define "open-webui.hasCustomWebUIUrl" -}}
+  {{- $found := false -}}
+  {{- $extra := .Values.extraEnvVars -}}
+  {{- if kindIs "map" $extra }}
+    {{- if hasKey $extra "WEBUI_URL" -}}
+      {{- $found = true -}}
+    {{- end -}}
+  {{- else if kindIs "slice" $extra }}
+    {{- range $extra }}
+      {{- if eq .name "WEBUI_URL" }}
+        {{- $found = true -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+  {{- if $found }}true{{- end -}}
+{{- end -}}
+
+{{/*
+Convert a map of environment variables to Kubernetes env var format
+*/}}
+{{- define "open-webui.env" -}}
+{{- if kindIs "map" . }}
+  {{- range $key, $val := . }}
+- name: {{ $key }}
+    {{- if kindIs "map" $val }}
+      {{- toYaml $val | nindent 2 }}
+    {{- else }}
+  value: {{ $val | quote }}
+    {{- end }}
+  {{- end }}
+{{- else }}
+  {{- toYaml . }}
+{{- end }}
+{{- end }}
+
+{{- /*
+Define a docker tag that should use for the deployment
+*/ -}}
+{{- define "open-webui.tag" -}}
+{{- $image := .Values.image }}
+{{- if $image.tag }}
+{{- /* If user provided an explicit image.tag, use it */ -}}
+{{- $image.tag -}}
+{{- else if $image.useSlim }}
+{{- /* If useSlim is true and no explicit tag, use Chart.AppVersion-slim */ -}}
+{{- printf "%s-slim" .Chart.AppVersion -}}
+{{- else }}
+{{- /* Fallback to Chart.AppVersion */ -}}
+{{- .Chart.AppVersion -}}
+{{- end }}
+{{- end }}
+
 {{- /*
 Constructs a string containing the URLs of the Open WebUI based on the ingress configuration
 used to populate the variable WEBUI_URL  
 */ -}}
-{{- define "openweb-ui.url" -}}
-  {{- $url := "" -}}
-  {{- range .Values.extraEnvVars }}
-    {{- if and (eq .name "WEBUI_URL") .value }}
-      {{- $url = .value }}
-    {{- end }}
+{{- define "open-webui.url" -}}
+  {{- $proto := "http" -}}
+  {{- if .Values.ingress.tls }}
+    {{- $proto = "https" -}}
   {{- end }}
-  {{- if not $url }}
-    {{- $proto := "http" -}}
-    {{- if .Values.ingress.tls }}
-      {{- $proto = "https" -}}
-    {{- end }}
-    {{- $url = printf "%s://%s" $proto .Values.ingress.host }}
-  {{- end }}
-  {{- $url }}
+  {{- printf "%s://%s" $proto .Values.ingress.host }}
 {{- end }}
