@@ -85,21 +85,11 @@ startupProbe:
   failureThreshold: 30
   periodSeconds: 10
 
-## Array of initContainers to add to include in deployment (supports templating)
-##
 # initContainers:
 #   - name: do-something
 #     image: busybox
 #     command: ['do', 'something']
-#     volumeMounts:
-#       - name: nfs
-#         mountPath: /mnt/volume
-#         readOnly: true
-#   - |
-#     name: {{ template "minecraft.fullname" . }}-init
-#     image: busybox
-#     command: ['do', 'something']
-#     volumeMounts:
+#     volumesMounts:
 #       - name: nfs
 #         mountPath: /mnt/volume
 #         readOnly: true
@@ -150,26 +140,6 @@ initContainers:
       - name: backupdir
         mountPath: /backups
 
-## Array of additional sidecards to include in the deployment (supports templating)
-##
-# sidecarContainers:
-#   - name: do-something
-#     image: busybox
-#     command: ['do', 'something']
-#     volumeMounts:
-#       - name: nfs
-#         mountPath: /mnt/volume
-#         readOnly: true
-#   - |
-#     name: {{ template "minecraft.fullname" . }}-sidecar
-#     image: busybox
-#     command: ['do', 'something', 'with', 'rcon']
-#     env:
-#       - name: RCON_PASSWORD
-#         valueFrom:
-#           secretKeyRef:
-#             name: '{{ .Values.minecraftServer.rcon.existingSecret | default (printf "%s-rcon" (include "minecraft.fullname" .)) }}'
-#             key: "{{ .Values.minecraftServer.rcon.secretKey | default "rcon-password" }}"
 sidecarContainers:
   - name: geyser
     image: "registry.lajas.tech/geyser:latest"
@@ -204,21 +174,6 @@ sidecarContainers:
         value: "minecraft"
       - name: SPECTRUM_PORT
         value: "25565"
-
-# extraVolumes:
-#   - volumeMounts:
-#       - name: nfs
-#         mountPath: /mnt/volume
-#         readOnly: true
-#     volumes:
-#       - name: nfs
-#         nfs:
-#           server: some.nfs.server.com
-#           path: /
-#           mountOptions:
-#             - port=2049
-#             - hard
-#             - vers=4
 extraVolumes:
   - volumeMounts:
       - name: geyser-config-temp
@@ -234,20 +189,6 @@ extraVolumes:
         persistentVolumeClaim:
           claimName: geyser-data-pvc
 
-
-## Array of extra objects to deploy with the release
-##
-# extraDeploy:
-#   - |
-#     apiVersion: v1
-#     kind: ConfigMap
-#     metadata:
-#       name: {{ template "minecraft.fullname" . }}-extra-cm
-#     data:
-#       key: |-
-#         {
-#           "key": "value"
-#         }
 extraDeploy:
   - |
     apiVersion: v1
@@ -451,12 +392,15 @@ minecraftServer:
   jvmOpts: ""
   # Options like -X that need to proceed general JVM options
   jvmXXOpts: ""
-  overrideServerProperties: default
+  # By default, the server configuration will be created and set based on the following environment variables, but only the first time the server is started
+  # If you would like to override the server configuration each time the container starts up, you can set this to true
+  # see https://github.com/itzg/docker-minecraft-server#server-configuration
+  overrideServerProperties: false
   # DEPRECATED: use top-level rconServiceAnnotations instead
   serviceAnnotations: {}
   serviceType: LoadBalancer
   ## Set the port used if the serviceType is NodePort
-  nodePort:
+  #nodePort:
   # Set the external port of the service, usefull when using the LoadBalancer service type
   servicePort: 25565
   clusterIP:
@@ -495,8 +439,8 @@ minecraftServer:
       - xaeros-world-map
       - xaeros-minimap
       - cloth-config
-    # Specifies whether to download Modrinth dependencies. The allowed values are: none, required, optional
-    downloadDependencies: optional
+    # Downloads Modrinth project dependencies marked as optional
+    optionalDependencies: true
     # The version type is used to determine the newest version to use from each project. The allowed values are: release, beta, alpha
     allowedVersionType: release
 
@@ -618,8 +562,6 @@ envFrom:
 persistence:
   labels: {}
   annotations: {}
-  ## specify an alternative volume to be mounted to /data instead of datadir.
-  # altDataVolumeName: ""
   ## minecraft data Persistent Volume Storage Class
   ## If defined, storageClassName: <storageClass>
   ## If set to "-", storageClassName: "", which disables dynamic provisioning
@@ -665,10 +607,6 @@ mcbackup:
   #  wait 2 minutes before starting
   initialDelay: 2m
 
-  # Sets `BACKUP_NAME`, defaults to `minecraftServer.worldSaveName`
-  # WARN: When using restic and sharing the `mcbackup.resticRepository` across multiple minecraft server deployments: either `mcbackup.backupName` or `mcbackup.resticHostname` must be unique!
-  backupName:
-
   # ***set to 0 or smaller, script will run once and exit.  DO NOT SET TO 0 or smaller, this will cause K8s to kill your pod!***
   # backupInterval="1.5d" -> backup every one and a half days (36 hours)
   # backupInterval="2h 30m" -> backup every two and a half hours
@@ -688,7 +626,7 @@ mcbackup:
   # logs folder and cache (used by i.e. PaperMC server).
   excludes: "*.jar,cache,logs"
 
-  # backup methods, see https://github.com/itzg/docker-mc-backup e.g. tar, rclone, restic, rsync
+  # backup methods, see https://github.com/itzg/docker-mc-backup e.g. tar, rclone, restic
   backupMethod: tar
   # tar and rclone methods
   destDir: /backups
@@ -724,10 +662,6 @@ mcbackup:
   resticAdditionalTags: "mc_backups"
   # see https://restic.readthedocs.io/en/latest/060_forget.html
   pruneResticRetention: "--keep-daily 7 --keep-weekly 5 --keep-monthly 12 --keep-yearly 75"
-  # Sets `RESTIC_HOSTNAME`
-  # Required because the container hostname changes on every recreate of the pod which prevents restic from pruning snapshots from previous pods/hostnames
-  # WARN: When using restic and sharing the `mcbackup.resticRepository` across multiple minecraft server deployments: either `mcbackup.backupName` or `mcbackup.resticHostname` must be unique!
-  resticHostname:
 
   # At least one of RESTIC_PASSWORD* env variables need to be defined, see https://restic.readthedocs.io/en/latest/030_preparing_a_new_repo.html
   resticEnvs:
@@ -769,7 +703,7 @@ mcbackup:
       # Set this to false if you don't care to persist state between restarts.
       enabled: true
       Size: 63Ti
-      # existingClaim: nil
+      existingClaim: false
       accessModes:
         - ReadWriteOnce
     # Switch between "smb" and "nfs" as needed
@@ -808,9 +742,3 @@ opSecrets:
     - name: minecraft-player-secrets
       item: "weatiwfamdvnxzf7bapu6ow2wy"
       secretName: "minecraft-player-secrets"
-
-# dnsPolicy: ClusterFirst
-# dnsConfig:
-#   options:
-#   - name: ndots
-#     value: '1'
