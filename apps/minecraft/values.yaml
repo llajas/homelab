@@ -110,40 +110,265 @@ initContainers:
     args:
       - |
         #!/bin/sh
-        # Check for the existence of the 'cat-pajamas' file in /data
-        if [ -f "/data/cat-pajamas" ]; then
-            echo "Unique identifier 'cat-pajamas' found. Proceeding with server startup."
-        else
-            echo "Unique identifier 'cat-pajamas' not found. Fetching the latest backup..."
-            # Find the latest backup file based on the naming convention and timestamp
-            LATEST_BACKUP=$(ls -t /backups/BluffCraft-*.tgz | head -1)
-            if [ -n "$LATEST_BACKUP" ]; then
-                echo "Restoring from backup: $LATEST_BACKUP"
-                # Create a temporary directory to extract the .tgz backup
-                TEMP_DIR=$(mktemp -d)
-                tar -xzf "$LATEST_BACKUP" -C "$TEMP_DIR"
-                # Find the .tar file inside the extracted directory
-                TAR_FILE=$(find "$TEMP_DIR" -name "*.tar")
-                if [ -n "$TAR_FILE" ]; then
-                    # Extract the .tar file contents
-                    tar -xf "$TAR_FILE" -C "$TEMP_DIR"
-                fi
-                # Identify the directory containing the actual data
-                DATA_DIR=$(find "$TEMP_DIR" -mindepth 1 -maxdepth 1 -type d -name '.')
-                if [ -n "$DATA_DIR" ]; then
-                    # Move contents of the '.' directory to /data
-                    cp -a "$DATA_DIR/." /data/
-                else
-                    # If no '.' directory, move all contents of TEMP_DIR
-                    cp -a "$TEMP_DIR/." /data/
-                fi
-                # Clean up the temporary directory
-                rm -rf "$TEMP_DIR"
-                echo "Backup restored into /data."
-            else
-                echo "No backup found in /backups."
+        set -euo pipefail  # Exit on error, undefined vars, and pipe failures
+        
+        # Configuration
+        readonly IDENTIFIER_FILE="/data/cat-pajamas"
+        readonly BACKUP_DIR="/backups"
+        readonly BACKUP_PATTERN="BluffCraft-*.tgz"
+        readonly DATA_DIR="/data"
+        
+        # Logging functions
+        log_info() {
+            echo "[INFO] $(date '+%Y-%m-%d %H:%M:%S') - $*"
+        }
+        
+        log_error() {
+            echo "[ERROR] $(date '+%Y-%m-%d %H:%M:%S') - $*" >&2
+        }
+        
+        log_warn() {
+            echo "[WARN] $(date '+%Y-%m-%d %H:%M:%S') - $*" >&2
+        }
+        
+        # Cleanup function for trap
+        cleanup_temp() {
+            if [ -n "${TEMP_DIR:-}" ] && [ -d "$TEMP_DIR" ]; then
+                log_info "Cleaning up temporary directory: $TEMP_DIR"
+                rm -rf "$TEMP_DIR" || log_warn "Failed to remove temporary directory"
             fi
-        fi
+        }
+        
+        # Validate backup file integrity
+        validate_backup() {
+            local backup_file="$1"
+            
+            if [ ! -f "$backup_file" ]; then
+                log_error "Backup file does not exist: $backup_file"
+                return 1
+            fi
+            
+            if [ ! -r "$backup_file" ]; then
+                log_error "Backup file is not readable: $backup_file"
+                return 1
+            fi
+            
+            # Test archive integrity
+            if ! tar -tzf "$backup_file" >/dev/null 2>&1; then
+                log_error "Backup file is corrupted or invalid: $backup_file"
+                return 1
+            fi
+            
+            log_info "Backup file validation passed: $backup_file"
+            return 0
+        }
+        
+        # Find and extract world data from backup
+        extract_world_data() {
+            local backup_file="$1"
+            local temp_dir="$2"
+            
+            log_info "Extracting backup archive..."
+            if ! tar -xzf "$backup_file" -C "$temp_dir"; then
+                log_error "Failed to extract backup archive"
+                return 1
+            fi
+            
+            # Look for nested .tar files
+            local tar_files
+            tar_files=$(find "$temp_dir" -name "*.tar" -type f 2>/dev/null || true)
+            
+            if [ -n "$tar_files" ]; then
+                log_info "Found nested tar archive(s), extracting..."
+                echo "$tar_files" | while read -r tar_file; do
+                    if [ -f "$tar_file" ]; then
+                        log_info "Extracting: $(basename "$tar_file")"
+                        if ! tar -xf "$tar_file" -C "$temp_dir"; then
+                            log_error "Failed to extract nested archive: $tar_file"
+                            return 1
+                        fi
+                    fi
+                done
+            fi
+            
+            return 0
+        }
+        
+        # Find the actual world data directory
+        find_world_data() {
+            local temp_dir="$1"
+            
+            # Look for common Minecraft world files to identify the correct directory
+            local world_indicators="level.dat server.properties whitelist.json ops.json"
+            
+            for indicator in $world_indicators; do
+                local found_dirs
+                found_dirs=$(find "$temp_dir" -name "$indicator" -type f -exec dirname {} \; 2>/dev/null | head -1)
+                if [ -n "$found_dirs" ]; then
+                    echo "$found_dirs"
+                    return 0
+                fi
+            done
+            
+            # Fallback: look for the most likely directory structure
+            # Check for directories that aren't just the temp dir itself
+            local content_dirs
+            content_dirs=$(find "$temp_dir" -mindepth 1 -maxdepth 2 -type d 2>/dev/null | head -1)
+            
+            if [ -n "$content_dirs" ]; then
+                # If we found subdirectories, use the first one that contains files
+                local dirs_with_content
+                dirs_with_content=$(find "$temp_dir" -mindepth 1 -type d -exec sh -c 'if [ "$(ls -A "$1" 2>/dev/null)" ]; then echo "$1"; fi' _ {} \; | head -1)
+                if [ -n "$dirs_with_content" ]; then
+                    echo "$dirs_with_content"
+                    return 0
+                fi
+            fi
+            
+            # Final fallback: use the temp directory itself
+            echo "$temp_dir"
+        }
+        
+        # Copy world data to destination
+        copy_world_data() {
+            local source_dir="$1"
+            local dest_dir="$2"
+            
+            if [ ! -d "$source_dir" ]; then
+                log_error "Source directory does not exist: $source_dir"
+                return 1
+            fi
+            
+            # Check if source has any content
+            if [ -z "$(ls -A "$source_dir" 2>/dev/null)" ]; then
+                log_error "Source directory is empty: $source_dir"
+                return 1
+            fi
+            
+            log_info "Copying world data from $source_dir to $dest_dir"
+            
+            # Create destination directory if it doesn't exist
+            if ! mkdir -p "$dest_dir"; then
+                log_error "Failed to create destination directory: $dest_dir"
+                return 1
+            fi
+            
+            # Copy with preserved attributes and error checking
+            if ! cp -a "$source_dir"/* "$dest_dir"/; then
+                log_error "Failed to copy world data"
+                return 1
+            fi
+            
+            # Verify copy succeeded by checking for key files
+            local copied_files
+            copied_files=$(ls -A "$dest_dir" 2>/dev/null | wc -l)
+            if [ "$copied_files" -eq 0 ]; then
+                log_error "No files were copied to destination"
+                return 1
+            fi
+            
+            log_info "Successfully copied $copied_files items to $dest_dir"
+            return 0
+        }
+        
+        # Main restoration logic
+        restore_from_backup() {
+            log_info "Starting backup restoration process..."
+            
+            # Find the latest backup
+            local latest_backup
+            latest_backup=$(ls -t "$BACKUP_DIR"/$BACKUP_PATTERN 2>/dev/null | head -1 || true)
+            
+            if [ -z "$latest_backup" ]; then
+                log_warn "No backup files found matching pattern: $BACKUP_PATTERN"
+                log_warn "Checked directory: $BACKUP_DIR"
+                return 1
+            fi
+            
+            log_info "Found latest backup: $(basename "$latest_backup")"
+            log_info "Backup size: $(du -h "$latest_backup" | cut -f1)"
+            
+            # Validate backup before proceeding
+            if ! validate_backup "$latest_backup"; then
+                log_error "Backup validation failed, cannot proceed"
+                return 1
+            fi
+            
+            # Create temporary directory with trap for cleanup
+            TEMP_DIR=$(mktemp -d)
+            trap cleanup_temp EXIT INT TERM
+            
+            log_info "Created temporary directory: $TEMP_DIR"
+            
+            # Extract backup
+            if ! extract_world_data "$latest_backup" "$TEMP_DIR"; then
+                log_error "Failed to extract backup data"
+                return 1
+            fi
+            
+            # Find world data location
+            local world_data_dir
+            world_data_dir=$(find_world_data "$TEMP_DIR")
+            
+            if [ -z "$world_data_dir" ]; then
+                log_error "Could not locate world data in backup"
+                return 1
+            fi
+            
+            log_info "Located world data in: $world_data_dir"
+            
+            # Copy world data to destination
+            if ! copy_world_data "$world_data_dir" "$DATA_DIR"; then
+                log_error "Failed to restore world data"
+                return 1
+            fi
+            
+            # Create identifier file to prevent future restorations
+            if ! touch "$IDENTIFIER_FILE"; then
+                log_warn "Failed to create identifier file: $IDENTIFIER_FILE"
+            else
+                log_info "Created identifier file: $IDENTIFIER_FILE"
+            fi
+            
+            log_info "Backup restoration completed successfully"
+            return 0
+        }
+        
+        # Main execution
+        main() {
+            log_info "Starting world data check..."
+            
+            # Check for unique identifier
+            if [ -f "$IDENTIFIER_FILE" ]; then
+                log_info "Unique identifier found: $(basename "$IDENTIFIER_FILE")"
+                log_info "World data already exists, proceeding with server startup"
+                return 0
+            fi
+            
+            log_info "Unique identifier not found, restoration required"
+            
+            # Ensure backup directory exists and is accessible
+            if [ ! -d "$BACKUP_DIR" ]; then
+                log_error "Backup directory does not exist: $BACKUP_DIR"
+                exit 1
+            fi
+            
+            if [ ! -r "$BACKUP_DIR" ]; then
+                log_error "Backup directory is not readable: $BACKUP_DIR"
+                exit 1
+            fi
+            
+            # Attempt restoration
+            if restore_from_backup; then
+                log_info "World data restoration completed successfully"
+            else
+                log_error "World data restoration failed"
+                exit 1
+            fi
+        }
+        
+        # Execute main function
+        main "$@"
     volumeMounts:
       - name: datadir
         mountPath: /data
