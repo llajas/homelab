@@ -1,6 +1,10 @@
 nameOverride: ""
 namespaceOverride: ""
 
+# Define shared secret names
+_secrets:
+  oauth: &oauthSecret "open-webui-oauth"
+
 # Configure Ollama with custom models and GPU support
 ollama:
   enabled: true
@@ -202,33 +206,10 @@ enableOpenaiApi: true
 openaiBaseApiUrl: "https://api.openai.com/v1"
 openaiBaseApiUrls: []
 
-# Configure OAuth/SSO with existing environment variables approach
+# Configure core application settings
 extraEnvVars:
   - name: OPENAI_API_KEY
     value: "0p3n-w3bu!"
-  - name: ENABLE_LOGIN_FORM
-    value: "true"
-  - name: ENABLE_OAUTH_SIGNUP
-    value: "true"
-  - name: OAUTH_CLIENT_ID
-    value: "open-webui"
-  - name: OAUTH_CLIENT_SECRET
-    valueFrom:
-      secretKeyRef:
-        name: &oauthSecret open-webui-oauth
-        key: client_secret
-  - name: OPENID_PROVIDER_URL
-    value: "https://dex.lajas.tech/.well-known/openid-configuration"
-  - name: OAUTH_PROVIDER_NAME
-    value: "Lajas.tech SSO"
-  - name: OAUTH_SCOPES
-    value: "openid email profile"
-  - name: OPENID_REDIRECT_URL
-    value: "https://open-webui.lajas.tech/oauth/callback"
-  - name: OAUTH_EMAIL_CLAIM
-    value: "email"
-  - name: OAUTH_USERNAME_CLAIM
-    value: "preferred_username"
   - name: WEBUI_URL
     value: *openwebuihost
   - name: BYPASS_MODEL_ACCESS_CONTROL
@@ -250,10 +231,10 @@ volumes: []
 podSecurityContext: {}
 containerSecurityContext: {}
 
-# Configure SSO via native support (alternative to extraEnvVars approach)
+# Configure SSO via native support (migrated from extraEnvVars approach)
 sso:
-  enabled: false
-  enableSignup: false
+  enabled: true
+  enableSignup: true
   mergeAccountsByEmail: false
   enableRoleManagement: false
   enableGroupManagement: false
@@ -281,13 +262,13 @@ sso:
     clientExistingSecretKey: ""
 
   oidc:
-    enabled: false
-    clientId: ""
+    enabled: true
+    clientId: "open-webui"
     clientSecret: ""
-    clientExistingSecret: ""
-    clientExistingSecretKey: ""
-    providerUrl: ""
-    providerName: "SSO"
+    clientExistingSecret: *oauthSecret
+    clientExistingSecretKey: "client_secret"
+    providerUrl: "https://dex.lajas.tech/.well-known/openid-configuration"
+    providerName: "Lajas.tech SSO"
     scopes: "openid email profile"
 
   roleManagement:
