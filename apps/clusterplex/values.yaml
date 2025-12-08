@@ -288,14 +288,14 @@ pms:
   resources:
     requests:
       # -- CPU Request amount
-      cpu: 2000m
+      cpu: 4000m
 
       # Memory Request Amount
       memory: 2Gi
 
     limits:
       # -- CPU Limit amount
-      cpu: 4000m
+      cpu: 8000m
 
       # -- Memory Limit amount
       memory: 6Gi
@@ -549,7 +549,7 @@ worker:
   resources:
     requests:
       # -- CPU Request amount
-      cpu: 2000m
+      cpu: 4000m
 
       # -- Memory Request Amount
       memory: 3Gi
@@ -559,7 +559,7 @@ worker:
 
     limits:
       # -- CPU Limit amount
-      cpu: 6000m
+      cpu: 10000m
 
       # -- Memory Limit amount
       memory: 6Gi
