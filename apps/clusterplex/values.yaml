@@ -65,7 +65,7 @@ global:
       storageClass: "smb"
 
       # -- If you want to reuse an existing claim, the name of the existing PVC can be passed here.
-      existingClaim: "clusterplex-media"
+      existingClaim: # "clusterplex-media" # Temporarily disabled to recreate missing PV
 
       # -- Used in conjunction with `existingClaim`. Specifies a sub-path inside the referenced volume instead of its root
       subPath: # some-subpath
