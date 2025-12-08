@@ -16,7 +16,7 @@ spec:
     - ReadWriteMany
   csi:
     driver: {{ .Values.global.sharedStorage.media.driver }}
-    volumeHandle: {{ .Release.Name }}-media
+    volumeHandle: -media
     volumeAttributes:
       source: {{ .Values.global.sharedStorage.media.server }}
       subDir: {{ .Values.global.sharedStorage.media.path }}
