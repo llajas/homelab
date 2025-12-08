@@ -211,7 +211,7 @@
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{worker_name}}",
+          "legendFormat": "{{`{{worker_name}}`}}",
           "refId": "A"
         }
       ],
@@ -313,7 +313,7 @@
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{worker_name}}",
+          "legendFormat": "{{`{{worker_name}}`}}",
           "refId": "A"
         }
       ],
@@ -502,7 +502,7 @@
           "hide": false,
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{worker_name}}",
+          "legendFormat": "{{`{{worker_name}}`}}",
           "refId": "A"
         }
       ],
