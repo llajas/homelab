@@ -1,7 +1,9 @@
+{{- if not .Values.global.sharedStorage.media.existingClaim }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: {{ .Release.Name }}-media
+  namespace: {{ .Release.Namespace }}
 spec:
   accessModes:
     - ReadWriteMany
@@ -9,4 +11,9 @@ spec:
     requests:
       storage: {{ .Values.global.sharedStorage.media.size }}
   storageClassName: {{ .Values.global.sharedStorage.media.storageClass }}
-  volumeName: {{ .Values.global.sharedStorage.media.existingClaim }}
+  {{- if .Values.global.sharedStorage.media.volumeName }}
+  volumeName: {{ .Values.global.sharedStorage.media.volumeName }}
+  {{- else }}
+  volumeName: {{ .Release.Name }}-media
+  {{- end }}
+{{- end }}

@@ -1,3 +1,4 @@
+{{- if not .Values.global.sharedStorage.media.existingClaim }}
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -16,7 +17,7 @@ spec:
     - ReadWriteMany
   csi:
     driver: {{ .Values.global.sharedStorage.media.driver }}
-    volumeHandle: {{ .Release.name }}-media
+    volumeHandle: {{ .Release.Name }}-media
     volumeAttributes:
       source: {{ .Values.global.sharedStorage.media.server }}
       subDir: {{ .Values.global.sharedStorage.media.path }}
@@ -33,3 +34,4 @@ spec:
     - cache=strict
     - noserverino
     - nobrl
+{{- end }}
