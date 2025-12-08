@@ -1,4 +1,3 @@
-{{- if not .Values.global.sharedStorage.media.existingClaim }}
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -34,4 +33,3 @@ spec:
     - cache=strict
     - noserverino
     - nobrl
-{{- end }}

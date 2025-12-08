@@ -1,4 +1,3 @@
-{{- if not .Values.global.sharedStorage.media.existingClaim }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -16,4 +15,3 @@ spec:
   {{- else }}
   volumeName: {{ .Release.Name }}-media
   {{- end }}
-{{- end }}
