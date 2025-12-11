@@ -148,11 +148,21 @@ redis:
   master:
     persistence:
       enabled: true
+    resources:
+      limits:
+        memory: 512Mi
+      requests:
+        memory: 256Mi
   replica:
     replicaCount: 3
+    resources:
+      limits:
+        memory: 512Mi
+      requests:
+        memory: 256Mi
   image:
     repository: bitnamilegacy/redis
-    tag: 8.0.3-debian-12-r1
+    tag: 6.2.9-debian-11-r0
 
 global:
   security:
