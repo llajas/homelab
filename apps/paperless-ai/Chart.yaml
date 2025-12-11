@@ -23,4 +23,4 @@ sources:
   - https://github.com/paperless-ngx/paperless-ngx
   - https://github.com/ChiliChonka/paperless-ngx-helm-chart
 version: 0.1.0
-appVersion: "3.0.7"
+appVersion: "3.0.9"
