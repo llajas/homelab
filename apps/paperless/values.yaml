@@ -150,16 +150,16 @@ redis:
       enabled: true
     resources:
       limits:
-        memory: 512Mi
+        memory: 1Gi
       requests:
-        memory: 256Mi
+        memory: 512Mi
   replica:
     replicaCount: 3
     resources:
       limits:
-        memory: 512Mi
+        memory: 1Gi
       requests:
-        memory: 256Mi
+        memory: 512Mi
   image:
     repository: bitnamilegacy/redis
     tag: 6.2.9-debian-11-r0
