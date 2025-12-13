@@ -1,0 +1,34 @@
+{{- if and .Values.notifyWebhook.enabled .Values.notifyWebhook.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "nas-dependency-operator.fullname" . }}-webhook
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "nas-dependency-operator.labels" . | nindent 4 }}
+  {{- with .Values.notifyWebhook.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.notifyWebhook.ingress.className }}
+  ingressClassName: {{ .Values.notifyWebhook.ingress.className }}
+  {{- end }}
+  {{- if .Values.notifyWebhook.ingress.tls.enabled }}
+  tls:
+    - hosts:
+        - {{ .Values.notifyWebhook.ingress.host }}
+      secretName: {{ .Values.notifyWebhook.ingress.tls.secretName }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.notifyWebhook.ingress.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "nas-dependency-operator.fullname" . }}-webhook
+                port:
+                  name: http
+{{- end }}

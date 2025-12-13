@@ -209,6 +209,37 @@ spec:
                 default: UTC
                 description: timezone is the timezone for ArgoCD sync windows
                 type: string
+              webhook:
+                description: webhook configures the webhook server for push-based
+                  notifications
+                properties:
+                  authTokenSecretRef:
+                    description: authTokenSecretRef references a secret containing
+                      the webhook authentication token
+                    properties:
+                      key:
+                        default: token
+                        description: key is the key within the secret
+                        type: string
+                      name:
+                        description: name is the name of the secret
+                        type: string
+                    required:
+                    - name
+                    type: object
+                  enabled:
+                    default: false
+                    description: enabled enables the webhook server for instant notifications
+                      from NAS agents
+                    type: boolean
+                  port:
+                    default: 8080
+                    description: port is the port for the webhook HTTP server
+                    format: int32
+                    maximum: 65535
+                    minimum: 1
+                    type: integer
+                type: object
             required:
             - mode
             - nasAddress
@@ -363,6 +394,26 @@ spec:
                   scaled down
                 format: date-time
                 type: string
+              lastWebhookEvent:
+                description: lastWebhookEvent is the most recent webhook notification
+                  received
+                properties:
+                  action:
+                    description: action is the requested action (down or up)
+                    type: string
+                  reason:
+                    description: reason is the reason for the action (e.g., ups_on_battery,
+                      manual_shutdown)
+                    type: string
+                  timestamp:
+                    description: timestamp is when the webhook was received
+                    format: date-time
+                    type: string
+                required:
+                - action
+                - reason
+                - timestamp
+                type: object
               nasAvailable:
                 description: nasAvailable indicates if the NAS is reachable (for auto
                   mode)

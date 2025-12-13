@@ -48,6 +48,21 @@ spec:
             {{- if .Values.leaderElection.enabled }}
             - --leader-elect=true
             {{- end }}
+            {{- if .Values.notifyWebhook.enabled }}
+            - --notify-webhook-port={{ .Values.notifyWebhook.port }}
+            {{- end }}
+          {{- if .Values.notifyWebhook.enabled }}
+          env:
+            - name: WEBHOOK_AUTH_TOKEN
+              {{- if .Values.notifyWebhook.existingSecret.name }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.notifyWebhook.existingSecret.name }}
+                  key: {{ .Values.notifyWebhook.existingSecret.key | default "token" }}
+              {{- else }}
+              value: {{ .Values.notifyWebhook.authToken | quote }}
+              {{- end }}
+          {{- end }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           ports:
@@ -57,6 +72,11 @@ spec:
             {{- if .Values.metrics.enabled }}
             - name: metrics
               containerPort: 8443
+              protocol: TCP
+            {{- end }}
+            {{- if .Values.notifyWebhook.enabled }}
+            - name: webhook
+              containerPort: {{ .Values.notifyWebhook.port }}
               protocol: TCP
             {{- end }}
           livenessProbe:

@@ -92,3 +92,26 @@ argocd:
   enabled: true
   # ArgoCD namespace
   namespace: argocd
+
+# Webhook notification server for instant NAS status updates
+notifyWebhook:
+  # Enable the webhook server for push-based notifications from NAS agents
+  enabled: true
+  # Port for the webhook HTTP server
+  port: 8080
+  # Auth token for webhook authentication (set directly, not recommended for production)
+  authToken: ""
+  # Use existing secret for auth token (recommended)
+  existingSecret:
+    name: "nas-webhook-token"
+    key: "token"
+  # Ingress configuration for external access
+  ingress:
+    enabled: true
+    className: "nginx"
+    host: "nas-webhook.lajas.tech"
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    tls:
+      enabled: true
+      secretName: "nas-webhook-tls"
