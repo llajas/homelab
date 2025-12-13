@@ -25,6 +25,32 @@ rules:
       - get
       - list
       - watch
+  # Node management (for virtual nodes tied to NAS infrastructure)
+  - apiGroups:
+      - ""
+    resources:
+      - nodes
+    verbs:
+      - get
+      - list
+      - watch
+      - patch
+      - update
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+    verbs:
+      - get
+      - list
+      - watch
+      - delete
+  - apiGroups:
+      - ""
+    resources:
+      - pods/eviction
+    verbs:
+      - create
   # Workload resources
   - apiGroups:
       - apps

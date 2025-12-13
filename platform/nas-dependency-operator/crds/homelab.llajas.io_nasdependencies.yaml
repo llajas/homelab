@@ -27,6 +27,9 @@ spec:
     - jsonPath: .status.workloadCount
       name: Workloads
       type: integer
+    - jsonPath: .status.nodeCount
+      name: Nodes
+      type: integer
     - jsonPath: .metadata.creationTimestamp
       name: Age
       type: date
@@ -205,6 +208,99 @@ spec:
                 description: nasAddress is the IP address or hostname of the NAS server
                 minLength: 1
                 type: string
+              nodeManagement:
+                description: nodeManagement configures node cordon/drain for virtual
+                  nodes tied to NAS infrastructure
+                properties:
+                  action:
+                    default: cordon
+                    description: 'action specifies what to do with matched nodes:
+                      cordon or cordonAndDrain'
+                    enum:
+                    - cordon
+                    - cordonAndDrain
+                    type: string
+                  deleteEmptyDirData:
+                    default: true
+                    description: deleteEmptyDirData allows deletion of pods using
+                      emptyDir during drain
+                    type: boolean
+                  drainGracePeriodSeconds:
+                    default: 30
+                    description: drainGracePeriodSeconds is the grace period for pod
+                      eviction during drain
+                    format: int32
+                    minimum: 0
+                    type: integer
+                  drainTimeoutSeconds:
+                    default: 300
+                    description: drainTimeoutSeconds is the timeout for drain operations
+                      (only used with cordonAndDrain)
+                    format: int32
+                    minimum: 30
+                    type: integer
+                  enabled:
+                    default: false
+                    description: enabled enables node management (cordon/drain) for
+                      nodes tied to NAS infrastructure
+                    type: boolean
+                  force:
+                    default: false
+                    description: force forces drain even if there are pods not managed
+                      by a controller
+                    type: boolean
+                  ignoreDaemonSets:
+                    default: true
+                    description: ignoreDaemonSets ignores DaemonSet pods during drain
+                      (recommended)
+                    type: boolean
+                  labelSelector:
+                    description: labelSelector selects nodes by labels (e.g., homelab.llajas.io/hypervisor=unraid)
+                    properties:
+                      matchExpressions:
+                        description: matchExpressions is a list of label selector
+                          requirements. The requirements are ANDed.
+                        items:
+                          description: |-
+                            A label selector requirement is a selector that contains values, a key, and an operator that
+                            relates the key and values.
+                          properties:
+                            key:
+                              description: key is the label key that the selector
+                                applies to.
+                              type: string
+                            operator:
+                              description: |-
+                                operator represents a key's relationship to a set of values.
+                                Valid operators are In, NotIn, Exists and DoesNotExist.
+                              type: string
+                            values:
+                              description: |-
+                                values is an array of string values. If the operator is In or NotIn,
+                                the values array must be non-empty. If the operator is Exists or DoesNotExist,
+                                the values array must be empty. This array is replaced during a strategic
+                                merge patch.
+                              items:
+                                type: string
+                              type: array
+                              x-kubernetes-list-type: atomic
+                          required:
+                          - key
+                          - operator
+                          type: object
+                        type: array
+                        x-kubernetes-list-type: atomic
+                      matchLabels:
+                        additionalProperties:
+                          type: string
+                        description: |-
+                          matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels
+                          map is equivalent to an element of matchExpressions, whose key field is "key", the
+                          operator is "In", and the values array contains only "value". The requirements are ANDed.
+                        type: object
+                    type: object
+                    x-kubernetes-map-type: atomic
+                type: object
               timezone:
                 default: UTC
                 description: timezone is the timezone for ArgoCD sync windows
@@ -414,10 +510,52 @@ spec:
                 - reason
                 - timestamp
                 type: object
+              managedNodes:
+                description: managedNodes is the list of nodes being managed by the
+                  operator
+                items:
+                  description: ManagedNode represents a node being managed by the
+                    operator
+                  properties:
+                    lastActionTime:
+                      description: lastActionTime is the timestamp of the last action
+                        on this node
+                      format: date-time
+                      type: string
+                    message:
+                      description: message provides details about the current state
+                        or errors
+                      type: string
+                    name:
+                      description: name is the node name
+                      type: string
+                    state:
+                      description: state is the current state of the node
+                      enum:
+                      - Ready
+                      - Cordoned
+                      - Draining
+                      - Drained
+                      - Error
+                      type: string
+                    wasCordoned:
+                      description: wasCordoned indicates if the node was already cordoned
+                        before we managed it
+                      type: boolean
+                  required:
+                  - name
+                  - state
+                  type: object
+                type: array
               nasAvailable:
                 description: nasAvailable indicates if the NAS is reachable (for auto
                   mode)
                 type: boolean
+              nodeCount:
+                description: nodeCount is the number of managed nodes (for display
+                  purposes)
+                format: int32
+                type: integer
               phase:
                 description: phase is the current phase of the NASDependency
                 enum:
