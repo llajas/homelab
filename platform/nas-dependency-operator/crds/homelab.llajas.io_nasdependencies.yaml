@@ -1,0 +1,388 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.19.0
+  name: nasdependencies.homelab.llajas.io
+spec:
+  group: homelab.llajas.io
+  names:
+    kind: NASDependency
+    listKind: NASDependencyList
+    plural: nasdependencies
+    singular: nasdependency
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .spec.mode
+      name: Mode
+      type: string
+    - jsonPath: .status.phase
+      name: Phase
+      type: string
+    - jsonPath: .status.nasAvailable
+      name: NAS Available
+      type: boolean
+    - jsonPath: .status.affectedWorkloads
+      name: Workloads
+      type: integer
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: NASDependency is the Schema for the nasdependencies API
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: NASDependencySpec defines the desired state of NASDependency
+            properties:
+              argocd:
+                description: argocd configures ArgoCD integration for sync window
+                  management
+                properties:
+                  enabled:
+                    default: false
+                    description: enabled enables ArgoCD integration for sync window
+                      management
+                    type: boolean
+                  namespace:
+                    default: argocd
+                    description: namespace is the namespace where ArgoCD is installed
+                    type: string
+                  project:
+                    default: default
+                    description: project is the ArgoCD project for sync windows
+                    type: string
+                  triggerSyncOnRestore:
+                    default: false
+                    description: triggerSyncOnRestore triggers ArgoCD sync after workload
+                      restoration
+                    type: boolean
+                type: object
+              dryRun:
+                default: false
+                description: dryRun enables dry-run mode to preview changes without
+                  applying them
+                type: boolean
+              excludeNamespaces:
+                description: excludeNamespaces is a list of namespaces to always exclude
+                items:
+                  type: string
+                type: array
+              gracePeriodSeconds:
+                default: 60
+                description: gracePeriodSeconds is the delay before acting on state
+                  changes (prevents flapping)
+                format: int32
+                minimum: 0
+                type: integer
+              healthCheck:
+                description: healthCheck configures health probes for auto mode
+                properties:
+                  enabled:
+                    default: false
+                    description: enabled enables health checking for auto mode
+                    type: boolean
+                  failureThreshold:
+                    default: 3
+                    description: failureThreshold is the number of consecutive failures
+                      before scale-down
+                    format: int32
+                    minimum: 1
+                    type: integer
+                  intervalSeconds:
+                    default: 30
+                    description: intervalSeconds is the interval between probes
+                    format: int32
+                    minimum: 10
+                    type: integer
+                  path:
+                    default: /
+                    description: path is the HTTP path for http probes
+                    type: string
+                  port:
+                    default: 2049
+                    description: port is the port for tcp/http probes
+                    format: int32
+                    maximum: 65535
+                    minimum: 1
+                    type: integer
+                  successThreshold:
+                    default: 2
+                    description: successThreshold is the number of consecutive successes
+                      before restore
+                    format: int32
+                    minimum: 1
+                    type: integer
+                  timeoutSeconds:
+                    default: 5
+                    description: timeoutSeconds is the probe timeout
+                    format: int32
+                    minimum: 1
+                    type: integer
+                  type:
+                    default: tcp
+                    description: 'type is the probe type: ping, tcp, or http'
+                    enum:
+                    - ping
+                    - tcp
+                    - http
+                    type: string
+                type: object
+              mode:
+                description: 'mode is the operation mode: down, up, or auto'
+                enum:
+                - down
+                - up
+                - auto
+                type: string
+              namespaceSelector:
+                description: namespaceSelector filters namespaces by labels
+                properties:
+                  matchExpressions:
+                    description: matchExpressions is a list of label selector requirements.
+                      The requirements are ANDed.
+                    items:
+                      description: |-
+                        A label selector requirement is a selector that contains values, a key, and an operator that
+                        relates the key and values.
+                      properties:
+                        key:
+                          description: key is the label key that the selector applies
+                            to.
+                          type: string
+                        operator:
+                          description: |-
+                            operator represents a key's relationship to a set of values.
+                            Valid operators are In, NotIn, Exists and DoesNotExist.
+                          type: string
+                        values:
+                          description: |-
+                            values is an array of string values. If the operator is In or NotIn,
+                            the values array must be non-empty. If the operator is Exists or DoesNotExist,
+                            the values array must be empty. This array is replaced during a strategic
+                            merge patch.
+                          items:
+                            type: string
+                          type: array
+                          x-kubernetes-list-type: atomic
+                      required:
+                      - key
+                      - operator
+                      type: object
+                    type: array
+                    x-kubernetes-list-type: atomic
+                  matchLabels:
+                    additionalProperties:
+                      type: string
+                    description: |-
+                      matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels
+                      map is equivalent to an element of matchExpressions, whose key field is "key", the
+                      operator is "In", and the values array contains only "value". The requirements are ANDed.
+                    type: object
+                type: object
+                x-kubernetes-map-type: atomic
+              nasAddress:
+                description: nasAddress is the IP address or hostname of the NAS server
+                minLength: 1
+                type: string
+              timezone:
+                default: UTC
+                description: timezone is the timezone for ArgoCD sync windows
+                type: string
+            required:
+            - mode
+            - nasAddress
+            type: object
+          status:
+            description: NASDependencyStatus defines the observed state of NASDependency
+            properties:
+              affectedWorkloads:
+                description: affectedWorkloads is the list of discovered/managed workloads
+                items:
+                  description: AffectedWorkload represents a workload affected by
+                    NAS dependency
+                  properties:
+                    currentReplicas:
+                      description: currentReplicas is the current replica count
+                      format: int32
+                      type: integer
+                    kind:
+                      description: 'kind is the workload kind: Deployment, StatefulSet,
+                        or DaemonSet'
+                      type: string
+                    name:
+                      description: name is the workload's name
+                      type: string
+                    namespace:
+                      description: namespace is the workload's namespace
+                      type: string
+                    originalNodeSelector:
+                      additionalProperties:
+                        type: string
+                      description: originalNodeSelector is the original DaemonSet
+                        nodeSelector (for restoration)
+                      type: object
+                    originalReplicas:
+                      description: originalReplicas is the replica count before scale-down
+                      format: int32
+                      type: integer
+                    pvName:
+                      description: pvName is the PersistentVolume name (if reason
+                        is NAS_PV)
+                      type: string
+                    reason:
+                      description: reason indicates why this workload is dependent
+                      enum:
+                      - NAS_PV
+                      - GPU
+                      type: string
+                    status:
+                      description: status is the workload's current status
+                      enum:
+                      - ScaledDown
+                      - Restored
+                      - Pending
+                      type: string
+                  required:
+                  - currentReplicas
+                  - kind
+                  - name
+                  - namespace
+                  - originalReplicas
+                  - reason
+                  - status
+                  type: object
+                type: array
+              conditions:
+                description: conditions represent the current state of the NASDependency
+                  resource
+                items:
+                  description: Condition contains details for one aspect of the current
+                    state of this API Resource.
+                  properties:
+                    lastTransitionTime:
+                      description: |-
+                        lastTransitionTime is the last time the condition transitioned from one status to another.
+                        This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+                      format: date-time
+                      type: string
+                    message:
+                      description: |-
+                        message is a human readable message indicating details about the transition.
+                        This may be an empty string.
+                      maxLength: 32768
+                      type: string
+                    observedGeneration:
+                      description: |-
+                        observedGeneration represents the .metadata.generation that the condition was set based upon.
+                        For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                        with respect to the current state of the instance.
+                      format: int64
+                      minimum: 0
+                      type: integer
+                    reason:
+                      description: |-
+                        reason contains a programmatic identifier indicating the reason for the condition's last transition.
+                        Producers of specific condition types may define expected values and meanings for this field,
+                        and whether the values are considered a guaranteed API.
+                        The value should be a CamelCase string.
+                        This field may not be empty.
+                      maxLength: 1024
+                      minLength: 1
+                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                      type: string
+                    status:
+                      description: status of the condition, one of True, False, Unknown.
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - type
+                x-kubernetes-list-type: map
+              consecutiveFailures:
+                description: consecutiveFailures is the current count of consecutive
+                  probe failures
+                format: int32
+                type: integer
+              consecutiveSuccesses:
+                description: consecutiveSuccesses is the current count of consecutive
+                  probe successes
+                format: int32
+                type: integer
+              lastProbeTime:
+                description: lastProbeTime is the timestamp of the last health check
+                format: date-time
+                type: string
+              lastReconcileTime:
+                description: lastReconcileTime is the timestamp of the last successful
+                  reconciliation
+                format: date-time
+                type: string
+              lastRestoreTime:
+                description: lastRestoreTime is the timestamp when workloads were
+                  restored
+                format: date-time
+                type: string
+              lastScaleDownTime:
+                description: lastScaleDownTime is the timestamp when workloads were
+                  scaled down
+                format: date-time
+                type: string
+              nasAvailable:
+                description: nasAvailable indicates if the NAS is reachable (for auto
+                  mode)
+                type: boolean
+              phase:
+                description: phase is the current phase of the NASDependency
+                enum:
+                - Discovering
+                - ScaledDown
+                - Restoring
+                - Running
+                - DryRun
+                - Error
+                type: string
+              syncWindowId:
+                description: syncWindowID is the ArgoCD sync window identifier
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

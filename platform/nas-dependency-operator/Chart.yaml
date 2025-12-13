@@ -1,0 +1,17 @@
+apiVersion: v2
+name: nas-dependency-operator
+description: A Kubernetes operator that manages workloads dependent on NAS storage availability
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - kubernetes
+  - operator
+  - nas
+  - storage
+  - homelab
+home: https://git.lajas.tech/llajas/nas-dependency-operator
+sources:
+  - https://git.lajas.tech/llajas/nas-dependency-operator
+maintainers:
+  - name: llajas

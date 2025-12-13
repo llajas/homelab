@@ -1,0 +1,94 @@
+# Default values for nas-dependency-operator
+# Configured for homelab deployment
+
+# Number of replicas
+replicaCount: 1
+
+image:
+  # Use local registry for homelab
+  repository: registry.lajas.tech/nas-dependency-operator
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 128Mi
+  requests:
+    cpu: 10m
+    memory: 64Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# Leader election configuration
+leaderElection:
+  enabled: true
+
+# Metrics configuration
+metrics:
+  enabled: true
+  # If true, use secure metrics endpoint with RBAC
+  secure: true
+  bindAddress: ":8443"
+  # Service Monitor for Prometheus Operator
+  serviceMonitor:
+    enabled: true
+    namespace: ""
+    interval: 30s
+    scrapeTimeout: 10s
+    labels: {}
+
+# Health probes
+healthProbes:
+  bindAddress: ":8081"
+
+# Logging configuration
+logging:
+  # Log level (debug, info, error)
+  level: info
+  # Development mode enables human-readable output
+  development: false
+
+# RBAC configuration
+rbac:
+  # Create ClusterRole and ClusterRoleBinding
+  create: true
+
+# ArgoCD integration settings (for AppProject RBAC)
+argocd:
+  # Enable RBAC for ArgoCD AppProject access
+  enabled: true
+  # ArgoCD namespace
+  namespace: argocd
