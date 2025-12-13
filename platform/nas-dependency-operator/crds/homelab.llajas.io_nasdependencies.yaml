@@ -24,7 +24,7 @@ spec:
     - jsonPath: .status.nasAvailable
       name: NAS Available
       type: boolean
-    - jsonPath: .status.affectedWorkloads
+    - jsonPath: .status.workloadCount
       name: Workloads
       type: integer
     - jsonPath: .metadata.creationTimestamp
@@ -431,6 +431,11 @@ spec:
               syncWindowId:
                 description: syncWindowID is the ArgoCD sync window identifier
                 type: string
+              workloadCount:
+                description: workloadCount is the number of affected workloads (for
+                  display purposes)
+                format: int32
+                type: integer
             type: object
         type: object
     served: true
