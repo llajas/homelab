@@ -7,9 +7,9 @@ replicaCount: 1
 image:
   # Use local registry for homelab
   repository: registry.lajas.tech/nas-dependency-operator
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
+  tag: "latest"
 
 imagePullSecrets: []
 nameOverride: ""
