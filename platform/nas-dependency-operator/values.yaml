@@ -50,7 +50,17 @@ nodeSelector: {}
 
 tolerations: []
 
-affinity: {}
+# CRITICAL: Keep operator off UNRAID-hosted VMs
+# The operator must survive UNRAID shutdown to process webhooks
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: homelab.llajas.io/hypervisor
+              operator: NotIn
+              values:
+                - unraid
 
 # Leader election configuration
 leaderElection:
