@@ -1,0 +1,68 @@
+apiVersion: homelab.llajas.io/v1alpha1
+kind: NASDependency
+metadata:
+  name: nas-workloads
+  namespace: {{ .Release.Namespace }}
+spec:
+  # NAS address (must match PV server addresses)
+  nasAddress: "nas-01.storage.lajas.tech"
+  
+  # Operation mode: auto, down, or up
+  # Note: This field is excluded from ArgoCD sync via ignoreDifferences
+  # so it can be changed via kubectl for maintenance without ArgoCD reverting it
+  mode: auto
+  
+  # Dry-run mode - set to true to preview changes without applying
+  dryRun: false
+  
+  # Health check configuration for auto mode
+  healthCheck:
+    enabled: true
+    type: tcp
+    port: 2049  # NFS port
+    intervalSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 2
+  
+  # Node management for virtual nodes hosted on UNRAID
+  nodeManagement:
+    enabled: true
+    labelSelector:
+      matchLabels:
+        homelab.llajas.io/hypervisor: unraid
+    action: cordonAndDrain
+    drainTimeoutSeconds: 300
+    drainGracePeriodSeconds: 30
+    ignoreDaemonSets: true
+    deleteEmptyDirData: true
+    force: false
+  
+  # Webhook for instant notifications (NUT hooks, NAS Agent)
+  webhook:
+    enabled: true
+    port: 8080
+    authTokenSecretRef:
+      name: nas-webhook-token
+      key: token
+  
+  # ArgoCD integration
+  argocd:
+    enabled: true
+    namespace: argocd
+    project: default
+    triggerSyncOnRestore: true
+  
+  # Grace period before acting on state changes (prevents flapping)
+  gracePeriodSeconds: 60
+  
+  # Timezone for ArgoCD sync windows
+  timezone: "America/Chicago"
+  
+  # Namespaces to exclude from management
+  excludeNamespaces:
+    - kube-system
+    - kube-public
+    - kube-node-lease
+    - argocd
+    - nas-dependency-operator

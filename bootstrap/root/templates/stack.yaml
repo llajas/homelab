@@ -57,4 +57,9 @@ spec:
           name: addresspools.metallb.io
           jqPathExpressions:
           - '.spec.conversion.webhook.clientConfig.caBundle'
+        # Allow kubectl to change mode without ArgoCD reverting it
+        - group: "homelab.llajas.io"
+          kind: NASDependency
+          jqPathExpressions:
+            - '.spec.mode'
 {{- end }}
