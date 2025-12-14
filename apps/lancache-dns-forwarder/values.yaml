@@ -115,7 +115,7 @@ app-template:
               custom: true
               spec:
                 httpGet:
-                  path: /
+                  path: /metrics
                   port: 8083
                 initialDelaySeconds: 10
                 periodSeconds: 10
@@ -126,7 +126,7 @@ app-template:
               custom: true
               spec:
                 httpGet:
-                  path: /
+                  path: /metrics
                   port: 8083
                 initialDelaySeconds: 5
                 periodSeconds: 5
@@ -137,7 +137,7 @@ app-template:
               custom: true
               spec:
                 httpGet:
-                  path: /
+                  path: /metrics
                   port: 8083
                 initialDelaySeconds: 5
                 periodSeconds: 5
