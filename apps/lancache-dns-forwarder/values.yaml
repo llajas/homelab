@@ -1,6 +1,8 @@
 app-template:
   controllers:
     main:
+      replicas: 2
+      strategy: RollingUpdate
       initContainers:
         resolve-dns:
           image:
@@ -155,7 +157,7 @@ app-template:
       controller: main
       type: LoadBalancer
       loadBalancerIP: 10.137.0.230
-      externalTrafficPolicy: Local
+      externalTrafficPolicy: Cluster
       annotations:
         metallb.universe.tf/ip-allocated-from-pool: default
       ports:
@@ -202,3 +204,12 @@ app-template:
   defaultPodOptions:
     nodeSelector:
       kubernetes.io/arch: amd64
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: lancache-dns-forwarder
+              topologyKey: kubernetes.io/hostname
