@@ -79,10 +79,7 @@ app-template:
               -- Enable verbose health check logging
               setVerboseHealthChecks(true)
 
-              -- Enable console for health checks
-              controlSocket("127.0.0.1:5199")
-
-              -- Enable webserver for Prometheus metrics
+              -- Enable webserver for Prometheus metrics and health checks
               webserver("0.0.0.0:8083")
               setWebserverConfig({
                   acl="0.0.0.0/0, ::/0",
@@ -117,11 +114,9 @@ app-template:
               enabled: true
               custom: true
               spec:
-                exec:
-                  command:
-                    - /bin/sh
-                    - -c
-                    - "echo 'showServers()' | dnsdist -c 127.0.0.1:5199 | grep -qE '(UP|up)'"
+                httpGet:
+                  path: /
+                  port: 8083
                 initialDelaySeconds: 10
                 periodSeconds: 10
                 timeoutSeconds: 5
@@ -130,11 +125,9 @@ app-template:
               enabled: true
               custom: true
               spec:
-                exec:
-                  command:
-                    - /bin/sh
-                    - -c
-                    - "echo 'showServers()' | dnsdist -c 127.0.0.1:5199 | grep -qE '(UP|up)'"
+                httpGet:
+                  path: /
+                  port: 8083
                 initialDelaySeconds: 5
                 periodSeconds: 5
                 timeoutSeconds: 3
@@ -143,11 +136,9 @@ app-template:
               enabled: true
               custom: true
               spec:
-                exec:
-                  command:
-                    - /bin/sh
-                    - -c
-                    - "echo 'showServers()' | dnsdist -c 127.0.0.1:5199"
+                httpGet:
+                  path: /
+                  port: 8083
                 initialDelaySeconds: 5
                 periodSeconds: 5
                 timeoutSeconds: 3
