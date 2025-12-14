@@ -7,3 +7,11 @@ book/
 *.tgz
 *kubeconfig.yaml
 Chart.lock
+
+# OpenCode and Specify tooling
+.opencode/
+.specify/
+
+# Spec drafts (planning documents)
+specs/
+AGENTS.md

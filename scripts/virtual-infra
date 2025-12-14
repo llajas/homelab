@@ -1,0 +1,200 @@
+#!/bin/bash
+# Manage virtual infrastructure for homelab
+#
+# Environment variables (with defaults):
+#   HYPERVISOR_USER    - Username for hypervisor connection (default: root)
+#   HYPERVISOR_HOST    - Hostname or IP of the hypervisor (required)
+#   SSH_KEYFILE        - Path to SSH private key (default: ~/.ssh/id_ed25519)
+#   STORAGE_POOL_PATH  - Path to storage pool (default: from terraform)
+#   STORAGE_POOL_NAME  - Name of storage pool (default: from terraform)
+#   BRIDGE_INTERFACE   - Bridge interface for VMs (required)
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+VIRTUAL_DIR="$REPO_ROOT/metal/virtual"
+PXE_DATA_DIR="$REPO_ROOT/metal/roles/pxe_server/files/data"
+
+# Environment variables with defaults
+HYPERVISOR_USER="${HYPERVISOR_USER:-root}"
+HYPERVISOR_HOST="${HYPERVISOR_HOST:-}"
+SSH_KEYFILE="${SSH_KEYFILE:-$HOME/.ssh/id_ed25519}"
+STORAGE_POOL_PATH="${STORAGE_POOL_PATH:-}"
+STORAGE_POOL_NAME="${STORAGE_POOL_NAME:-}"
+BRIDGE_INTERFACE="${BRIDGE_INTERFACE:-}"
+
+usage() {
+  cat <<EOF
+Usage: $(basename "$0") <command> [options]
+
+Terraform Commands:
+  apply              Create/update virtual infrastructure
+  destroy            Destroy VMs and clean up PXE artifacts
+  plan               Show what Terraform would do
+
+Virsh Commands:
+  list               List all VMs on hypervisor
+  console <vm>       Attach to VM console (Ctrl+] to exit)
+  pools              List all storage pools
+  pool-info <pool>   Show info for a storage pool
+  networks <vm>      List network interfaces for a VM
+  undefine <vm>      Remove VM and its storage (destructive!)
+
+Environment Variables:
+  HYPERVISOR_USER    Username for hypervisor (default: root)
+  HYPERVISOR_HOST    Hostname or IP of hypervisor (required)
+  SSH_KEYFILE        Path to SSH key (default: ~/.ssh/id_ed25519)
+  STORAGE_POOL_PATH  Storage pool path (optional, uses terraform default)
+  STORAGE_POOL_NAME  Storage pool name (optional, uses terraform default)
+  BRIDGE_INTERFACE   Bridge interface for VMs (required for terraform commands)
+
+Examples:
+  HYPERVISOR_HOST=192.168.1.10 BRIDGE_INTERFACE=br0 $(basename "$0") apply
+  HYPERVISOR_HOST=192.168.1.10 $(basename "$0") list
+  HYPERVISOR_HOST=192.168.1.10 $(basename "$0") console virtual0
+
+EOF
+  exit 1
+}
+
+check_hypervisor() {
+  if [ -z "$HYPERVISOR_HOST" ]; then
+    echo "Error: HYPERVISOR_HOST environment variable is required" >&2
+    exit 1
+  fi
+}
+
+check_terraform_vars() {
+  check_hypervisor
+  if [ -z "$BRIDGE_INTERFACE" ]; then
+    echo "Error: BRIDGE_INTERFACE environment variable is required for terraform commands" >&2
+    exit 1
+  fi
+}
+
+build_tf_vars() {
+  local vars=(
+    -var "hypervisor_user=$HYPERVISOR_USER"
+    -var "hypervisor_host=$HYPERVISOR_HOST"
+    -var "keyfile=$SSH_KEYFILE"
+    -var "bridge_interface=$BRIDGE_INTERFACE"
+    -var-file=virtual_nodes.tfvars.json
+  )
+
+  # Add optional variables if set
+  if [ -n "$STORAGE_POOL_PATH" ]; then
+    vars+=(-var "storage_pool_path=$STORAGE_POOL_PATH")
+  fi
+  if [ -n "$STORAGE_POOL_NAME" ]; then
+    vars+=(-var "storage_pool_name=$STORAGE_POOL_NAME")
+  fi
+
+  echo "${vars[@]}"
+}
+
+virsh_cmd() {
+  check_hypervisor
+  virsh -c "qemu+ssh://${HYPERVISOR_USER}@${HYPERVISOR_HOST}/system" "$@"
+}
+
+cleanup_pxe() {
+  echo "Cleaning up PXE artifacts..."
+  local folders="init-config iso os pxe-config"
+  for dir in $folders; do
+    local path="$PXE_DATA_DIR/$dir"
+    if [ -d "$path" ]; then
+      find "$path" -type f ! -name '.gitignore' -delete
+      find "$path" -type d -empty -delete 2>/dev/null || true
+    fi
+  done
+  echo "PXE cleanup complete."
+}
+
+cmd_apply() {
+  check_terraform_vars
+  cd "$VIRTUAL_DIR"
+  # shellcheck disable=SC2046
+  terraform apply $(build_tf_vars) "$@"
+}
+
+cmd_plan() {
+  check_terraform_vars
+  cd "$VIRTUAL_DIR"
+  # shellcheck disable=SC2046
+  terraform plan $(build_tf_vars) "$@"
+}
+
+cmd_destroy() {
+  check_terraform_vars
+  cleanup_pxe
+  cd "$VIRTUAL_DIR"
+  # shellcheck disable=SC2046
+  terraform destroy $(build_tf_vars) --auto-approve "$@"
+}
+
+cmd_list() {
+  virsh_cmd list --all
+}
+
+cmd_console() {
+  if [ -z "${1:-}" ]; then
+    echo "Error: VM name required" >&2
+    echo "Usage: $(basename "$0") console <vm-name>" >&2
+    exit 1
+  fi
+  echo "Connecting to console (press Ctrl+] to exit)..."
+  virsh_cmd console "$1"
+}
+
+cmd_pools() {
+  virsh_cmd pool-list --all
+}
+
+cmd_pool_info() {
+  if [ -z "${1:-}" ]; then
+    echo "Error: Pool name required" >&2
+    echo "Usage: $(basename "$0") pool-info <pool-name>" >&2
+    exit 1
+  fi
+  virsh_cmd pool-info "$1"
+}
+
+cmd_networks() {
+  if [ -z "${1:-}" ]; then
+    echo "Error: VM name required" >&2
+    echo "Usage: $(basename "$0") networks <vm-name>" >&2
+    exit 1
+  fi
+  virsh_cmd domiflist "$1"
+}
+
+cmd_undefine() {
+  if [ -z "${1:-}" ]; then
+    echo "Error: VM name required" >&2
+    echo "Usage: $(basename "$0") undefine <vm-name>" >&2
+    exit 1
+  fi
+  echo "WARNING: This will permanently delete VM '$1' and all its storage!"
+  read -r -p "Are you sure? (yes/no): " confirm
+  if [ "$confirm" = "yes" ]; then
+    virsh_cmd undefine --remove-all-storage "$1"
+    echo "VM '$1' has been removed."
+  else
+    echo "Aborted."
+  fi
+}
+
+case "${1:-}" in
+  apply)     shift; cmd_apply "$@" ;;
+  destroy)   shift; cmd_destroy "$@" ;;
+  plan)      shift; cmd_plan "$@" ;;
+  list)      shift; cmd_list "$@" ;;
+  console)   shift; cmd_console "$@" ;;
+  pools)     shift; cmd_pools "$@" ;;
+  pool-info) shift; cmd_pool_info "$@" ;;
+  networks)  shift; cmd_networks "$@" ;;
+  undefine)  shift; cmd_undefine "$@" ;;
+  -h|--help) usage ;;
+  *)         usage ;;
+esac
