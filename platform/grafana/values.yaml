@@ -1,7 +1,6 @@
 grafana:
   deploymentStrategy:
     type: Recreate
-    rollingUpdate: null
   ingress:
     enabled: true
     ingressClassName: nginx
