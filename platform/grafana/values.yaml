@@ -1,4 +1,6 @@
 grafana:
+  deploymentStrategy:
+    type: Recreate
   ingress:
     enabled: true
     ingressClassName: nginx
