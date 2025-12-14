@@ -169,7 +169,7 @@ app-template:
     config:
       enabled: true
       type: configMap
-      name: '{{ include "bjw-s.common.lib.chart.names.fullname" . }}-config'
+      name: '{{ include "bjw-s.common.lib.chart.names.fullname" . }}'
       advancedMounts:
         main:
           main:
