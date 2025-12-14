@@ -26,17 +26,14 @@ spec:
     successThreshold: 2
   
   # Node management for virtual nodes hosted on UNRAID
+  # Using cordon-only since we scale workloads to 0 anyway (no need to drain)
+  # This avoids drain getting stuck on longhorn-system pods
   nodeManagement:
     enabled: true
     labelSelector:
       matchLabels:
         homelab.llajas.io/hypervisor: unraid
-    action: cordonAndDrain
-    drainTimeoutSeconds: 300
-    drainGracePeriodSeconds: 30
-    ignoreDaemonSets: true
-    deleteEmptyDirData: true
-    force: false
+    action: cordon
   
   # Webhook for instant notifications (NUT hooks, NAS Agent)
   webhook:
