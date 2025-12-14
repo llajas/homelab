@@ -1,12 +1,107 @@
 app-template:
   controllers:
     main:
+      initContainers:
+        resolve-dns:
+          image:
+            repository: busybox
+            tag: "1.36"
+            pullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              echo "Resolving backend DNS names..."
+              
+              # Resolve lancache-dns
+              LANCACHE_IP=$(nslookup lancache-dns.lancache.svc.cluster.local 2>/dev/null | grep -A1 'Name:' | grep Address | awk '{print $2}' | head -1)
+              if [ -z "$LANCACHE_IP" ]; then
+                echo "Warning: Could not resolve lancache-dns, using placeholder"
+                LANCACHE_IP="127.0.0.1"
+              fi
+              echo "lancache-dns resolved to: $LANCACHE_IP"
+              
+              # Resolve unbound
+              UNBOUND_IP=$(nslookup unbound.unbound.svc.cluster.local 2>/dev/null | grep -A1 'Name:' | grep Address | awk '{print $2}' | head -1)
+              if [ -z "$UNBOUND_IP" ]; then
+                echo "Error: Could not resolve unbound"
+                exit 1
+              fi
+              echo "unbound resolved to: $UNBOUND_IP"
+              
+              # Generate dnsdist config with resolved IPs
+              cat > /config-out/dnsdist.conf << EOF
+              -- dnsdist configuration for Lancache DNS failover
+              -- Generated at container startup with resolved IPs
+              --
+              -- Primary: Lancache DNS (resolved: $LANCACHE_IP)
+              -- Fallback: Unbound (resolved: $UNBOUND_IP)
+
+              -- Primary upstream - Lancache DNS
+              newServer({
+                  address="$LANCACHE_IP:53",
+                  name="lancache-dns",
+                  order=1,
+                  checkInterval=1,
+                  checkTimeout=1000,
+                  maxCheckFailures=3,
+                  rise=2,
+                  checkName="a.root-servers.net.",
+                  checkType="A"
+              })
+
+              -- Fallback upstream - Unbound
+              newServer({
+                  address="$UNBOUND_IP:53",
+                  name="unbound-fallback",
+                  order=2,
+                  checkInterval=5,
+                  checkTimeout=1000,
+                  maxCheckFailures=3,
+                  rise=2,
+                  checkName="a.root-servers.net.",
+                  checkType="A"
+              })
+
+              -- Use firstAvailable policy
+              setServerPolicy(firstAvailable)
+
+              -- Listen on all interfaces
+              setLocal("0.0.0.0:53")
+
+              -- Allow all queries
+              setACL({"0.0.0.0/0", "::/0"})
+
+              -- Return ServFail if ALL backends are down
+              setServFailWhenNoServer(true)
+
+              -- Enable verbose health check logging
+              setVerboseHealthChecks(true)
+
+              -- Enable console for health checks
+              controlSocket("127.0.0.1:5199")
+
+              -- Enable webserver for Prometheus metrics
+              webserver("0.0.0.0:8083")
+              setWebserverConfig({
+                  acl="0.0.0.0/0, ::/0",
+                  apiRequiresAuthentication=false,
+                  statsRequireAuthentication=false
+              })
+              EOF
+              
+              echo "Config generated successfully"
+              cat /config-out/dnsdist.conf
       containers:
         main:
           image:
             repository: powerdns/dnsdist-19
             tag: "1.9.11"
             pullPolicy: IfNotPresent
+          args:
+            - --config=/config-out/dnsdist.conf
+            - --supervised
           ports:
             - name: dns-udp
               containerPort: 53
@@ -26,7 +121,7 @@ app-template:
                   command:
                     - /bin/sh
                     - -c
-                    - "echo 'showServers()' | dnsdist -c 127.0.0.1:5199 | grep -q 'UP'"
+                    - "echo 'showServers()' | dnsdist -c 127.0.0.1:5199 | grep -qE '(UP|up)'"
                 initialDelaySeconds: 10
                 periodSeconds: 10
                 timeoutSeconds: 5
@@ -39,7 +134,7 @@ app-template:
                   command:
                     - /bin/sh
                     - -c
-                    - "echo 'showServers()' | dnsdist -c 127.0.0.1:5199 | grep -q 'UP'"
+                    - "echo 'showServers()' | dnsdist -c 127.0.0.1:5199 | grep -qE '(UP|up)'"
                 initialDelaySeconds: 5
                 periodSeconds: 5
                 timeoutSeconds: 3
@@ -101,80 +196,16 @@ app-template:
           interval: 30s
           scrapeTimeout: 10s
 
-  configMaps:
-    config:
-      enabled: true
-      data:
-        dnsdist.conf: |
-          -- dnsdist configuration for Lancache DNS failover
-          --
-          -- Primary: Lancache DNS (internal ClusterIP)
-          -- Fallback: Unbound (pihole's upstream resolver)
-
-          -- Primary upstream - Lancache DNS
-          -- order=1 means it's preferred when using firstAvailable policy
-          newServer({
-              address="lancache-dns.lancache.svc.cluster.local:53",
-              name="lancache-dns",
-              order=1,
-              checkInterval=1,
-              checkTimeout=1000,
-              maxCheckFailures=3,
-              rise=2,
-              checkName="a.root-servers.net.",
-              checkType="A"
-          })
-
-          -- Fallback upstream - Unbound
-          -- order=2 means it's only used when order=1 is down
-          newServer({
-              address="unbound.unbound.svc.cluster.local:53",
-              name="unbound-fallback",
-              order=2,
-              checkInterval=5,
-              checkTimeout=1000,
-              maxCheckFailures=3,
-              rise=2,
-              checkName="a.root-servers.net.",
-              checkType="A"
-          })
-
-          -- Use firstAvailable policy: picks first available server by order
-          setServerPolicy(firstAvailable)
-
-          -- Listen on all interfaces, port 53 (both UDP and TCP)
-          setLocal("0.0.0.0:53")
-
-          -- Allow all queries
-          setACL({"0.0.0.0/0", "::/0"})
-
-          -- Return ServFail if ALL backends are down
-          setServFailWhenNoServer(true)
-
-          -- Enable verbose health check logging for debugging
-          setVerboseHealthChecks(true)
-
-          -- Enable console for health checks (localhost only)
-          controlSocket("127.0.0.1:5199")
-
-          -- Enable webserver for metrics (Prometheus)
-          webserver("0.0.0.0:8083")
-          setWebserverConfig({
-              acl="0.0.0.0/0, ::/0",
-              apiRequiresAuthentication=false,
-              statsRequireAuthentication=false
-          })
-
   persistence:
-    config:
+    config-out:
       enabled: true
-      type: configMap
-      name: '{{ include "bjw-s.common.lib.chart.names.fullname" . }}'
+      type: emptyDir
       advancedMounts:
         main:
+          resolve-dns:
+            - path: /config-out
           main:
-            - path: /etc/dnsdist/dnsdist.conf
-              subPath: dnsdist.conf
+            - path: /config-out
               readOnly: true
 
   defaultPodOptions:
