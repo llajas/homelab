@@ -41,8 +41,9 @@ service:
         port: 443
   dns:
     enabled: true
-    type: LoadBalancer
-    loadBalancerIP: 10.137.0.230
+    type: ClusterIP
+    # NOTE: LoadBalancer IP (10.137.0.230) now managed by lancache-dns-forwarder (dnsdist)
+    # which provides health-checking and automatic failover to Unbound when lancache is down
     ports:
       dns:
         port: 53

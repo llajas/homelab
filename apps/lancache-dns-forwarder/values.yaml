@@ -1,0 +1,182 @@
+app-template:
+  controllers:
+    main:
+      containers:
+        main:
+          image:
+            repository: powerdns/dnsdist-19
+            tag: "1.9.11"
+            pullPolicy: IfNotPresent
+          ports:
+            - name: dns-udp
+              containerPort: 53
+              protocol: UDP
+            - name: dns-tcp
+              containerPort: 53
+              protocol: TCP
+            - name: webserver
+              containerPort: 8083
+              protocol: TCP
+          probes:
+            liveness:
+              enabled: true
+              custom: true
+              spec:
+                exec:
+                  command:
+                    - /bin/sh
+                    - -c
+                    - "echo 'showServers()' | dnsdist -c 127.0.0.1:5199 | grep -q 'UP'"
+                initialDelaySeconds: 10
+                periodSeconds: 10
+                timeoutSeconds: 5
+                failureThreshold: 3
+            readiness:
+              enabled: true
+              custom: true
+              spec:
+                exec:
+                  command:
+                    - /bin/sh
+                    - -c
+                    - "echo 'showServers()' | dnsdist -c 127.0.0.1:5199 | grep -q 'UP'"
+                initialDelaySeconds: 5
+                periodSeconds: 5
+                timeoutSeconds: 3
+                failureThreshold: 2
+            startup:
+              enabled: true
+              custom: true
+              spec:
+                exec:
+                  command:
+                    - /bin/sh
+                    - -c
+                    - "echo 'showServers()' | dnsdist -c 127.0.0.1:5199"
+                initialDelaySeconds: 5
+                periodSeconds: 5
+                timeoutSeconds: 3
+                failureThreshold: 30
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 64Mi
+
+  service:
+    main:
+      controller: main
+      type: LoadBalancer
+      loadBalancerIP: 10.137.0.230
+      externalTrafficPolicy: Local
+      annotations:
+        metallb.universe.tf/ip-allocated-from-pool: default
+      ports:
+        dns-udp:
+          port: 53
+          targetPort: dns-udp
+          protocol: UDP
+        dns-tcp:
+          port: 53
+          targetPort: dns-tcp
+          protocol: TCP
+    webserver:
+      controller: main
+      type: ClusterIP
+      ports:
+        http:
+          port: 8083
+          targetPort: webserver
+          protocol: TCP
+
+  serviceMonitor:
+    main:
+      enabled: true
+      serviceName: '{{ include "bjw-s.common.lib.chart.names.fullname" . }}-webserver'
+      endpoints:
+        - port: http
+          scheme: http
+          path: /metrics
+          interval: 30s
+          scrapeTimeout: 10s
+
+  configMaps:
+    config:
+      enabled: true
+      data:
+        dnsdist.conf: |
+          -- dnsdist configuration for Lancache DNS failover
+          --
+          -- Primary: Lancache DNS (internal ClusterIP)
+          -- Fallback: Unbound (pihole's upstream resolver)
+
+          -- Primary upstream - Lancache DNS
+          -- order=1 means it's preferred when using firstAvailable policy
+          newServer({
+              address="lancache-dns.lancache.svc.cluster.local:53",
+              name="lancache-dns",
+              order=1,
+              checkInterval=1,
+              checkTimeout=1000,
+              maxCheckFailures=3,
+              rise=2,
+              checkName="a.root-servers.net.",
+              checkType="A"
+          })
+
+          -- Fallback upstream - Unbound
+          -- order=2 means it's only used when order=1 is down
+          newServer({
+              address="unbound.unbound.svc.cluster.local:53",
+              name="unbound-fallback",
+              order=2,
+              checkInterval=5,
+              checkTimeout=1000,
+              maxCheckFailures=3,
+              rise=2,
+              checkName="a.root-servers.net.",
+              checkType="A"
+          })
+
+          -- Use firstAvailable policy: picks first available server by order
+          setServerPolicy(firstAvailable)
+
+          -- Listen on all interfaces, port 53 (both UDP and TCP)
+          setLocal("0.0.0.0:53")
+
+          -- Allow all queries
+          setACL({"0.0.0.0/0", "::/0"})
+
+          -- Return ServFail if ALL backends are down
+          setServFailWhenNoServer(true)
+
+          -- Enable verbose health check logging for debugging
+          setVerboseHealthChecks(true)
+
+          -- Enable console for health checks (localhost only)
+          controlSocket("127.0.0.1:5199")
+
+          -- Enable webserver for metrics (Prometheus)
+          webserver("0.0.0.0:8083")
+          setWebserverConfig({
+              acl="0.0.0.0/0, ::/0",
+              apiRequiresAuthentication=false,
+              statsRequireAuthentication=false
+          })
+
+  persistence:
+    config:
+      enabled: true
+      type: configMap
+      name: '{{ include "bjw-s.common.lib.chart.names.fullname" . }}-config'
+      advancedMounts:
+        main:
+          main:
+            - path: /etc/dnsdist/dnsdist.conf
+              subPath: dnsdist.conf
+              readOnly: true
+
+  defaultPodOptions:
+    nodeSelector:
+      kubernetes.io/arch: amd64
