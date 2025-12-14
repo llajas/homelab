@@ -39,3 +39,5 @@ grafana:
       allow_assign_grafana_admin: true
   persistence:
     enabled: true
+    annotations:
+      argocd.argoproj.io/sync-options: Replace=false
