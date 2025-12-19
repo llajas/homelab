@@ -24,7 +24,7 @@ thanos:
     replicaLabel:
       - replica
     dnsDiscovery:
-      sidecarsService: kube-prometheus-stack-thanos-discovery
+      sidecarsService: monitoring-system-kube-pro-thanos-discovery
       sidecarsNamespace: monitoring-system
     stores:
       - dnssrv+_grpc._tcp.thanos-storegateway.thanos.svc.cluster.local
