@@ -2,6 +2,17 @@ thanos:
   # Thanos components configuration for long-term Prometheus metrics storage
   # Using Garage S3-compatible storage on UNRAID NAS
 
+  # Allow non-Bitnami images (required since Bitnami thanos images are unavailable)
+  global:
+    security:
+      allowInsecureImages: true
+
+  # Override image to use official Thanos image (Bitnami images unavailable)
+  image:
+    registry: quay.io
+    repository: thanos/thanos
+    tag: v0.39.2
+
   # Use existing secret for S3 credentials (created by 1Password operator)
   # The secret contains objstore.yml with full S3 configuration including credentials
   existingObjstoreSecret: thanos-objstore-secret
