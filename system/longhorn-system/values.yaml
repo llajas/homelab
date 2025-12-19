@@ -1,6 +1,8 @@
 longhorn:
   defaultSettings:
     nodeDownPodDeletionPolicy: delete-both-statefulset-and-deployment-pod
+    # Clean up snapshots created during backup jobs automatically
+    autoCleanupRecurringJobBackupSnapshot: true
   persistence:
     # If you have three or more nodes for storage, use 3; otherwise use 2
     defaultClassReplicaCount: 3  # TODO run DR test to see if we actually need 3
@@ -18,6 +20,36 @@ longhorn:
       cert-manager.io/cluster-issuer: letsencrypt-prod
       hajimari.io/appName: Longhorn-UI
       hajimari.io/icon: harddisk
+  # Recurring jobs for snapshots and backups (IaC replacement for UI-created jobs)
+  extraObjects:
+    - apiVersion: longhorn.io/v1beta2
+      kind: RecurringJob
+      metadata:
+        name: snapshot-4hourly
+        namespace: longhorn-system
+      spec:
+        name: snapshot-4hourly
+        groups:
+          - default
+        task: snapshot
+        cron: "0 */4 * * *"
+        retain: 18
+        concurrency: 1
+        labels: {}
+    - apiVersion: longhorn.io/v1beta2
+      kind: RecurringJob
+      metadata:
+        name: backup-weekly
+        namespace: longhorn-system
+      spec:
+        name: backup-weekly
+        groups:
+          - default
+        task: backup
+        cron: "0 2 * * 0"
+        retain: 4
+        concurrency: 1
+        labels: {}
 
 opSecret:
   vault: "z3emsr5qi5xqk33wthv5fpmfqa"
