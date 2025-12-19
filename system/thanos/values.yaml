@@ -1,0 +1,90 @@
+thanos:
+  # Thanos components configuration for long-term Prometheus metrics storage
+  # Using Garage S3-compatible storage on UNRAID NAS
+
+  # Use existing secret for S3 credentials (created by 1Password operator)
+  # The secret contains objstore.yml with full S3 configuration including credentials
+  existingObjstoreSecret: thanos-objstore-secret
+
+  # Query component - provides unified query interface
+  query:
+    enabled: true
+    replicaCount: 1
+    replicaLabel:
+      - replica
+    dnsDiscovery:
+      sidecarsService: kube-prometheus-stack-thanos-discovery
+      sidecarsNamespace: monitoring-system
+    stores:
+      - dnssrv+_grpc._tcp.thanos-storegateway.thanos.svc.cluster.local
+    ingress:
+      enabled: true
+      ingressClassName: nginx
+      hostname: thanos.lajas.tech
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+        hajimari.io/appName: Thanos
+        hajimari.io/icon: database-search
+      tls: true
+
+  # Query Frontend - caching layer for queries
+  queryFrontend:
+    enabled: true
+    replicaCount: 1
+    ingress:
+      enabled: false
+
+  # Store Gateway - serves historical data from S3
+  storegateway:
+    enabled: true
+    replicaCount: 1
+    persistence:
+      enabled: true
+      size: 8Gi
+
+  # Compactor - downsamples and compacts old data
+  compactor:
+    enabled: true
+    retentionResolutionRaw: 30d
+    retentionResolution5m: 60d
+    retentionResolution1h: 1y
+    persistence:
+      enabled: true
+      size: 8Gi
+
+  # Ruler - disabled, using Prometheus rules
+  ruler:
+    enabled: false
+
+  # Receive - disabled, using sidecar mode instead
+  receive:
+    enabled: false
+
+  # Bucket Web - UI for browsing S3 bucket
+  bucketweb:
+    enabled: true
+    ingress:
+      enabled: false
+
+  # Metrics configuration
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      namespace: monitoring-system
+
+# 1Password secret configuration
+# The 1Password item (UUID: godsfi47q5ew7mrl4xwwcao7qi) should contain a file named "objstore.yml" with content:
+# type: s3
+# config:
+#   bucket: thanos
+#   endpoint: nas-01.storage.lajas.tech:9000
+#   access_key: <your-access-key>
+#   secret_key: <your-secret-key>
+#   insecure: true
+#   signature_version2: false
+#   region: garage
+opSecret:
+  vault: "z3emsr5qi5xqk33wthv5fpmfqa"
+  item: "godsfi47q5ew7mrl4xwwcao7qi"
+  secretName: thanos-objstore-secret

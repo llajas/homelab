@@ -7,9 +7,38 @@ kube-prometheus-stack:
       - name: Loki
         type: loki
         url: http://loki.loki:3100
+      # Thanos Query for long-term metrics (via Thanos Query Frontend)
+      - name: Thanos
+        type: prometheus
+        url: http://thanos-query-frontend.thanos:9090
+        access: proxy
+        isDefault: false
+        jsonData:
+          timeInterval: 30s
   prometheus:
+    # Thanos sidecar service for Query to discover
+    thanosService:
+      enabled: true
+    thanosServiceMonitor:
+      enabled: true
     prometheusSpec:
       ruleSelectorNilUsesHelmValues: false
       serviceMonitorSelectorNilUsesHelmValues: false
       podMonitorSelectorNilUsesHelmValues: false
       probeSelectorNilUsesHelmValues: false
+      # Thanos sidecar configuration
+      thanos:
+        # Sidecar image is automatically configured by kube-prometheus-stack
+        objectStorageConfig:
+          existingSecret:
+            name: thanos-objstore-secret
+            key: objstore.yml
+      # Retention - shorter local retention since Thanos handles long-term
+      retention: 2d
+      retentionSize: ""
+      # External labels for Thanos to identify this Prometheus
+      externalLabels:
+        cluster: homelab
+        replica: "$(POD_NAME)"
+      # Replica external label name for deduplication
+      replicaExternalLabelName: replica
