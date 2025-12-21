@@ -75,3 +75,6 @@ addons:
 # -- Specifies whether a service account should be created
 serviceAccount:
   create: false
+
+autoscaling:
+  enabled: false
