@@ -87,3 +87,5 @@ serviceAccount:
 
 autoscaling:
   enabled: false
+
+termination: {}
