@@ -58,14 +58,15 @@ persistence:
     enabled: true
     mountPath: /app/config
     size: "5Gi"
-      #    accessMode: "ReadWriteOnce"
-      #
-      #addons:
-      #  codeserver:
-      #    enabled: false
-      #  vpn:
-      #    enabled: false
-      #  promtail:
-      #    enabled: false
-      #  netshoot:
-      #    enabled: false
+
+# -- The common chart supports several add-ons. These can be configured under this key.
+# @default -- See below
+addons:
+  codeserver:
+    enabled: false
+  vpn:
+    enabled: false
+  promtail:
+    enabled: false
+  netshoot:
+    enabled: false

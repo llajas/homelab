@@ -69,3 +69,15 @@ persistence:
     enabled: true
     mountPath: /downloads
     existingClaim: "plex-apps-cifs-plex-media"
+
+# -- The common chart supports several add-ons. These can be configured under this key.
+# @default -- See below
+addons:
+  codeserver:
+    enabled: false
+  vpn:
+    enabled: false
+  promtail:
+    enabled: false
+  netshoot:
+    enabled: false
