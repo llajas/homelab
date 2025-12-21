@@ -71,3 +71,7 @@ addons:
     enabled: false
   netshoot:
     enabled: false
+
+# -- Specifies whether a service account should be created
+serviceAccount:
+  create: false
