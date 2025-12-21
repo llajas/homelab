@@ -9,7 +9,7 @@ loki:
 
     # Common configuration
     commonConfig:
-      replication_factor: 1  # Single replica, no HA needed
+      replication_factor: 2  # HA: logs written to 2 ingesters
 
     # Schema configuration (TSDB + S3)
     schemaConfig:
@@ -73,7 +73,7 @@ loki:
 
   # SingleBinary configuration
   singleBinary:
-    replicas: 1
+    replicas: 2
     # Enable environment variable expansion in config file
     # This allows ${AWS_ACCESS_KEY_ID} and ${AWS_SECRET_ACCESS_KEY} to be expanded at runtime
     extraArgs:
@@ -84,12 +84,12 @@ loki:
           name: loki-s3-secret
     persistence:
       enabled: true
-      size: 10Gi  # For local WAL/cache before shipping to S3
+      size: 10Gi
 
   # Gateway configuration (Promtail sends logs here)
   gateway:
     enabled: true
-    replicas: 1
+    replicas: 2
     ingress:
       enabled: true
       ingressClassName: nginx
