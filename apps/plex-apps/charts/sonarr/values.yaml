@@ -6,6 +6,7 @@
 #
 
 controller:
+  enabled: true
   labels:
     smb-dependent: "true"
 
@@ -35,8 +36,13 @@ podSecurityContext:
 # @default -- See values.yaml
 service:
   main:
+    enabled: true
+    primary: true
+    type: ClusterIP
     ports:
       http:
+        enabled: true
+        primary: true
         port: 8989
 
 ingress:

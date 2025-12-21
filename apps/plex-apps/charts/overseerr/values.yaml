@@ -5,6 +5,9 @@
 # https://github.com/k8s-at-home/library-charts/tree/main/charts/stable/common/values.yaml
 #
 
+controller:
+  enabled: true
+
 image:
   # -- image repository
   repository: ghcr.io/sct/overseerr
@@ -25,8 +28,13 @@ env:
 # @default -- See values.yaml
 service:
   main:
+    enabled: true
+    primary: true
+    type: ClusterIP
     ports:
       http:
+        enabled: true
+        primary: true
         port: 5055
 
 ingress:
