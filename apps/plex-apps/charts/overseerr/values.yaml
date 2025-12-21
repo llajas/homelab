@@ -57,6 +57,7 @@ persistence:
   config:
     enabled: true
     mountPath: /app/config
+    accessMode: ReadWriteOnce
     size: "5Gi"
 
 # -- The common chart supports several add-ons. These can be configured under this key.

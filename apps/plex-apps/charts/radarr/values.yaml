@@ -90,6 +90,7 @@ persistence:
     enabled: true
     existingClaim: ""
     storageClassName: "longhorn"
+    accessMode: ReadWriteOnce
     size: "10Gi"
   media:
     enabled: true

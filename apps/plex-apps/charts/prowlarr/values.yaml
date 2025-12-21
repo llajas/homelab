@@ -56,6 +56,7 @@ persistence:
     enabled: true
     existingClaim: ""
     storageClassName: "longhorn"
+    accessMode: ReadWriteOnce
     size: "2Gi"
 
 securityContext:
