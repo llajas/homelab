@@ -71,11 +71,15 @@ loki:
         access_key_id: ${AWS_ACCESS_KEY_ID}
         secret_access_key: ${AWS_SECRET_ACCESS_KEY}
 
+  # Enable environment variable expansion in config file
+  # This allows ${AWS_ACCESS_KEY_ID} and ${AWS_SECRET_ACCESS_KEY} to be expanded at runtime
+  extraArgs:
+    - -config.expand-env=true
+
   # Inject S3 credentials from 1Password secret as environment variables
-  global:
-    extraEnvFrom:
-      - secretRef:
-          name: loki-s3-secret
+  extraEnvFrom:
+    - secretRef:
+        name: loki-s3-secret
 
   # SingleBinary configuration
   singleBinary:
