@@ -1,20 +1,154 @@
-loki-stack:
+loki:
+  # Deployment mode: SingleBinary for homelab (small scale, up to a few tens of GB/day)
+  deploymentMode: SingleBinary
+
+  # Loki configuration
   loki:
-    serviceMonitor:
+    # Disable multi-tenant mode for homelab
+    auth_enabled: false
+
+    # Common configuration
+    commonConfig:
+      replication_factor: 1  # Single replica, no HA needed
+
+    # Schema configuration (TSDB + S3)
+    schemaConfig:
+      configs:
+        - from: "2024-04-01"
+          store: tsdb
+          object_store: s3
+          schema: v13
+          index:
+            prefix: loki_index_
+            period: 24h
+
+    # Ingester configuration
+    ingester:
+      chunk_encoding: snappy
+
+    # Pattern ingester for log exploration
+    pattern_ingester:
       enabled: true
+
+    # Limits configuration
+    limits_config:
+      allow_structured_metadata: true
+      volume_enabled: true
+      retention_period: 2160h  # 90 days retention in S3
+
+    # Compactor for retention enforcement
+    compactor:
+      retention_enabled: true
+      delete_request_store: s3
+
+    # Querier configuration
+    querier:
+      max_concurrent: 4
+
+    # Storage configuration for Garage S3
+    storage:
+      type: s3
+      bucketNames:
+        chunks: loki
+        ruler: loki
+        admin: loki
+      s3:
+        endpoint: nas-01.storage.lajas.tech:9000
+        region: garage
+        # Credentials injected via environment variables from 1Password secret
+        accessKeyId: ${AWS_ACCESS_KEY_ID}
+        secretAccessKey: ${AWS_SECRET_ACCESS_KEY}
+        s3ForcePathStyle: true
+        insecure: true  # HTTP, not HTTPS
+
+    storage_config:
+      aws:
+        region: garage
+        bucketnames: loki
+        endpoint: nas-01.storage.lajas.tech:9000
+        insecure: true
+        s3forcepathstyle: true
+        access_key_id: ${AWS_ACCESS_KEY_ID}
+        secret_access_key: ${AWS_SECRET_ACCESS_KEY}
+
+  # Inject S3 credentials from 1Password secret as environment variables
+  global:
+    extraEnvFrom:
+      - secretRef:
+          name: loki-s3-secret
+
+  # SingleBinary configuration
+  singleBinary:
+    replicas: 1
+    persistence:
+      enabled: true
+      size: 10Gi  # For local WAL/cache before shipping to S3
+
+  # Gateway configuration (Promtail sends logs here)
+  gateway:
+    enabled: true
+    replicas: 1
     ingress:
       enabled: true
       ingressClassName: nginx
       annotations:
         cert-manager.io/cluster-issuer: letsencrypt-prod
         nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+        hajimari.io/appName: Loki
+        hajimari.io/icon: file-document-multiple
       hosts:
-        - host: &host loki.lajas.tech
+        - host: loki.lajas.tech
           paths:
-            - /
+            - path: /
+              pathType: Prefix
       tls:
         - secretName: loki.lajas.tech-tls
           hosts:
-            - *host
-    limits_config:
-      volume_enabled: true
+            - loki.lajas.tech
+
+  lokiCanary:
+    enabled: false
+
+  test:
+    enabled: false
+
+  # Monitoring
+  monitoring:
+    serviceMonitor:
+      enabled: true
+
+  # Disable minio (we're using Garage)
+  minio:
+    enabled: false
+
+  # Zero out replica counts for other deployment modes
+  backend:
+    replicas: 0
+  read:
+    replicas: 0
+  write:
+    replicas: 0
+  ingester:
+    replicas: 0
+  querier:
+    replicas: 0
+  queryFrontend:
+    replicas: 0
+  queryScheduler:
+    replicas: 0
+  distributor:
+    replicas: 0
+  compactor:
+    replicas: 0
+  indexGateway:
+    replicas: 0
+  bloomCompactor:
+    replicas: 0
+  bloomGateway:
+    replicas: 0
+
+# 1Password item fields: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
+opSecret:
+  vault: z3emsr5qi5xqk33wthv5fpmfqa
+  item: cpr6yifskimrtpthqwlhzgapqq
+  secretName: loki-s3-secret
