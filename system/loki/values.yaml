@@ -16,3 +16,5 @@ loki-stack:
         - secretName: loki.lajas.tech-tls
           hosts:
             - *host
+    limits_config:
+      volume_enabled: true
