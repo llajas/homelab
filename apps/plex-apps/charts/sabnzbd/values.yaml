@@ -64,7 +64,10 @@ ingress:
 persistence:
   config:
     enabled: true
+    existingClaim: ""
+    storageClassName: "longhorn"
     accessMode: ReadWriteOnce
+    size: "10Gi"
 
   downloads:
     enabled: true
