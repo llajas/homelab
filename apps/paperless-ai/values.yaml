@@ -100,8 +100,8 @@ readinessProbe:
 
 # paperless-ai config
 paperless:
-  # The paperless-ngx base URL (without trailing /api - the app adds it)
-  apiUrl: "https://paperless.lajas.tech"
+  # The paperless-ngx API base URL (include /api suffix)
+  apiUrl: "https://paperless.lajas.tech/api"
   apiToken: ""
 
 ai:
