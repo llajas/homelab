@@ -125,6 +125,16 @@ ollama:
   apiUrl: "http://open-webui-ollama.open-webui.svc.cluster.local:11434"
   model: "llama3.2-vision:11b"
 
+# External API configuration (for enriching prompts with external data)
+externalApi:
+  enabled: "no"
+  url: ""
+  method: "GET"
+  headers: "{}"
+  body: "{}"
+  timeout: "5000"
+  transform: ""
+
 scanInterval: "*/30 * * * *"
 
 systemPrompt: "Return ONLY JSON with keys: title, correspondent, tags (array), document_date (YYYY-MM-DD), language."
@@ -180,11 +190,8 @@ affinity: {}
 
 # persistence volumes needed for configuration and processing data directory
 persistence:
-  config:
-    mountPath: "/app/config/config.js"
-    subPath: "config.js"
   envfile:
-    mountPath: "/app/.env"
+    mountPath: "/app/data/.env"
     subPath: ".env"
   data:
     enabled: true

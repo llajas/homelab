@@ -60,11 +60,7 @@ spec:
             - secretRef:
                 name: {{ include "paperless-ai.fullname" . }}-paperless-api
           {{- end }}
-          {{- if or .Values.persistence.config.enabled .Values.persistence.data.enabled }}
           volumeMounts:
-            - name: {{ include "paperless-ai.fullname" . }}-volume-config
-              mountPath: {{ .Values.persistence.config.mountPath }}
-              subPath: {{ .Values.persistence.config.subPath }}
             - name: {{ include "paperless-ai.fullname" . }}-volume-envfile
               mountPath: {{ .Values.persistence.envfile.mountPath }}
               subPath: {{ .Values.persistence.envfile.subPath }}
@@ -72,12 +68,7 @@ spec:
             - name: {{ include "paperless-ai.fullname" . }}-volume-data
               mountPath: {{ .Values.persistence.data.mountPath }}
           {{- end }}
-          {{- end }}
-      {{- if or .Values.persistence.config.enabled .Values.persistence.data.enabled }}
       volumes:
-        - name: {{ include "paperless-ai.fullname" . }}-volume-config
-          configMap:
-            name: {{ include "paperless-ai.fullname" . }}-config-file
         - name: {{ include "paperless-ai.fullname" . }}-volume-envfile
           secret:
             secretName: {{ include "paperless-ai.fullname" . }}-env-file
@@ -85,7 +76,6 @@ spec:
         - name: {{ include "paperless-ai.fullname" . }}-volume-data
           persistentVolumeClaim:
             claimName: {{ include "paperless-ai.fullname" . }}-pvc-data
-      {{- end }}
       {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
