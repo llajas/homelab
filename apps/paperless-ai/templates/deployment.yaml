@@ -29,6 +29,27 @@ spec:
       {{- end }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        - name: merge-env
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              cp /env-template/.env /merged-env/.env
+              echo "" >> /merged-env/.env
+              echo "PAPERLESS_API_TOKEN=$PAPERLESS_API_TOKEN" >> /merged-env/.env
+          env:
+            - name: PAPERLESS_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: paperless-ai-api-key
+                  key: apiKey
+          volumeMounts:
+            - name: {{ include "paperless-ai.fullname" . }}-volume-envfile
+              mountPath: /env-template
+            - name: merged-env
+              mountPath: /merged-env
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -61,9 +82,9 @@ spec:
                 name: {{ include "paperless-ai.fullname" . }}-paperless-api
           {{- end }}
           volumeMounts:
-            - name: {{ include "paperless-ai.fullname" . }}-volume-envfile
-              mountPath: {{ .Values.persistence.envfile.mountPath }}
-              subPath: {{ .Values.persistence.envfile.subPath }}
+            - name: merged-env
+              mountPath: /app/data/.env
+              subPath: .env
           {{- if .Values.persistence.data.enabled }}
             - name: {{ include "paperless-ai.fullname" . }}-volume-data
               mountPath: {{ .Values.persistence.data.mountPath }}
@@ -72,6 +93,8 @@ spec:
         - name: {{ include "paperless-ai.fullname" . }}-volume-envfile
           secret:
             secretName: {{ include "paperless-ai.fullname" . }}-env-file
+        - name: merged-env
+          emptyDir: {}
       {{- if .Values.persistence.data.enabled }}
         - name: {{ include "paperless-ai.fullname" . }}-volume-data
           persistentVolumeClaim:
