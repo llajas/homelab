@@ -66,15 +66,30 @@ alloy:
         loki.process "pods" {
           forward_to = [loki.write.default.receiver]
 
-          stage.logfmt {
-            mapping = {
-              "level" = "",
+          // Try to extract log level from common formats
+          // JSON logs: {"level": "info", ...}
+          stage.json {
+            expressions = {
+              level = "level",
             }
           }
 
+          // logfmt logs: level=info msg=...
+          stage.logfmt {
+            mapping = {
+              level = "",
+            }
+          }
+
+          // Regex fallback for common patterns like [INFO], ERROR:, etc
+          stage.regex {
+            expression = "(?i)\\b(?P<level>debug|info|warn(?:ing)?|error|fatal|critical|trace)\\b"
+          }
+
+          // Apply extracted level as label
           stage.labels {
             values = {
-              "level" = "",
+              level = "",
             }
           }
         }
