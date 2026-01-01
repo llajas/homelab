@@ -52,3 +52,129 @@ grafana:
     enabled: true
     annotations:
       argocd.argoproj.io/sync-options: Replace=false
+
+  alerting:
+    contactpoints.yaml:
+      apiVersion: 1
+      contactPoints:
+        - orgId: 1
+          name: Discord
+          receivers:
+            - uid: discord-infrastructure
+              type: discord
+              settings:
+                url: $__env{credential}
+                use_discord_username: true
+              disableResolveMessage: false
+
+    policies.yaml:
+      apiVersion: 1
+      policies:
+        - orgId: 1
+          receiver: Discord
+          group_by:
+            - grafana_folder
+            - alertname
+          group_wait: 30s
+          group_interval: 5m
+          repeat_interval: 4h
+
+    rules.yaml:
+      apiVersion: 1
+      groups:
+        - orgId: 1
+          name: Infrastructure
+          folder: Infrastructure Alerts
+          interval: 5m
+          rules:
+            - uid: btrfs-io-error-unraid
+              title: BTRFS I/O Error on Unraid
+              condition: C
+              data:
+                - refId: A
+                  queryType: instant
+                  relativeTimeRange:
+                    from: 300
+                    to: 0
+                  datasourceUid: P8E80F9AEF21F6940
+                  model:
+                    datasource:
+                      type: loki
+                      uid: P8E80F9AEF21F6940
+                    editorMode: code
+                    expr: |
+                      sum by (device) (
+                        count_over_time(
+                          {service_name="varlogs"}
+                          |= "BTRFS error"
+                          | regexp `bdev (?P<device>/dev/[^ ]+)`
+                          [5m]
+                        )
+                      )
+                    queryType: instant
+                    refId: A
+                - refId: B
+                  datasourceUid: __expr__
+                  model:
+                    conditions:
+                      - evaluator:
+                          params: []
+                          type: gt
+                        operator:
+                          type: and
+                        query:
+                          params:
+                            - B
+                        reducer:
+                          params: []
+                          type: last
+                        type: query
+                    datasource:
+                      type: __expr__
+                      uid: __expr__
+                    expression: A
+                    reducer: last
+                    refId: B
+                    type: reduce
+                - refId: C
+                  datasourceUid: __expr__
+                  model:
+                    conditions:
+                      - evaluator:
+                          params:
+                            - 0
+                          type: gt
+                        operator:
+                          type: and
+                        query:
+                          params:
+                            - C
+                        reducer:
+                          params: []
+                          type: last
+                        type: query
+                    datasource:
+                      type: __expr__
+                      uid: __expr__
+                    expression: B
+                    refId: C
+                    type: threshold
+              noDataState: OK
+              execErrState: Error
+              for: 0s
+              annotations:
+                summary: 'BTRFS I/O Error on Unraid - {{ "{{" }} $labels.device {{ "}}" }}'
+                description: |
+                  BTRFS error detected on {{ "{{" }} $labels.device {{ "}}" }}.
+
+                  To identify the physical drive, run on Unraid:
+                    dmsetup ls --tree | grep -A1 "$(basename {{ "{{" }} $labels.device {{ "}}" }})"
+                    btrfs device stats /mnt/cache | grep -v ": 0"
+
+                  Common causes: failing drive, loose M.2 connection, HBA/controller issue.
+              labels:
+                severity: critical
+                host: unraid
+              isPaused: false
+              notification_settings:
+                receiver: Discord
