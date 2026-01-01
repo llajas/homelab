@@ -163,12 +163,12 @@ grafana:
               execErrState: Error
               for: 0s
               annotations:
-                summary: "BTRFS I/O Error on Unraid - {{ $labels.device }}"
+                summary: 'BTRFS I/O Error on Unraid - {{ "{{" }} $labels.device {{ "}}" }}'
                 description: |
-                  BTRFS error detected on {{ $labels.device }}.
+                  BTRFS error detected on {{ "{{" }} $labels.device {{ "}}" }}.
 
                   To identify the physical drive, run on Unraid:
-                    dmsetup ls --tree | grep -A1 "$(basename {{ $labels.device }})"
+                    dmsetup ls --tree | grep -A1 "$(basename {{ "{{" }} $labels.device {{ "}}" }})"
                     btrfs device stats /mnt/cache | grep -v ": 0"
 
                   Common causes: failing drive, loose M.2 connection, HBA/controller issue.
