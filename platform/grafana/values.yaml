@@ -1,8 +1,8 @@
-# Discord webhook secret configuration (1Password)
-discord:
+# 1Password item containing username, password, and credential (Discord webhook)
+onepassword:
   vault: "z3emsr5qi5xqk33wthv5fpmfqa"
-  item: "hpnhepvxp7trfyry6yqatvk43i"
-  secretName: "grafana-discord-webhook"
+  item: "bvx3vprorl3xvoqn6urhiuh6ou"
+  secretName: "grafana-onepassword"
 
 grafana:
   deploymentStrategy:
@@ -32,7 +32,11 @@ grafana:
       searchNamespace: ALL
   envFromSecrets:
     - name: grafana-secrets
-    - name: grafana-discord-webhook
+    - name: grafana-onepassword
+  admin:
+    existingSecret: grafana-onepassword
+    userKey: username
+    passwordKey: password
   grafana.ini:
     server:
       root_url: https://grafana.lajas.tech
