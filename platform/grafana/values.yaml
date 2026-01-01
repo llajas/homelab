@@ -56,16 +56,9 @@ grafana:
   alerting:
     contactpoints.yaml:
       apiVersion: 1
-      contactPoints:
+      deleteContactPoints:
         - orgId: 1
-          name: Discord
-          receivers:
-            - uid: discord-infrastructure
-              type: discord
-              settings:
-                url: $__env{credential}
-                use_discord_username: true
-              disableResolveMessage: false
+          uid: discord-infrastructure
 
     policies.yaml:
       apiVersion: 1
