@@ -96,11 +96,11 @@ grafana:
                   relativeTimeRange:
                     from: 300
                     to: 0
-                  datasourceUid: loki
+                  datasourceUid: P8E80F9AEF21F6940
                   model:
                     datasource:
                       type: loki
-                      uid: loki
+                      uid: P8E80F9AEF21F6940
                     editorMode: code
                     expr: |
                       sum by (device) (
