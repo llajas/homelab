@@ -78,6 +78,10 @@ grafana:
           group_wait: 30s
           group_interval: 5m
           repeat_interval: 4h
+          routes:
+            - receiver: Discord
+              matchers:
+                - grafana_folder = "Infrastructure Alerts"
 
     rules.yaml:
       apiVersion: 1
