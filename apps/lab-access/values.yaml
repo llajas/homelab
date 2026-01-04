@@ -1,6 +1,6 @@
 container:
   name: spectrum-sync
-  image: "registry.lajas.tech/minecraft-spectrum-sync:latest"
+  image: "registry.lajas.tech/cloudflare-spectrum-sync:sha-abe1289b"
   env:
     - name: API_TOKEN
       valueFrom:

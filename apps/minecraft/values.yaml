@@ -408,7 +408,7 @@ sidecarContainers:
         containerPort: 19132
         protocol: UDP
   - name: spectrum-sync
-    image: "registry.lajas.tech/minecraft-spectrum-sync:latest"
+    image: "registry.lajas.tech/cloudflare-spectrum-sync:sha-abe1289b"
     env:
       - name: API_TOKEN
         valueFrom:
@@ -1003,7 +1003,6 @@ mcbackup:
     storageClass: "smb"
     # Optional: Specify a volume name if using smb - Default it 'smb-pv-world-backup-hc'
     volumeName: ""
-    annotations: {}
 
     # SMB Configuration
     smb:
