@@ -37,4 +37,5 @@ gitea:
   valkey-cluster:
     cluster:
       nodes: 6
-
+    persistence:
+      size: 1Gi
