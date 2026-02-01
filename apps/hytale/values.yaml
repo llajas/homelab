@@ -1,0 +1,70 @@
+replicaCount: 1
+
+image:
+  repository: deinfreu/hytale-server
+  tag: latest
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+deploymentAnnotations: {}
+deploymentLabels: {}
+
+podAnnotations: {}
+podLabels: {}
+
+serviceAnnotations:
+  metallb.universe.tf/allow-shared-ip: "hytale"
+serviceLabels: {}
+
+hytaleServer:
+  serviceType: LoadBalancer
+  servicePort: 5520
+  nodePort:
+  clusterIP:
+  loadBalancerIP: 10.137.0.250
+  loadBalancerClass:
+  loadBalancerSourceRanges: []
+  externalTrafficPolicy: Cluster
+  externalIPs: []
+  extraServiceSpec: {}
+
+  env:
+    SERVER_IP: "0.0.0.0"
+    SERVER_PORT: "5520"
+    TZ: "America/Chicago"
+    DEBUG: "FALSE"
+    PROD: "FALSE"
+    JAVA_ARGS: ""
+
+envFrom: []
+
+persistence:
+  labels: {}
+  annotations: {}
+  storageClass: longhorn
+  dataDir:
+    enabled: true
+    Size: 10Gi
+    accessModes:
+      - ReadWriteOnce
+    existingClaim:
+    subPath:
+
+machineId:
+  secretName: hytale-secrets
+  secretKey: machine-id
+  filePath: /etc/machine-id
+
+opSecrets:
+  vault: "z3emsr5qi5xqk33wthv5fpmfqa"
+  secrets:
+    - name: hytale-secrets
+      item: "yxrm633gewlzmcuqcg5z2onyya"
+      secretName: "hytale-secrets"
+
+resources: {}
+
+podSecurityContext: {}
+securityContext: {}

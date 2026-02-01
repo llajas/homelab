@@ -1,0 +1,10 @@
+Hytale server deployed.
+
+1) Get service address (may take a minute for MetalLB):
+   kubectl get svc --namespace {{ .Release.Namespace }} {{ template "hytale.fullname" . }} -w
+
+2) Perform one-time device login inside the pod (persists to PVC + machine-id secret):
+   POD=$(kubectl get po -n {{ .Release.Namespace }} -l app={{ template "hytale.fullname" . }} -o jsonpath='{.items[0].metadata.name}')
+   kubectl exec -n {{ .Release.Namespace }} -it $POD -- /auth login device
+
+3) Server binaries download and start after the device flow completes. Identity is kept via /etc/machine-id secret and /home/container PVC.

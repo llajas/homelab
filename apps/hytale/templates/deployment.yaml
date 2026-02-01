@@ -1,0 +1,107 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "hytale.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  {{- if .Values.deploymentAnnotations }}
+  annotations:
+    {{- range $key, $value := .Values.deploymentAnnotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
+  labels:
+    app: {{ template "hytale.fullname" . }}
+    chart: {{ template "chart.fullname" . }}
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+    app.kubernetes.io/name: "{{ .Chart.Name }}"
+    app.kubernetes.io/instance: {{ template "hytale.fullname" . }}
+    app.kubernetes.io/version: {{ template "chart.version" . }}
+  {{- if .Values.deploymentLabels }}
+    {{- range $key, $value := .Values.deploymentLabels}}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "hytale.fullname" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "hytale.fullname" . }}
+        app.kubernetes.io/name: "{{ .Chart.Name }}"
+        app.kubernetes.io/instance: {{ template "hytale.fullname" . }}
+        app.kubernetes.io/version: {{ template "chart.version" . }}
+      {{- if .Values.podLabels }}
+        {{- range $key, $value := .Values.podLabels}}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+      {{- end }}
+      {{- if .Values.podAnnotations }}
+      annotations:
+        {{- range $key, $value := .Values.podAnnotations }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+      {{- end }}
+    spec:
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+      - name: {{ template "hytale.fullname" . }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+        {{- with .Values.envFrom }}
+        envFrom:
+          {{- . | toYaml | nindent 10 }}
+        {{- end }}
+        env:
+{{- template "hytale.envMap" list "SERVER_IP" .Values.hytaleServer.env.SERVER_IP }}
+{{- template "hytale.envMap" list "SERVER_PORT" .Values.hytaleServer.env.SERVER_PORT }}
+{{- template "hytale.envMap" list "TZ" .Values.hytaleServer.env.TZ }}
+{{- template "hytale.envMap" list "DEBUG" .Values.hytaleServer.env.DEBUG }}
+{{- template "hytale.envMap" list "PROD" .Values.hytaleServer.env.PROD }}
+{{- template "hytale.envMap" list "JAVA_ARGS" .Values.hytaleServer.env.JAVA_ARGS }}
+        ports:
+        - name: hytale
+          containerPort: 5520
+          protocol: UDP
+        volumeMounts:
+        {{- if .Values.persistence.dataDir.enabled }}
+        - name: datadir
+          mountPath: /home/container
+          {{- if .Values.persistence.dataDir.subPath }}
+          subPath: {{ .Values.persistence.dataDir.subPath }}
+          {{- end }}
+        {{- else }}
+        - name: datadir
+          mountPath: /home/container
+          readOnly: false
+        {{- end }}
+        - name: machine-id
+          mountPath: {{ .Values.machineId.filePath }}
+          subPath: {{ .Values.machineId.secretKey }}
+          readOnly: true
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 10 }}
+      volumes:
+      {{- if .Values.persistence.dataDir.enabled }}
+      {{- if .Values.persistence.dataDir.existingClaim }}
+      - name: datadir
+        persistentVolumeClaim:
+          claimName: {{ .Values.persistence.dataDir.existingClaim }}
+      {{- else }}
+      - name: datadir
+        persistentVolumeClaim:
+          claimName: {{ template "hytale.fullname" . }}-datadir
+      {{- end }}
+      {{- else }}
+      - name: datadir
+        emptyDir: {}
+      {{- end }}
+      - name: machine-id
+        secret:
+          secretName: {{ .Values.machineId.secretName }}

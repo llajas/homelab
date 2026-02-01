@@ -1,0 +1,65 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "hytale.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ template "hytale.fullname" . }}
+    chart: {{ template "chart.fullname" . }}
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+    app.kubernetes.io/name: "{{ .Chart.Name }}"
+    app.kubernetes.io/instance: {{ template "hytale.fullname" . }}
+    app.kubernetes.io/version: {{ template "chart.version" . }}
+  {{- if .Values.serviceLabels }}
+    {{- range $key, $value := .Values.serviceLabels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
+  annotations:
+{{ toYaml .Values.serviceAnnotations | indent 4 }}
+spec:
+{{- if (or (eq .Values.hytaleServer.serviceType "ClusterIP") (empty .Values.hytaleServer.serviceType)) }}
+  type: ClusterIP
+{{- else if eq .Values.hytaleServer.serviceType "LoadBalancer" }}
+  type: {{ .Values.hytaleServer.serviceType }}
+  {{- if .Values.hytaleServer.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.hytaleServer.loadBalancerIP }}
+  {{- end }}
+  {{- if .Values.hytaleServer.loadBalancerClass }}
+  loadBalancerClass: {{ .Values.hytaleServer.loadBalancerClass }}
+  {{- end }}
+  {{- if .Values.hytaleServer.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+{{ toYaml .Values.hytaleServer.loadBalancerSourceRanges | indent 4 }}
+  {{- end -}}
+{{- else }}
+  type: {{ .Values.hytaleServer.serviceType }}
+{{- end }}
+{{- if .Values.hytaleServer.clusterIP }}
+  clusterIP: {{ .Values.hytaleServer.clusterIP }}
+{{- end }}
+  {{- if .Values.hytaleServer.externalTrafficPolicy }}
+  externalTrafficPolicy: {{ .Values.hytaleServer.externalTrafficPolicy }}
+  {{- end }}
+  ports:
+  - name: hytale
+    port: {{ .Values.hytaleServer.servicePort | default 5520 }}
+    targetPort: hytale
+    {{- if .Values.hytaleServer.nodePort }}
+    nodePort: {{ .Values.hytaleServer.nodePort }}
+    {{- end }}
+    protocol: UDP
+  selector:
+    app: {{ template "hytale.fullname" . }}
+  {{- if .Values.hytaleServer.externalIPs }}
+  externalIPs:
+    {{- with .Values.hytaleServer.externalIPs }}
+      {{- range . }}
+        - {{ . | quote }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- if .Values.hytaleServer.extraServiceSpec }}
+{{ toYaml .Values.hytaleServer.extraServiceSpec | indent 2 }}
+{{- end }}
