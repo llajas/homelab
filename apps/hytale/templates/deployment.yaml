@@ -23,6 +23,8 @@ metadata:
     {{- end }}
   {{- end }}
 spec:
+  strategy:
+    type: {{ .Values.deploymentStrategy | default "Recreate" }}
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
