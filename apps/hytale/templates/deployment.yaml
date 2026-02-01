@@ -25,6 +25,7 @@ metadata:
 spec:
   strategy:
     type: {{ .Values.deploymentStrategy | default "Recreate" }}
+    rollingUpdate: null
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
