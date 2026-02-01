@@ -65,7 +65,13 @@ opSecrets:
       item: "yxrm633gewlzmcuqcg5z2onyya"
       secretName: "hytale-secrets"
 
-resources: {}
+resources:
+  requests:
+    cpu: "2000m"
+    memory: "6Gi"
+  limits:
+    cpu: "4000m"
+    memory: "8Gi"
 
 podSecurityContext:
   runAsUser: 1000
