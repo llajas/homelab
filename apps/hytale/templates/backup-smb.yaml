@@ -1,0 +1,61 @@
+{{- $persistence := .Values.backup.persistence -}}
+{{- $smb := $persistence.smb -}}
+{{- $fullname := include "hytale.fullname" . -}}
+{{- if and $persistence (eq $persistence.storageType "smb") $smb.server $smb.shareName }}
+
+{{- $selected := dict "secretName" "" }}
+{{- range .Values.opSecrets.secrets }}
+  {{- if eq .name $smb.secret }}
+    {{- $_ := set $selected "secretName" .secretName }}
+  {{- end }}
+{{- end }}
+{{- if not $selected.secretName }}
+  {{- fail "backup SMB secret not configured" }}
+{{- end }}
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ template "hytale.fullname" . }}-backup
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    pv.kubernetes.io/provisioned-by: smb.csi.k8s.io
+spec:
+  capacity:
+    storage: {{ default "20Gi" $persistence.backupDir.Size }}
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: smb
+  mountOptions:
+    - dir_mode=0777
+    - file_mode=0777
+    - uid=1000
+    - gid=1000
+    - cache=strict
+    - noserverino
+  csi:
+    driver: smb.csi.k8s.io
+    volumeHandle: {{ printf "%s-backup" $fullname }}
+    volumeAttributes:
+      source: {{ $smb.server }}
+      subDir: {{ $smb.shareName }}
+    nodeStageSecretRef:
+      name: {{ $selected.secretName }}
+      namespace: {{ .Release.Namespace }}
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ template "hytale.fullname" . }}-backup
+  namespace: {{ .Release.Namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ default "20Gi" $persistence.backupDir.Size }}
+  storageClassName: smb
+  volumeName: {{ $fullname }}-backup
+{{- end }}

@@ -71,6 +71,12 @@ spec:
         {{- template "hytale.envMap" list "HYTALE_SERVER_NAME" .Values.hytaleServer.env.HYTALE_SERVER_NAME }}
         {{- template "hytale.envMap" list "HYTALE_MOTD" .Values.hytaleServer.env.HYTALE_MOTD }}
         {{- template "hytale.envMap" list "HYTALE_CACHE" .Values.hytaleServer.env.HYTALE_CACHE }}
+        {{- if .Values.backup.enabled }}
+        {{- template "hytale.envMap" list "HYTALE_BACKUP" .Values.backup.env.HYTALE_BACKUP }}
+        {{- template "hytale.envMap" list "HYTALE_BACKUP_DIR" .Values.backup.env.HYTALE_BACKUP_DIR }}
+        {{- template "hytale.envMap" list "HYTALE_BACKUP_FREQUENCY" .Values.backup.env.HYTALE_BACKUP_FREQUENCY }}
+        {{- template "hytale.envMap" list "HYTALE_BACKUP_MAX_COUNT" .Values.backup.env.HYTALE_BACKUP_MAX_COUNT }}
+        {{- end }}
         ports:
         - name: hytale
           containerPort: 5520
@@ -87,6 +93,8 @@ spec:
           mountPath: /home/container
           readOnly: false
         {{- end }}
+        - name: backups
+          mountPath: /home/container/backups
         - name: machine-id
           mountPath: {{ .Values.machineId.filePath }}
           subPath: {{ .Values.machineId.secretKey }}
@@ -108,6 +116,9 @@ spec:
       - name: datadir
         emptyDir: {}
       {{- end }}
+      - name: backups
+        persistentVolumeClaim:
+          claimName: {{ template "hytale.fullname" . }}-backup
       - name: machine-id
         secret:
           secretName: {{ .Values.machineId.secretName }}

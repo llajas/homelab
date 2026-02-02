@@ -69,6 +69,9 @@ opSecrets:
     - name: hytale-secrets
       item: "yxrm633gewlzmcuqcg5z2onyya"
       secretName: "hytale-secrets"
+    - name: hytale-backup-credentials
+      item: "hrptxjxgsvdd3dv5eqatmbjhrq"
+      secretName: "hytale-backup-credentials"
 
 resources:
   requests:
@@ -77,6 +80,22 @@ resources:
   limits:
     cpu: "4000m"
     memory: "8Gi"
+
+backup:
+  enabled: true
+  env:
+    HYTALE_BACKUP: "TRUE"
+    HYTALE_BACKUP_DIR: "/home/container/backups"
+    HYTALE_BACKUP_FREQUENCY: "60"
+    HYTALE_BACKUP_MAX_COUNT: "48"
+  persistence:
+    storageType: smb
+    backupDir:
+      Size: 20Gi
+    smb:
+      server: "//nas-01.storage.lajas.tech/"
+      shareName: "hytale_world_backup"
+      secret: hytale-backup-credentials
 
 podSecurityContext:
   runAsUser: 1000
