@@ -36,7 +36,7 @@ hytaleServer:
     SERVER_PORT: "5520"
     TZ: "America/Chicago"
     DEBUG: "FALSE"
-    PROD: "FALSE"
+    PROD: "TRUE"
     JAVA_ARGS: "-Xms4G -Xmx6G"
     HYTALE_SERVER_NAME: "Adventure Time SHP"
     HYTALE_MOTD: "You are now entering the world of Adventure Time! Have fun, be kind, and explore!"
