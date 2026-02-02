@@ -62,12 +62,15 @@ spec:
           {{- . | toYaml | nindent 10 }}
         {{- end }}
         env:
-{{- template "hytale.envMap" list "SERVER_IP" .Values.hytaleServer.env.SERVER_IP }}
-{{- template "hytale.envMap" list "SERVER_PORT" .Values.hytaleServer.env.SERVER_PORT }}
-{{- template "hytale.envMap" list "TZ" .Values.hytaleServer.env.TZ }}
-{{- template "hytale.envMap" list "DEBUG" .Values.hytaleServer.env.DEBUG }}
-{{- template "hytale.envMap" list "PROD" .Values.hytaleServer.env.PROD }}
-{{- template "hytale.envMap" list "JAVA_ARGS" .Values.hytaleServer.env.JAVA_ARGS }}
+        {{- template "hytale.envMap" list "SERVER_IP" .Values.hytaleServer.env.SERVER_IP }}
+        {{- template "hytale.envMap" list "SERVER_PORT" .Values.hytaleServer.env.SERVER_PORT }}
+        {{- template "hytale.envMap" list "TZ" .Values.hytaleServer.env.TZ }}
+        {{- template "hytale.envMap" list "DEBUG" .Values.hytaleServer.env.DEBUG }}
+        {{- template "hytale.envMap" list "PROD" .Values.hytaleServer.env.PROD }}
+        {{- template "hytale.envMap" list "JAVA_ARGS" .Values.hytaleServer.env.JAVA_ARGS }}
+        {{- template "hytale.envMap" list "HYTALE_SERVER_NAME" .Values.hytaleServer.env.HYTALE_SERVER_NAME }}
+        {{- template "hytale.envMap" list "HYTALE_MOTD" .Values.hytaleServer.env.HYTALE_MOTD }}
+        {{- template "hytale.envMap" list "HYTALE_CACHE" .Values.hytaleServer.env.HYTALE_CACHE }}
         ports:
         - name: hytale
           containerPort: 5520
