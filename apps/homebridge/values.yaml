@@ -36,6 +36,8 @@ extraEnvs:
     value: "8090"
   - name: NOBLE_HCI_DEVICE_ID
     value: "0"
+  - name: ENABLE_AVAHI
+    value: "0" 
 
 podSecurityContext:
   fsGroup: 2000
