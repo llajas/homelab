@@ -143,6 +143,8 @@ pms:
       value: all
     - name: NVIDIA_DRIVER_CAPABILITIES
       value: all
+    - name: TMPDIR
+      value: /transcode
 
   # -- Supply the configuration items used to configure the PMS component
   # @default -- See below
@@ -471,6 +473,8 @@ worker:
       value: all
     - name: NVIDIA_DRIVER_CAPABILITIES
       value: all
+    - name: TMPDIR
+      value: /transcode
 
   # -- Supply the configuration items used to configure the worker component
   # @default -- See below
