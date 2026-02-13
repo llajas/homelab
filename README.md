@@ -37,7 +37,7 @@ More information can be found in [the roadmap](#roadmap) below.
 
 | Node Type | Count | Specifications |
 | :--- | :---: | :--- |
-| **QEMU/KVM VM** | 2 | **vCPU:** 6 (host-passthrough)<br>**RAM:** 16GB<br>**Storage:** 1TB HDD<br>**GPU:** NVIDIA GeForce GTX 2060 |
+| **QEMU/KVM VM** | 2 | **vCPU:** 12 (host-passthrough)<br>**RAM:** 18GB<br>**Storage:** 1TB HDD<br>**GPU:** NVIDIA GeForce GTX 2060 |
 
 Virtualization is done using [KVM](https://www.linux-kvm.org/page/Main_Page) with [Libvirt](https://libvirt.org/) and [QEMU](https://www.qemu.org/). The virtual machines are provisioned and managed as Infrastructure as Code using [Terraform](https://www.terraform.io/) with the [Libvirt provider](https://registry.terraform.io/providers/dmacvicar/libvirt/latest) on top of the `NAS` hardware.
 
