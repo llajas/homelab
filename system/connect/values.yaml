@@ -186,7 +186,7 @@ connect:
   # from Kubernetes to access 1Password Connect pods.
   # In order to expose the service, use the route section below
   ingress:
-    enabled: true
+    enabled: false  # Migrated to Gateway API HTTPRoute
     labels: {}
       # traffic: external
     annotations:

@@ -41,8 +41,8 @@ service:
   targetPort: 80
 
 ingress:
-  enabled: true
-  className: "nginx"
+  enabled: false  # Migrated to Gateway API HTTPRoute
+  # className: nginx  # Migrated to Gateway API
   annotations: 
     external-dns.alpha.kubernetes.io/target: "homelab-tunnel.lajas.tech"
     external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"

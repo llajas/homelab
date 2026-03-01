@@ -8,18 +8,7 @@ grafana:
   deploymentStrategy:
     type: Recreate
   ingress:
-    enabled: true
-    ingressClassName: nginx
-    annotations:
-      cert-manager.io/cluster-issuer: letsencrypt-prod
-      hajimari.io/appName: Grafana
-      hajimari.io/icon: chart-bar
-    hosts:
-      - &host grafana.lajas.tech
-    tls:
-      - secretName: grafana-general-tls
-        hosts:
-          - *host
+    enabled: false  # Migrated to Gateway API HTTPRoute
   sidecar:
     dashboards:
       enabled: true

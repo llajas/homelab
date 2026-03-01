@@ -67,8 +67,8 @@ extraServices:
     protocol: TCP
 
 ingress:
-  enabled: true
-  ingressClassName: nginx
+  enabled: false  # Migrated to Gateway API HTTPRoute
+  # ingressClassName: nginx  # Migrated to Gateway API
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
     hajimari.io/appName: Homebridge

@@ -49,8 +49,8 @@ service:
   port: 443
 
 ingress:
-  enabled: true
-  className: nginx
+  enabled: false  # Migrated to Gateway API HTTPRoute
+  # className: nginx  # Migrated to Gateway API
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
     hajimari.io/appName: Scrypted

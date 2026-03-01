@@ -1,7 +1,7 @@
 elementweb:
   ingress:
-    enabled: true
-    className: nginx
+    enabled: false  # Migrated to Gateway API HTTPRoute
+    # className: nginx  # Migrated to Gateway API
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-prod
       external-dns.alpha.kubernetes.io/target: "homelab-tunnel.lajas.tech"
@@ -66,8 +66,8 @@ dendrite:
         - ReadWriteOnce
       size: 5Gi
   ingress:
-    enabled: true
-    className: nginx
+    enabled: false  # Migrated to Gateway API HTTPRoute
+    # className: nginx  # Migrated to Gateway API
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-prod
       external-dns.alpha.kubernetes.io/target: "homelab-tunnel.lajas.tech"

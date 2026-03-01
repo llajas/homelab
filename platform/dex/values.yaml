@@ -49,16 +49,4 @@ dex:
     - secretRef:
         name: dex-secrets
   ingress:
-    enabled: true
-    className: nginx
-    annotations:
-      cert-manager.io/cluster-issuer: letsencrypt-prod
-    hosts:
-      - host: &host dex.lajas.tech
-        paths:
-          - path: /
-            pathType: ImplementationSpecific
-    tls:
-      - secretName: dex-tls-certificate
-        hosts:
-          - *host
+    enabled: false  # Migrated to Gateway API HTTPRoute

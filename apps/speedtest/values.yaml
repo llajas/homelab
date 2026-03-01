@@ -1,7 +1,7 @@
 openspeedtest:
   ingress:
-    enabled: true
-    className: nginx
+    enabled: false  # Migrated to Gateway API HTTPRoute
+    # className: nginx  # Migrated to Gateway API
     annotations:
       nginx.ingress.kubernetes.io/proxy-body-size: 50m
       cert-manager.io/cluster-issuer: letsencrypt-prod

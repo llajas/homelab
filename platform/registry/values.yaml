@@ -1,7 +1,7 @@
 docker-registry:
   ingress:
-    enabled: true
-    className: nginx
+    enabled: false  # Migrated to Gateway API HTTPRoute
+    # className: nginx  # Migrated to Gateway API
     hosts:
       - &host registry.lajas.tech
     annotations:

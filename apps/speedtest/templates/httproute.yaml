@@ -1,24 +1,24 @@
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: gitea
-  namespace: gitea
+  name: speedtest
+  namespace: speedtest
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    hajimari.io/appName: Gitea
-    hajimari.io/icon: git
+    hajimari.io/appName: Speedtest
+    hajimari.io/icon: speedometer
 spec:
   parentRefs:
   - name: public-gateway
     namespace: kube-system
     sectionName: https
   hostnames:
-  - git.lajas.tech
+  - speedtest.lajas.tech
   rules:
   - matches:
     - path:
         type: PathPrefix
         value: /
     backendRefs:
-    - name: gitea
+    - name: speedtest
       port: 80

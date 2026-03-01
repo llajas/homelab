@@ -1,24 +1,24 @@
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: gitea
-  namespace: gitea
+  name: homebridge
+  namespace: homebridge
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    hajimari.io/appName: Gitea
-    hajimari.io/icon: git
+    hajimari.io/appName: Homebridge
+    hajimari.io/icon: home-automation
 spec:
   parentRefs:
   - name: public-gateway
     namespace: kube-system
     sectionName: https
   hostnames:
-  - git.lajas.tech
+  - homebridge.lajas.tech
   rules:
   - matches:
     - path:
         type: PathPrefix
         value: /
     backendRefs:
-    - name: gitea
+    - name: homebridge
       port: 80

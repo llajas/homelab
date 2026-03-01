@@ -152,7 +152,7 @@ ingress:
   enabled: true
 
   # -- Specify an ingressClassName
-  ingressClassName: nginx
+  # ingressClassName: nginx  # Migrated to Gateway API
 
   # -- Annotations for the ingress
   annotations:

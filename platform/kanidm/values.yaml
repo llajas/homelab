@@ -92,23 +92,7 @@ app-template:
           protocol: TCP
   ingress:
     main:
-      enabled: true
-      className: nginx
-      annotations:
-        cert-manager.io/cluster-issuer: letsencrypt-prod
-        nginx.ingress.kubernetes.io/backend-protocol: HTTPS
-      hosts:
-        - host: &host auth.lajas.tech
-          paths:
-            - path: /
-              pathType: Prefix
-              service:
-                name: main
-                port: 443
-      tls:
-        - hosts:
-            - *host
-          secretName: kanidm-tls-certificate
+      enabled: false  # Migrated to Gateway API HTTPRoute
   persistence:
     config:
       enabled: true

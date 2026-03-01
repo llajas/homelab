@@ -53,8 +53,8 @@ service:
 
 # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:
-  enabled: true
-  className: "nginx"
+  enabled: false  # Migrated to Gateway API HTTPRoute
+  # className: nginx  # Migrated to Gateway API
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
