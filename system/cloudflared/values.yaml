@@ -37,7 +37,9 @@ app-template:
           no-autoupdate: true
           ingress:
             - hostname: '*.lajas.tech'
-              service: https://ingress-nginx-controller.ingress-nginx
+              # Task 4: Changed from ingress-nginx to Gateway Service
+              # Gateway Service name will be: cilium-gateway-public-gateway
+              service: https://cilium-gateway-public-gateway.kube-system
               originRequest:
                 noTLSVerify: true
             - service: http_status:404

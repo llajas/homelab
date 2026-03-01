@@ -1,5 +1,6 @@
 cert-manager:
   installCRDs: true
+  featureGates: "ExperimentalGatewayAPISupport=true"  # Task 4: Gateway API support
   prometheus:
     enabled: true
     servicemonitor:

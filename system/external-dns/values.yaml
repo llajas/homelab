@@ -1,5 +1,10 @@
 external-dns:
   provider: cloudflare
+  sources:
+    - service
+    - ingress
+    - gateway-httproute  # Task 4: Gateway API support
+    - gateway-tcproute   # Task 4: Gateway API support
   txtOwnerId: homelab
   env:
     - name: CF_API_TOKEN
