@@ -32,7 +32,10 @@ env:
 service:
   main:
     type: LoadBalancer
+    loadBalancerClass: "io.cilium/l2-announcer"
     loadBalancerIP: 10.137.0.229
+    annotations:
+      io.cilium/lb-ipam-ips: "10.137.0.229"
     ports:
       http:
         port: 80

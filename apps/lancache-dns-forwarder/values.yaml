@@ -158,8 +158,9 @@ app-template:
       type: LoadBalancer
       loadBalancerIP: 10.137.0.230
       externalTrafficPolicy: Cluster
+      loadBalancerClass: io.cilium/l2-announcer
       annotations:
-        metallb.universe.tf/ip-allocated-from-pool: default
+        io.cilium/lb-ipam-ips: "10.137.0.230"
       ports:
         dns-udp:
           port: 53

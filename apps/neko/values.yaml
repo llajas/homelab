@@ -119,9 +119,10 @@ app-template:
       controller: main
       type: LoadBalancer
       externalTrafficPolicy: Local
+      loadBalancerClass: "io.cilium/l2-announcer"
       loadBalancerIP: 10.137.0.231
       annotations:
-        metallb.universe.tf/ip-allocated-from-pool: default
+        io.cilium/lb-ipam-ips: "10.137.0.231"
       ports:
         tcpmux:
           port: 52100

@@ -25,7 +25,9 @@ hytaleServer:
   nodePort:
   clusterIP:
   loadBalancerIP: 10.137.0.250
-  loadBalancerClass:
+  loadBalancerClass: "io.cilium/l2-announcer"
+  annotations:
+    io.cilium/lb-ipam-ips: "10.137.0.250"
   loadBalancerSourceRanges: []
   externalTrafficPolicy: Cluster
   externalIPs: []

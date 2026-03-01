@@ -685,7 +685,7 @@ minecraftServer:
   # Set the external port of the service, usefull when using the LoadBalancer service type
   servicePort: 25565
   clusterIP:
-  loadBalancerClass:
+  loadBalancerClass: "io.cilium/l2-announcer"
   loadBalancerIP: 10.137.0.248
   # loadBalancerSourceRanges: []
   ## Set the externalTrafficPolicy in the Service to either Cluster or Local
@@ -872,7 +872,7 @@ deploymentLabels:
 
 serviceAnnotations:
   external-dns.alpha.kubernetes.io/hostname: "bluffcraft-local.lajas.tech"
-  metallb.universe.tf/allow-shared-ip: "minecraft"
+  io.cilium/lb-ipam-ips: "10.137.0.248"
 serviceLabels: {}
 
 rconServiceAnnotations: {}

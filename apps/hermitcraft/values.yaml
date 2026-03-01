@@ -290,13 +290,14 @@ minecraftServer:
   overrideServerProperties: false
   # DEPRECATED: use top-level rconServiceAnnotations instead
   serviceAnnotations:
-    metallb.universe.tf/allow-shared-ip: hermitcraft
+    io.cilium/lb-ipam-ips: "10.137.0.249"
   serviceType: LoadBalancer
   ## Set the port used if the serviceType is NodePort
   #nodePort:
   # Set the external port of the service, usefull when using the LoadBalancer service type
   servicePort: 25565
   clusterIP:
+  loadBalancerClass: "io.cilium/l2-announcer"
   loadBalancerIP: 10.137.0.249
   # loadBalancerSourceRanges: []
   ## Set the externalTrafficPolicy in the Service to either Cluster or Local

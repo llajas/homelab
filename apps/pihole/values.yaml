@@ -54,10 +54,11 @@ serviceDns:
   # -- A fixed `spec.loadBalancerIP` for the IPv6 DNS Service
   loadBalancerIPv6: ""
   # -- `spec.loadBalancerClass` for the DNS Service. Only used if type is LoadBalancer.
-  loadBalancerClass: ""
+  loadBalancerClass: "io.cilium/l2-announcer"
 
   # -- Annotations for the DNS service
-  annotations: {}
+  annotations:
+    io.cilium/lb-ipam-ips: "10.137.0.253"
     # metallb.universe.tf/address-pool: network-services
     # metallb.universe.tf/allow-shared-ip: pihole-svc
 
