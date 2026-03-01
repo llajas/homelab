@@ -29,7 +29,7 @@ service:
 
 ingress:
   main:
-    enabled: true
+    enabled: false  # Migrated to Gateway API HTTPRoute
     ingressclassName: nginx
     annotations:
       certManagerClusterIssuer: letsencrypt-prod

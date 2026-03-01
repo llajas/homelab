@@ -1,0 +1,24 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: node-red
+  namespace: node-red
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    hajimari.io/appName: node-RED
+    hajimari.io/icon: resistor-nodes
+spec:
+  parentRefs:
+  - name: public-gateway
+    namespace: kube-system
+    sectionName: https
+  hostnames:
+  - node-red.lajas.tech
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: node-red
+      port: 1880
