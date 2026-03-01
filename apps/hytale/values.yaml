@@ -16,7 +16,7 @@ podAnnotations: {}
 podLabels: {}
 
 serviceAnnotations:
-  metallb.universe.tf/allow-shared-ip: "hytale"
+  io.cilium/lb-ipam-ips: "10.137.0.250"
 serviceLabels: {}
 
 hytaleServer:

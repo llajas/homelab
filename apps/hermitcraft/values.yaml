@@ -384,10 +384,11 @@ minecraftServer:
         enabled: true
         embedded: false
         annotations:
-          metallb.universe.tf/allow-shared-ip: hermitcraft
+          io.cilium/lb-ipam-ips: "10.137.0.249"
         type: LoadBalancer
         port: 24454
         loadBalancerIP: 10.137.0.249
+        loadBalancerClass: "io.cilium/l2-announcer"
         loadBalancerSourceRanges: []
         externalTrafficPolicy: Cluster
       ingress:
