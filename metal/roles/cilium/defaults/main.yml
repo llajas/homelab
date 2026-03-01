@@ -7,7 +7,9 @@ cilium_values:
   kubeProxyReplacement: true
   l2announcements:
     enabled: true  # Enabled with temporary LB pool
+  gatewayAPI:
+    enabled: true  # Task 3: Gateway API support
   ingressController:
-    enabled: false  # Will be enabled in task 3 with Gateway API
+    enabled: true  # Task 3: Enable Cilium ingress controller
   k8sServiceHost: 127.0.0.1
   k8sServicePort: 6444
