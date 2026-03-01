@@ -287,7 +287,7 @@ server:
 
   ingress:
     # -- Enable the ingress for the server component
-    enabled: true
+    enabled: false  # Migrated to Gateway API HTTPRoute
     # -- Add annotations to the ingress
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-prod
@@ -295,7 +295,7 @@ server:
     # kubernetes.io/tls-acme: "true"
 
     # -- Defines which ingress controller will implement the resource
-    ingressClassName: 'nginx'
+    # ingressClassName: 'nginx'  # Migrated to Gateway API HTTPRoute
 
     hosts:
       - host: &host ci.lajas.tech
