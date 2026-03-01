@@ -7,6 +7,8 @@ cilium_values:
   kubeProxyReplacement: true
   l2announcements:
     enabled: true  # Enabled with temporary LB pool
+  bgpControlPlane:
+    enabled: true  # Task 7: Enable BGP peering to UDM-Pro
   gatewayAPI:
     enabled: true  # Task 3: Gateway API support
   ingressController:
