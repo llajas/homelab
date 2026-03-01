@@ -15,3 +15,8 @@
     - automatic_upgrade
     - nfs_utils
     - cronjobs
+
+- name: Install Kubernetes addons
+  hosts: localhost
+  roles:
+    - cilium

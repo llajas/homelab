@@ -1,0 +1,13 @@
+cilium_repo_url: https://helm.cilium.io
+cilium_version: 1.19.1
+cilium_namespace: kube-system
+cilium_values:
+  operator:
+    replicas: 1
+  kubeProxyReplacement: true
+  l2announcements:
+    enabled: false  # Will be enabled in task 2 with LB pools
+  ingressController:
+    enabled: false  # Will be enabled in task 3 with Gateway API
+  k8sServiceHost: 127.0.0.1
+  k8sServicePort: 6444
