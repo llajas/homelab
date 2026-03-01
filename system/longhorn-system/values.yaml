@@ -10,8 +10,8 @@ longhorn:
     backuptarget: cifs://nas-01.storage.lajas.tech/longhorn_backup
     backupTargetCredentialSecret: &backupSecret cifs-secret
   ingress:
-    enabled: true
-    ingressClassName: nginx
+    enabled: false  # Migrated to Gateway API HTTPRoute
+    # ingressClassName: nginx  # Migrated to Gateway API HTTPRoute
     host: longhorn.lajas.tech
     tls: true
     secureBackends: true

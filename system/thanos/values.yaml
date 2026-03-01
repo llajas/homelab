@@ -29,8 +29,8 @@ thanos:
     stores:
       - dnssrv+_grpc._tcp.thanos-storegateway.thanos.svc.cluster.local
     ingress:
-      enabled: true
-      ingressClassName: nginx
+      enabled: false  # Migrated to Gateway API HTTPRoute
+      # ingressClassName: nginx  # Migrated to Gateway API HTTPRoute
       hostname: thanos.lajas.tech
       annotations:
         cert-manager.io/cluster-issuer: letsencrypt-prod
