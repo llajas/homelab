@@ -1,0 +1,24 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: tautulli
+  namespace: plex-apps
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    hajimari.io/appName: Tautulli
+    hajimari.io/icon: movie-cog
+spec:
+  parentRefs:
+  - name: public-gateway
+    namespace: kube-system
+    sectionName: https
+  hostnames:
+  - tautulli.lajas.tech
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: tautulli
+      port: 8181

@@ -1,0 +1,26 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: overseerr
+  namespace: plex-apps
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    external-dns.alpha.kubernetes.io/target: "homelab-tunnel.lajas.tech"
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+    hajimari.io/appName: Overseerr
+    hajimari.io/icon: monitor-eye
+spec:
+  parentRefs:
+  - name: public-gateway
+    namespace: kube-system
+    sectionName: https
+  hostnames:
+  - overseerr.lajas.tech
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: overseerr
+      port: 5055

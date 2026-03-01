@@ -204,7 +204,7 @@ pms:
   # @default -- See below
   ingressConfig:
     # -- Enables or disables the ingress
-    enabled: true
+    enabled: false  # Migrated to Gateway API HTTPRoute
 
     # -- Provide additional annotations which may be required.
     annotations:
@@ -218,7 +218,7 @@ pms:
     labels: {}
 
     # -- Set the ingressClass that is used for this ingress.
-    ingressClassName: "nginx"
+    # ingressClassName: "nginx"  # Migrated to Gateway API HTTPRoute
 
     ## Configure the hosts for the ingress
     hosts:
