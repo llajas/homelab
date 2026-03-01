@@ -1,0 +1,7 @@
+apiVersion: cilium.io/v2alpha1
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: temporary-pool
+spec:
+  cidrs:
+    - cidr: 10.137.1.0/28

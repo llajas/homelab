@@ -6,7 +6,7 @@ cilium_values:
     replicas: 1
   kubeProxyReplacement: true
   l2announcements:
-    enabled: false  # Will be enabled in task 2 with LB pools
+    enabled: true  # Enabled with temporary LB pool
   ingressController:
     enabled: false  # Will be enabled in task 3 with Gateway API
   k8sServiceHost: 127.0.0.1
