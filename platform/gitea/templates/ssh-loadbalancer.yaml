@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-ssh-lb
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: git.lajas.tech
+spec:
+  type: LoadBalancer
+  ports:
+  - name: ssh
+    port: 22
+    protocol: TCP
+    targetPort: 2222
+  selector:
+    app.kubernetes.io/name: gitea
+    app.kubernetes.io/instance: {{ .Release.Name }}
