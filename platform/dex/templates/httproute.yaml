@@ -2,7 +2,7 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: dex
-  namespace: auth-system
+  namespace: dex
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:

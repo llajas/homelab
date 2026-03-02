@@ -20,5 +20,5 @@ spec:
         type: PathPrefix
         value: /
     backendRefs:
-    - name: speedtest
-      port: 80
+    - name: speedtest-openspeedtest
+      port: 3000

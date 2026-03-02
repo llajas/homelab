@@ -18,5 +18,5 @@ spec:
         type: PathPrefix
         value: /
     backendRefs:
-    - name: paperless
+    - name: paperless-paperless-ngx
       port: 8000
