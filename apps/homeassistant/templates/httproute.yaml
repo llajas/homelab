@@ -20,5 +20,5 @@ spec:
         type: PathPrefix
         value: /
     backendRefs:
-    - name: homeassistant
+    - name: {{ include "common.names.fullname" . }}
       port: 8123

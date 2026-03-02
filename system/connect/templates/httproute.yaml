@@ -18,5 +18,5 @@ spec:
         type: PathPrefix
         value: /
     backendRefs:
-    - name: connect
-      port: 80
+    - name: onepassword-connect
+      port: 8080

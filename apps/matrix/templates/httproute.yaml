@@ -20,5 +20,5 @@ spec:
         type: PathPrefix
         value: /
     backendRefs:
-    - name: matrix
+    - name: matrix-elementweb
       port: 80
