@@ -1,7 +1,7 @@
 gitea:
   ingress:
-    enabled: true
-    className: nginx
+    enabled: false
+    # className: nginx  # Migrated to Gateway API
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-prod
       hajimari.io/appName: Gitea
