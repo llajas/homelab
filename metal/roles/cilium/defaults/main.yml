@@ -15,3 +15,9 @@ cilium_values:
     enabled: true  # Task 3: Enable Cilium ingress controller
   k8sServiceHost: 127.0.0.1
   k8sServicePort: 6444
+  ipam:
+    mode: cluster-pool
+    operator:
+      clusterPoolIPv4PodCIDRList:
+        - 10.42.0.0/16  # Non-conflicting with infrastructure (10.0.0.0/24)
+      clusterPoolIPv4MaskSize: 24
