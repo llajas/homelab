@@ -21,4 +21,4 @@ spec:
         value: /
     backendRefs:
     - name: {{ include "common.names.fullname" . }}
-      port: {{ .Values.service.main.ports.http.port }}
+      port: {{ .Values.service.port }}
