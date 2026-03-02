@@ -20,5 +20,5 @@ spec:
         type: PathPrefix
         value: /
     backendRefs:
-    - name: prowlarr
-      port: 9696
+    - name: {{ include "common.names.fullname" . }}
+      port: {{ .Values.service.main.ports.http.port }}

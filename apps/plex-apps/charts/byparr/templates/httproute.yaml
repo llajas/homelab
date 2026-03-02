@@ -18,5 +18,5 @@ spec:
         type: PathPrefix
         value: /
     backendRefs:
-    - name: byparr
-      port: 8191
+    - name: {{ include "common.names.fullname" . }}
+      port: {{ .Values.service.main.ports.http.port }}

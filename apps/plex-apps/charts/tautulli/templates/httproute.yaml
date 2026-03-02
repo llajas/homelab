@@ -20,5 +20,5 @@ spec:
         type: PathPrefix
         value: /
     backendRefs:
-    - name: tautulli
-      port: 8181
+    - name: {{ include "common.names.fullname" . }}
+      port: {{ .Values.service.main.ports.http.port }}

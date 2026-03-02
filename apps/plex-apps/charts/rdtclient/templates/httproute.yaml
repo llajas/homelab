@@ -20,5 +20,5 @@ spec:
         type: PathPrefix
         value: /
     backendRefs:
-    - name: rdtclient
-      port: 6500
+    - name: {{ include "common.names.fullname" . }}
+      port: {{ .Values.service.main.ports.http.port }}

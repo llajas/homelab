@@ -18,5 +18,5 @@ spec:
         type: PathPrefix
         value: /
     backendRefs:
-    - name: cleanuparr
-      port: 11011
+    - name: {{ include "common.names.fullname" . }}
+      port: {{ .Values.service.main.ports.http.port }}
