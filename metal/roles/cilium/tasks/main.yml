@@ -16,7 +16,7 @@
     - ciliumloadbalancerippools.cilium.io
     - ciliumbgppeeringpolicies.cilium.io
   register: crd
-  until: crd.resources | length > 0
+  until: crd.resources is defined and crd.resources | length > 0
   retries: 5
   delay: 10
 
