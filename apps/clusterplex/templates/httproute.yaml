@@ -8,6 +8,8 @@ metadata:
 spec:
   parentRefs:
   - name: public-gateway
+    group: gateway.networking.k8s.io
+    kind: Gateway
     namespace: kube-system
     sectionName: https
   hostnames:
