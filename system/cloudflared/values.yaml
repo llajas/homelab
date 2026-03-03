@@ -47,7 +47,7 @@ app-template:
     config:
       enabled: true
       type: configMap
-      name: cloudflared-config
+      name: cloudflared
       globalMounts:
         - path: /etc/cloudflared/config.yaml
           subPath: config.yaml
