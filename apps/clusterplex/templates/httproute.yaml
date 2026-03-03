@@ -4,16 +4,14 @@ metadata:
   name: clusterplex-plex
   namespace: clusterplex
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-    external-dns.alpha.kubernetes.io/target: "homelab-tunnel.lajas.tech"
-    external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+{{ toYaml .Values.pms.ingressConfig.annotations | indent 4 }}
 spec:
   parentRefs:
   - name: public-gateway
     namespace: kube-system
     sectionName: https
   hostnames:
-  - plex.lajas.tech
+  - {{ (index .Values.pms.ingressConfig.hosts 0).host | quote }}
   rules:
   - matches:
     - path:

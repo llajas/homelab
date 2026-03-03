@@ -291,6 +291,7 @@ minecraftServer:
   # DEPRECATED: use top-level rconServiceAnnotations instead
   serviceAnnotations:
     io.cilium/lb-ipam-ips: "10.137.0.249"
+    lbipam.cilium.io/sharing-key: "hermitcraft-voice"
   serviceType: LoadBalancer
   ## Set the port used if the serviceType is NodePort
   #nodePort:
@@ -385,6 +386,7 @@ minecraftServer:
         embedded: false
         annotations:
           io.cilium/lb-ipam-ips: "10.137.0.249"
+          lbipam.cilium.io/sharing-key: "hermitcraft-voice"
         type: LoadBalancer
         port: 24454
         loadBalancerIP: 10.137.0.249

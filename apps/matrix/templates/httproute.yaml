@@ -2,18 +2,16 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: matrix
-  namespace: matrix
+  namespace: {{ .Release.Namespace }}
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-    hajimari.io/appName: Chat
-    hajimari.io/icon: chat
+{{ toYaml .Values.elementweb.ingress.annotations | indent 4 }}
 spec:
   parentRefs:
   - name: public-gateway
     namespace: kube-system
     sectionName: https
   hostnames:
-  - chat.lajas.tech
+  - {{ (index .Values.elementweb.ingress.hosts 0).host | quote }}
   rules:
   - matches:
     - path:

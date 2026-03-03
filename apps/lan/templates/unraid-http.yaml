@@ -26,28 +26,27 @@ subsets:
 
 {{- if .Values.unraidHttp.ingress.enabled }}
 ---
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
 metadata:
   name: {{ .Values.unraidHttp.ingress.name }}
   namespace: {{ .Release.Namespace }}
   annotations:
-    {{- toYaml .Values.unraidHttp.ingress.annotations | nindent 4 }}
+{{ toYaml .Values.unraidHttp.ingress.annotations | indent 4 }}
 spec:
-  ingressClassName: {{ .Values.unraidHttp.ingress.className }}
-  tls:
-  - hosts: [{{ .Values.unraidHttp.ingress.host }}]
-    secretName: {{ .Values.unraidHttp.ingress.tlsSecret }}
+  parentRefs:
+  - name: public-gateway
+    namespace: kube-system
+    sectionName: https
+  hostnames:
+  - {{ .Values.unraidHttp.ingress.host | quote }}
   rules:
-  - host: {{ .Values.unraidHttp.ingress.host }}
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: {{ .Values.unraidHttp.name }}
-            port:
-              number: {{ .Values.unraidHttp.service.port }}
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: {{ .Values.unraidHttp.name }}
+      port: {{ .Values.unraidHttp.service.port }}
 {{- end }}
 {{- end }}

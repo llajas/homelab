@@ -135,9 +135,9 @@ app-template:
 
   ingress:
     main:
+      enabled: false
       className: nginx
       annotations:
-        cert-manager.io/cluster-issuer: letsencrypt-prod
         nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
         nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
         nginx.ingress.kubernetes.io/enable-websocket: "true"
@@ -158,6 +158,12 @@ app-template:
         - secretName: neko-tls
           hosts:
             - neko.lajas.tech
+
+httpRoute:
+  enabled: true
+  name: neko
+  host: neko.lajas.tech
+  annotations: {}
 
   persistence:
     data:
