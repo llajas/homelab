@@ -1,10 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Release.Name }}-ssh-lb
-  namespace: {{ .Release.Namespace }}
+  name: "{{ .Release.Name }}-ssh-lb"
+  namespace: "{{ .Release.Namespace }}"
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: git-ssh.lajas.tech
+    external-dns.alpha.kubernetes.io/hostname: git.lajas.tech,git-ssh.lajas.tech
+    lbipam.cilium.io/ips: "10.137.0.226"
+    lbipam.cilium.io/sharing-key: public-gateway
+    lbipam.cilium.io/sharing-cross-namespace: kube-system
 spec:
   type: LoadBalancer
   ports:
