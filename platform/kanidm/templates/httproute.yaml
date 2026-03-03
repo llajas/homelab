@@ -6,6 +6,7 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
+  # Cilium Gateway API upstream TLS context: https://github.com/cilium/cilium/issues/31352
   parentRefs:
   - name: public-gateway
     namespace: kube-system
