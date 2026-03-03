@@ -85,6 +85,7 @@ app-template:
           port: 80
           protocol: HTTP
         https:
+          enabled: true
           port: 443
           protocol: HTTPS
         ldap:

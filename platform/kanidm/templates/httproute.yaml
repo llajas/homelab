@@ -2,7 +2,7 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: kanidm
-  namespace: kanidm
+  namespace: {{ .Release.Namespace }}
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
@@ -18,5 +18,5 @@ spec:
         type: PathPrefix
         value: /
     backendRefs:
-    - name: kanidm
-      port: 443
+    - name: kanidm-http-bridge
+      port: 8080
