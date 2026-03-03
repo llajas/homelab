@@ -118,7 +118,7 @@ app-template:
     webrtc:
       controller: main
       type: LoadBalancer
-      externalTrafficPolicy: Local
+      externalTrafficPolicy: Cluster
       loadBalancerClass: "io.cilium/l2-announcer"
       loadBalancerIP: 10.137.0.231
       annotations:
