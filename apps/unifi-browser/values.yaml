@@ -36,7 +36,7 @@ noapibrowserauth: 0
 
 ingress:
   main:
-    enabled: true
+    enabled: false
     ingressclassName: nginx
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-prod
@@ -46,3 +46,10 @@ ingress:
     tls:
       secretName: unifibrowser-tls
       host: *host
+
+httpRoute:
+  enabled: true
+  name: unifi-browser
+  host: unifi-browser.lajas.tech
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
