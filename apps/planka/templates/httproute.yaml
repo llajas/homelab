@@ -1,10 +1,10 @@
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: clusterplex-plex
-  namespace: clusterplex
+  name: {{ include "planka.fullname" . }}
+  namespace: {{ .Release.Namespace }}
   annotations:
-{{ toYaml .Values.pms.ingressConfig.annotations | indent 4 }}
+{{ toYaml .Values.ingress.annotations | indent 4 }}
 spec:
   parentRefs:
   - name: public-gateway
@@ -13,7 +13,7 @@ spec:
     namespace: kube-system
     sectionName: https
   hostnames:
-  - {{ (index .Values.pms.ingressConfig.hosts 0).host | quote }}
+  - {{ (index .Values.ingress.hosts 0).host | quote }}
   rules:
   - matches:
     - path:
@@ -22,6 +22,6 @@ spec:
     backendRefs:
     - group: ""
       kind: Service
-      name: clusterplex-pms
-      port: 32400
+      name: {{ include "planka.fullname" . }}
+      port: {{ .Values.service.port }}
       weight: 1

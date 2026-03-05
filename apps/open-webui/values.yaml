@@ -28,7 +28,7 @@ ollama:
         - gpt-oss:20b
   runtimeClassName: nvidia
   ingress:
-    enabled: true
+    enabled: false
     className: nginx
     annotations:
       cert-manager.io/cluster-issuer: "letsencrypt-prod"
@@ -140,7 +140,7 @@ managedCertificate:
 
 # Configure ingress with custom domain and TLS
 ingress:
-  enabled: true
+  enabled: false
   class: nginx
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
@@ -280,7 +280,61 @@ sso:
     emailHeader: ""
     nameHeader: ""
 
-extraResources: []
+extraResources:
+  - apiVersion: gateway.networking.k8s.io/v1
+    kind: HTTPRoute
+    metadata:
+      name: open-webui
+      namespace: open-webui
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+    spec:
+      parentRefs:
+        - name: public-gateway
+          group: gateway.networking.k8s.io
+          kind: Gateway
+          namespace: kube-system
+          sectionName: https
+      hostnames:
+        - open-webui.lajas.tech
+      rules:
+        - matches:
+            - path:
+                type: PathPrefix
+                value: /
+          backendRefs:
+            - group: ""
+              kind: Service
+              name: open-webui
+              port: 80
+              weight: 1
+  - apiVersion: gateway.networking.k8s.io/v1
+    kind: HTTPRoute
+    metadata:
+      name: open-webui-ollama
+      namespace: open-webui
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+    spec:
+      parentRefs:
+        - name: public-gateway
+          group: gateway.networking.k8s.io
+          kind: Gateway
+          namespace: kube-system
+          sectionName: https
+      hostnames:
+        - ollama.lajas.tech
+      rules:
+        - matches:
+            - path:
+                type: PathPrefix
+                value: /
+          backendRefs:
+            - group: ""
+              kind: Service
+              name: open-webui-ollama
+              port: 11434
+              weight: 1
 
 databaseUrl: ""
 

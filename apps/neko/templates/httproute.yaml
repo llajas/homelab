@@ -23,6 +23,9 @@ spec:
         type: PathPrefix
         value: /
     backendRefs:
-    - name: neko-main
+    - group: ""
+      kind: Service
+      name: neko-main
       port: 8080
+      weight: 1
 {{- end }}

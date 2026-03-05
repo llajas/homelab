@@ -66,7 +66,7 @@ service:
   containerPort: 1337
 
 ingress:
-  enabled: true
+  enabled: false
   className: "nginx"
   labels: {}
   annotations:
@@ -238,4 +238,3 @@ opSecrets:
     - name: *adminSecret
       item: "turevh2buhm3mpcntfccwbsjja"
       secretName: *adminSecret
-

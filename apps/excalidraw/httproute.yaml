@@ -10,6 +10,8 @@ metadata:
 spec:
   parentRefs:
   - name: public-gateway
+    group: gateway.networking.k8s.io
+    kind: Gateway
     namespace: kube-system
     sectionName: https
   hostnames:
@@ -20,5 +22,8 @@ spec:
         type: PathPrefix
         value: /
     backendRefs:
-    - name: excalidraw
+    - group: ""
+      kind: Service
+      name: excalidraw
       port: 80
+      weight: 1

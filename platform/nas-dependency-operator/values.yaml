@@ -117,7 +117,7 @@ notifyWebhook:
     key: "token"
   # Ingress configuration for external access
   ingress:
-    enabled: true
+    enabled: false
     className: "nginx"
     host: "nas-webhook.lajas.tech"
     annotations:

@@ -62,4 +62,8 @@ spec:
           kind: NASDependency
           jqPathExpressions:
             - '.spec.mode'
+        - group: "gateway.networking.k8s.io"
+          kind: HTTPRoute
+          jqPathExpressions:
+            - '.metadata.annotations."argocd.argoproj.io/tracking-id"'
 {{- end }}
