@@ -149,7 +149,7 @@ virtualHost: pihole.lajas.tech
 # -- Configuration for the Ingress
 ingress:
   # -- Generate a Ingress resource
-  enabled: true
+  enabled: false
 
   # -- Specify an ingressClassName
   # ingressClassName: nginx  # Migrated to Gateway API
