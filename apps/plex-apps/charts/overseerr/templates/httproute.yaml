@@ -3,8 +3,16 @@ kind: HTTPRoute
 metadata:
   name: overseerr
   namespace: {{ .Release.Namespace }}
+{{- $routeAnnotations := dict }}
+{{- range $k, $v := .Values.ingress.main.annotations }}
+{{- if not (hasPrefix "nginx.ingress.kubernetes.io/" $k) }}
+{{- $_ := set $routeAnnotations $k $v }}
+{{- end }}
+{{- end }}
+{{- if $routeAnnotations }}
   annotations:
-{{ toYaml .Values.ingress.main.annotations | indent 4 }}
+{{ toYaml $routeAnnotations | indent 4 }}
+{{- end }}
 spec:
   parentRefs:
   - name: public-gateway

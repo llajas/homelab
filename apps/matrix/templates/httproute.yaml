@@ -3,8 +3,16 @@ kind: HTTPRoute
 metadata:
   name: matrix-elementweb
   namespace: {{ .Release.Namespace }}
+{{- $elementwebAnnotations := dict }}
+{{- range $k, $v := .Values.elementweb.ingress.annotations }}
+{{- if not (hasPrefix "nginx.ingress.kubernetes.io/" $k) }}
+{{- $_ := set $elementwebAnnotations $k $v }}
+{{- end }}
+{{- end }}
+{{- if $elementwebAnnotations }}
   annotations:
-{{ toYaml .Values.elementweb.ingress.annotations | indent 4 }}
+{{ toYaml $elementwebAnnotations | indent 4 }}
+{{- end }}
 spec:
   parentRefs:
   - name: public-gateway
@@ -31,8 +39,16 @@ kind: HTTPRoute
 metadata:
   name: matrix-monolith
   namespace: {{ .Release.Namespace }}
+{{- $dendriteAnnotations := dict }}
+{{- range $k, $v := .Values.dendrite.ingress.annotations }}
+{{- if not (hasPrefix "nginx.ingress.kubernetes.io/" $k) }}
+{{- $_ := set $dendriteAnnotations $k $v }}
+{{- end }}
+{{- end }}
+{{- if $dendriteAnnotations }}
   annotations:
-{{ toYaml .Values.dendrite.ingress.annotations | indent 4 }}
+{{ toYaml $dendriteAnnotations | indent 4 }}
+{{- end }}
 spec:
   parentRefs:
   - name: public-gateway
