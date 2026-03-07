@@ -103,7 +103,7 @@ startupProbe:
 #       - name: nfs
 #         mountPath: /mnt/volume
 #         readOnly: true
-  initContainers:
+initContainers:
   - name: check-world-data
     image: alpine:latest
     command: ["/bin/sh", "-c"]
