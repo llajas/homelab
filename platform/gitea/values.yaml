@@ -39,3 +39,10 @@ gitea:
       nodes: 6
     persistence:
       size: 1Gi
+
+sshLoadBalancer:
+  enabled: false
+  hostnames: git.lajas.tech,git-ssh.lajas.tech
+  ip: 10.137.0.226
+  sharingKey: public-gateway
+  sharingCrossNamespace: kube-system
