@@ -6,9 +6,9 @@ metadata:
   namespace: "{{ .Release.Namespace }}"
   annotations:
     external-dns.alpha.kubernetes.io/hostname: {{ .Values.sshLoadBalancer.hostnames | quote }}
+{{- if .Values.sshLoadBalancer.ip }}
     lbipam.cilium.io/ips: {{ .Values.sshLoadBalancer.ip | quote }}
-    lbipam.cilium.io/sharing-key: {{ .Values.sshLoadBalancer.sharingKey | quote }}
-    lbipam.cilium.io/sharing-cross-namespace: {{ .Values.sshLoadBalancer.sharingCrossNamespace | quote }}
+{{- end }}
 spec:
   type: LoadBalancer
   ports:
