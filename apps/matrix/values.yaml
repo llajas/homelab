@@ -71,6 +71,7 @@ dendrite:
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-prod
       external-dns.alpha.kubernetes.io/target: "homelab-tunnel.lajas.tech"
+      external-dns.alpha.kubernetes.io/exclude: "true"
       nginx.ingress.kubernetes.io/proxy-body-size: 32m
       hajimari.io/enable: 'false'
     hosts:
