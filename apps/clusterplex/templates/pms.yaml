@@ -69,6 +69,12 @@ initContainers:
 service:
   main:
     type: '{{ .Values.pms.serviceConfig.type | default "ClusterIP" }}'
+    {{- if .Values.pms.serviceConfig.loadBalancerClass }}
+    loadBalancerClass: '{{ .Values.pms.serviceConfig.loadBalancerClass }}'
+    {{- end }}
+    {{- if .Values.pms.serviceConfig.loadBalancerIP }}
+    loadBalancerIP: '{{ .Values.pms.serviceConfig.loadBalancerIP }}'
+    {{- end }}
     externalTrafficPolicy: '{{ .Values.pms.serviceConfig.externalTrafficPolicy }}'
     annotations:
       {{- toYaml .Values.pms.serviceConfig.annotations | nindent 6 }}

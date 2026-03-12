@@ -59,8 +59,6 @@ serviceDns:
   # -- Annotations for the DNS service
   annotations:
     io.cilium/lb-ipam-ips: "10.137.0.253"
-    # metallb.universe.tf/address-pool: network-services
-    # metallb.universe.tf/allow-shared-ip: pihole-svc
 
   # -- Labels for the DNS service
   extraLabels:
@@ -92,8 +90,6 @@ serviceDhcp:
 
   # -- Annotations for the DHCP service
   annotations: {}
-    # metallb.universe.tf/address-pool: network-services
-    # metallb.universe.tf/allow-shared-ip: pihole-svc
   # -- Labels for the DHCP service
   extraLabels:
     {}
@@ -137,8 +133,6 @@ serviceWeb:
 
   # -- Annotations for the DHCP service
   annotations: {}
-    # metallb.universe.tf/address-pool: network-services
-    # metallb.universe.tf/allow-shared-ip: pihole-svc
 
   # -- Labels for the web interface service
   extraLabels:

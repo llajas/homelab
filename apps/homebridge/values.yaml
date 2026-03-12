@@ -61,6 +61,10 @@ service:
 extraServices:
   - name: plex-webhook
     type: LoadBalancer
+    loadBalancerClass: io.cilium/l2-announcer
+    loadBalancerIP: 10.137.0.227
+    annotations:
+      io.cilium/lb-ipam-ips: "10.137.0.227"
     port: 32401
     externalTrafficPolicy: Cluster
     targetPort: 32401

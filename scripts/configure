@@ -88,7 +88,7 @@ def main() -> None:
         pattern=upstream_config['loadbalancer_ip_range'],
         replacement=loadbalancer_ip_range,
         paths=[
-            "system/metallb-system/templates/ipaddresspool.yaml",
+            "metal/roles/cilium/templates/ciliumloadbalancerippool.yaml",
         ]
     )
 

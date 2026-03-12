@@ -1,4 +1,6 @@
 openspeedtest:
+  service:
+    type: ClusterIP
   ingress:
     enabled: false  # Migrated to Gateway API HTTPRoute
     # className: nginx  # Migrated to Gateway API

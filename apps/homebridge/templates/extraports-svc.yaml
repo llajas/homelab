@@ -5,8 +5,15 @@ metadata:
   name: {{ include "homebridge.fullname" $ }}-{{ .name }}
   labels:
 {{ include "homebridge.labels" $ | indent 4 }}
+  {{- with .annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   type: {{ .type }}
+  {{- if .loadBalancerClass }}
+  loadBalancerClass: {{ .loadBalancerClass }}
+  {{- end }}
   {{- if .loadBalancerIP }}
   loadBalancerIP: {{ .loadBalancerIP }}
   {{- end }}
