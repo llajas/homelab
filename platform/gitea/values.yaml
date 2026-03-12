@@ -42,5 +42,7 @@ gitea:
 
 sshLoadBalancer:
   enabled: true
-  hostnames: git-ssh.lajas.tech
-  ip: 10.137.0.232
+  hostnames: git.lajas.tech
+  ip: 10.137.0.226
+  sharingKey: public-gateway
+  sharingCrossNamespace: kube-system
