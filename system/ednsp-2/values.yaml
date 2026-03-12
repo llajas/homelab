@@ -4,6 +4,7 @@ external-dns:
     - service
     - ingress
     - gateway-httproute
+    - gateway-tcproute
   env:
     - name: EXTERNAL_DNS_PIHOLE_PASSWORD
       valueFrom:
