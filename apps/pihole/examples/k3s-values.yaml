@@ -12,19 +12,19 @@ persistentVolumeClaim:
 serviceWeb:
   loadBalancerIP: 192.168.178.201
   annotations:
-    metallb.universe.tf/allow-shared-ip: pihole-svc
+    io.cilium/lb-ipam-ips: "192.168.178.201"
   type: LoadBalancer
 
 serviceDns:
   loadBalancerIP: 192.168.178.201
   annotations:
-    metallb.universe.tf/allow-shared-ip: pihole-svc
+    io.cilium/lb-ipam-ips: "192.168.178.201"
   type: LoadBalancer
 
 serviceDhcp:
   loadBalancerIP: 192.168.178.201
   annotations:
-    metallb.universe.tf/allow-shared-ip: pihole-svc
+    io.cilium/lb-ipam-ips: "192.168.178.201"
   type: LoadBalancer
 
 podDnsConfig:

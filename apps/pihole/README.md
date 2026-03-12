@@ -52,13 +52,13 @@ persistentVolumeClaim:
 serviceWeb:
   loadBalancerIP: 192.168.178.252
   annotations:
-    metallb.universe.tf/allow-shared-ip: pihole-svc
+    io.cilium/lb-ipam-ips: "192.168.178.252"
   type: LoadBalancer
 
 serviceDns:
   loadBalancerIP: 192.168.178.252
   annotations:
-    metallb.universe.tf/allow-shared-ip: pihole-svc
+    io.cilium/lb-ipam-ips: "192.168.178.252"
   type: LoadBalancer
 ```
 
@@ -105,17 +105,17 @@ If you have changed your `serviceDns` configuration, **copy** your `serviceDns` 
 To enhance compatibility for Traefik, we split the TCP and UDP service into Web and DNS. This means, if you have a dedicated configuration for the service, you have to
 update your `values.yaml` and add a new configuration for this new service.
 
-Before (In my case, with metallb):
+Before (legacy shared-IP annotation style):
 ```
 serviceTCP:
   loadBalancerIP: 192.168.178.252
   annotations:
-    metallb.universe.tf/allow-shared-ip: pihole-svc
+    io.cilium/lb-ipam-ips: "192.168.178.252"
 
 serviceUDP:
   loadBalancerIP: 192.168.178.252
   annotations:
-    metallb.universe.tf/allow-shared-ip: pihole-svc
+    io.cilium/lb-ipam-ips: "192.168.178.252"
 ```
 
 After:
@@ -123,12 +123,12 @@ After:
 serviceWeb:
   loadBalancerIP: 192.168.178.252
   annotations:
-    metallb.universe.tf/allow-shared-ip: pihole-svc
+    io.cilium/lb-ipam-ips: "192.168.178.252"
 
 serviceDns:
   loadBalancerIP: 192.168.178.252
   annotations:
-    metallb.universe.tf/allow-shared-ip: pihole-svc
+    io.cilium/lb-ipam-ips: "192.168.178.252"
 ```
 
 Version 1.8.22 has switched from the deprecated ingress api `extensions/v1beta1` to the go forward version `networking.k8s.io/v1`. This means that your cluster must be running 1.19.x as this api is not available on older versions. If necessary to run on an older Kubernetes Version, it can be done by modifying the ingress.yaml and changing the api definition back. The backend definition would also change from:
@@ -283,13 +283,9 @@ The following table lists the configurable parameters of the pihole chart and th
 
 ## Remarks
 
-### MetalLB 0.8.1+
+### Cilium LB IPAM
 
-pihole seems to work without issue in MetalLB 0.8.1+
-
-### MetalLB 0.7.3
-
-MetalLB 0.7.3 has a bug, where the service is not announced anymore, when the pod changes (e.g. update of a deployment). My workaround is to restart the `metallb-speaker-*` pods.
+For clusters using Cilium, assign static service IPs with the `io.cilium/lb-ipam-ips` annotation and ensure the IP is within the configured `CiliumLoadBalancerIPPool` range.
 
 ## Credits
 
