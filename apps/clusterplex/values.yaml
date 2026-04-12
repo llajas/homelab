@@ -191,7 +191,7 @@ pms:
 
     # -- Specify the externalTrafficPolicy for the service. Options: Cluster, Local
     # [[ref](https://kubernetes.io/docs/tutorials/services/source-ip/)]
-    externalTrafficPolicy: Cluster
+    externalTrafficPolicy: Local
 
     # -- Provide additional annotations which may be required.
     annotations:
@@ -201,7 +201,7 @@ pms:
     labels: {}
 
     # -- Enable ports 80/443 on service
-    enableHttpPorts: false
+    enableHttpPorts: true
 
   # -- Configure the ingress for plex here.
   # @default -- See below
