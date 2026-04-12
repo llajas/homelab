@@ -196,6 +196,7 @@ pms:
     # -- Provide additional annotations which may be required.
     annotations:
       io.cilium/lb-ipam-ips: "10.137.0.228"
+      io.cilium/lb-ipam-sharing-key: "clusterplex-pms"
 
     # -- Provide additional labels which may be required.
     labels: {}

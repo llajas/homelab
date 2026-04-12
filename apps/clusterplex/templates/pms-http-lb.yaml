@@ -1,0 +1,33 @@
+{{- if and .Values.pms.enabled .Values.pms.serviceConfig.enableHttpPorts }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-pms-http
+  labels:
+    app.kubernetes.io/service: {{ .Release.Name }}-pms-http
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/name: pms
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version }}
+  annotations:
+    io.cilium/lb-ipam-ips: {{ .Values.pms.serviceConfig.loadBalancerIP | quote }}
+    io.cilium/lb-ipam-sharing-key: clusterplex-pms
+spec:
+  type: LoadBalancer
+  loadBalancerClass: {{ .Values.pms.serviceConfig.loadBalancerClass | quote }}
+  loadBalancerIP: {{ .Values.pms.serviceConfig.loadBalancerIP | quote }}
+  externalTrafficPolicy: {{ .Values.pms.serviceConfig.externalTrafficPolicy }}
+  ports:
+    - port: 80
+      targetPort: 32400
+      protocol: TCP
+      name: plex-http
+    - port: 443
+      targetPort: 32400
+      protocol: TCP
+      name: plex-https
+  selector:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/name: pms
+{{- end }}
