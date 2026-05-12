@@ -191,12 +191,11 @@ pms:
 
     # -- Specify the externalTrafficPolicy for the service. Options: Cluster, Local
     # [[ref](https://kubernetes.io/docs/tutorials/services/source-ip/)]
-    externalTrafficPolicy: Cluster
+    externalTrafficPolicy: Local
 
     # -- Provide additional annotations which may be required.
     annotations:
       external-dns.alpha.kubernetes.io/hostname: "pleks.lajas.tech"
-      external-dns.alpha.kubernetes.io/exclude: "true"
       io.cilium/lb-ipam-ips: "10.137.0.228"
       io.cilium/lb-ipam-sharing-key: "clusterplex-pms"
 

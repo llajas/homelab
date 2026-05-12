@@ -71,7 +71,6 @@ containers:
       # localRecords:
       # - name: "fake3.host.net"
       #   ip: "10.12.10.10"
-
   healthz:
     image:
       repository: gcr.io/google-containers/exechealthz
