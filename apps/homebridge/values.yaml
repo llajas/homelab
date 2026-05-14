@@ -103,6 +103,15 @@ persistence:
 nodeSelector:
   feature.node.kubernetes.io/bluetooth-ready-node: "true"
 
+affinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        preference:
+          matchExpressions:
+            - key: node-role.kubernetes.io/master
+              operator: DoesNotExist
+
 initContainers:
   enabled: true
 
