@@ -143,7 +143,7 @@ probes:
       httpGet:
         scheme: HTTP
         path: /identity
-        port: plex
+        port: {{ .Values.pms.config.port | default 32400 }}
       periodSeconds: 10
       failureThreshold: 30
   {{ else }}
@@ -158,7 +158,7 @@ probes:
       httpGet:
         scheme: HTTP
         path: /identity
-        port: plex
+        port: {{ .Values.pms.config.port | default 32400 }}
       initialDelaySeconds: 30
       timeoutSeconds: 5
       periodSeconds: 10
@@ -176,7 +176,7 @@ probes:
       httpGet:
         scheme: HTTP
         path: /identity
-        port: plex
+        port: {{ .Values.pms.config.port | default 32400 }}
       initialDelaySeconds: 120
       timeoutSeconds: 5
       periodSeconds: 10
