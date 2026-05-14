@@ -47,7 +47,7 @@ serviceDns:
   nodePort: ""
 
   # -- `spec.externalTrafficPolicy` for the DHCP Service
-  externalTrafficPolicy: Cluster
+  externalTrafficPolicy: Local
   loadBalancerIP: "10.137.0.253"
   # -- A fixed `spec.loadBalancerIP` for the IPv6 DNS Service
   loadBalancerIPv6: ""
@@ -258,7 +258,14 @@ topologySpreadConstraints: []
 #   whenUnsatisfiable: <string>
 #   labelSelector: <object>
 
-affinity: {}
+affinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        preference:
+          matchExpressions:
+            - key: node-role.kubernetes.io/master
+              operator: DoesNotExist
 
 # -- Administrator password when not using an existing secret (see below)
 adminPassword: "admin"
