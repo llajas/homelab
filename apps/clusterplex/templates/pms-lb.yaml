@@ -19,11 +19,11 @@ spec:
   externalTrafficPolicy: {{ .Values.pms.serviceConfig.externalTrafficPolicy }}
   ports:
     - port: {{ .Values.pms.config.port | default 32400 }}
-      targetPort: plex
+      targetPort: {{ .Values.pms.config.port | default 32400 }}
       protocol: TCP
       name: plex
     - port: {{ .Values.pms.config.relayPort | default 32499 }}
-      targetPort: relay
+      targetPort: {{ .Values.pms.config.relayPort | default 32499 }}
       protocol: TCP
       name: relay
   selector:
