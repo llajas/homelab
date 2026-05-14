@@ -8,6 +8,7 @@ spec:
   myASN: 64513
   peerASN: 64512
   peerAddress: 10.137.0.1
+  passive: true
   nodeSelectors:
     - matchExpressions:
         - key: node-role.kubernetes.io/master
