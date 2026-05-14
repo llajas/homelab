@@ -199,6 +199,7 @@ pms:
     # -- Provide additional annotations which may be required.
     annotations:
       external-dns.alpha.kubernetes.io/hostname: "pleks.lajas.tech"
+      external-dns.alpha.kubernetes.io/exclude: "true"
 
     # -- Provide additional labels which may be required.
     labels: {}
