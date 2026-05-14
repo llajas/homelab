@@ -47,9 +47,7 @@ serviceDns:
   nodePort: ""
 
   # -- `spec.externalTrafficPolicy` for the DHCP Service
-  externalTrafficPolicy: Local
-
-  # -- A fixed `spec.loadBalancerIP` for the DNS Service
+  externalTrafficPolicy: Cluster
   loadBalancerIP: "10.137.0.253"
   # -- A fixed `spec.loadBalancerIP` for the IPv6 DNS Service
   loadBalancerIPv6: ""
