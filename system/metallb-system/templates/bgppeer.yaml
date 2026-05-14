@@ -1,14 +1,11 @@
 ---
-# BGP peer config for all 8 cluster nodes → UDM Pro at 10.137.0.1
-# ASN 64514 is intentionally separate from kube-vip's ASN 64513 to prevent
-# BGP session collision on control-plane nodes that run both speakers.
 apiVersion: metallb.io/v1beta2
 kind: BGPPeer
 metadata:
   name: udm-pro
   namespace: metallb-system
 spec:
-  myASN: 64514
+  myASN: 64513
   peerASN: 64512
   peerAddress: 10.137.0.1
   # No nodeSelectors — applies to all nodes

@@ -301,9 +301,9 @@ minecraftServer:
   loadBalancerClass: "metallb"
   loadBalancerIP: 10.137.0.249
   # loadBalancerSourceRanges: []
-   ## Set the externalTrafficPolicy in the Service to either Cluster or Local
-   externalTrafficPolicy: Local
-   externalIPs:
+  ## Set the externalTrafficPolicy in the Service to either Cluster or Local
+  externalTrafficPolicy: Local
+  externalIPs:
 
   # List with URLs and paths to jar files, additionally may be a directory with jars
   # This works for both mods and plugins depending on server type
