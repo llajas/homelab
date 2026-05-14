@@ -11,6 +11,7 @@ spec:
 {{- end }}
   strategy:
     type: Recreate
+    rollingUpdate: null
   selector:
     matchLabels:
       {{- include "homebridge.selectorLabels" . | nindent 6 }}
