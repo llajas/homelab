@@ -1,0 +1,32 @@
+{{- if .Values.pms.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-pms
+  labels:
+    app.kubernetes.io/service: {{ .Release.Name }}-pms
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/name: pms
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version }}
+  annotations:
+    {{- toYaml .Values.pms.serviceConfig.annotations | nindent 4 }}
+spec:
+  type: LoadBalancer
+  loadBalancerClass: {{ .Values.pms.serviceConfig.loadBalancerClass | quote }}
+  loadBalancerIP: {{ .Values.pms.serviceConfig.loadBalancerIP | quote }}
+  externalTrafficPolicy: {{ .Values.pms.serviceConfig.externalTrafficPolicy }}
+  ports:
+    - port: {{ .Values.pms.config.port | default 32400 }}
+      targetPort: plex
+      protocol: TCP
+      name: plex
+    - port: {{ .Values.pms.config.relayPort | default 32499 }}
+      targetPort: relay
+      protocol: TCP
+      name: relay
+  selector:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/name: pms
+{{- end }}

@@ -185,7 +185,10 @@ pms:
   # @default -- See below
   serviceConfig:
     # Configure the type of service
-    type: LoadBalancer
+    # NOTE: Set to ClusterIP so the bjw-s common library (v1.5.1, which lacks
+    # loadBalancerClass support) does not create a LoadBalancer service.
+    # The external LoadBalancer service is managed by templates/pms-lb.yaml instead.
+    type: ClusterIP
     loadBalancerClass: metallb
     loadBalancerIP: 10.137.0.228
 
@@ -196,8 +199,6 @@ pms:
     # -- Provide additional annotations which may be required.
     annotations:
       external-dns.alpha.kubernetes.io/hostname: "pleks.lajas.tech"
-      io.cilium/lb-ipam-ips: "10.137.0.228"
-      io.cilium/lb-ipam-sharing-key: "clusterplex-pms"
 
     # -- Provide additional labels which may be required.
     labels: {}

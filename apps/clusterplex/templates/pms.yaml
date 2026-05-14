@@ -68,6 +68,7 @@ initContainers:
 
 service:
   main:
+    enabled: false
     type: '{{ .Values.pms.serviceConfig.type | default "ClusterIP" }}'
     {{- if .Values.pms.serviceConfig.loadBalancerClass }}
     loadBalancerClass: '{{ .Values.pms.serviceConfig.loadBalancerClass }}'
