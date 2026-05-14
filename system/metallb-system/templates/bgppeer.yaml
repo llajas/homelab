@@ -5,10 +5,9 @@ metadata:
   name: udm-pro
   namespace: metallb-system
 spec:
-  myASN: 64513
+  myASN: 64514
   peerASN: 64512
   peerAddress: 10.137.0.1
-  passive: true
   nodeSelectors:
     - matchExpressions:
         - key: node-role.kubernetes.io/master
