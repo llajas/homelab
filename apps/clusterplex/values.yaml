@@ -186,12 +186,12 @@ pms:
   serviceConfig:
     # Configure the type of service
     type: LoadBalancer
-    loadBalancerClass: io.cilium/l2-announcer
+    loadBalancerClass: metallb
     loadBalancerIP: 10.137.0.228
 
     # -- Specify the externalTrafficPolicy for the service. Options: Cluster, Local
     # [[ref](https://kubernetes.io/docs/tutorials/services/source-ip/)]
-    externalTrafficPolicy: Cluster
+    externalTrafficPolicy: Local
 
     # -- Provide additional annotations which may be required.
     annotations:

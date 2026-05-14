@@ -157,8 +157,8 @@ app-template:
       controller: main
       type: LoadBalancer
       loadBalancerIP: 10.137.0.230
-      externalTrafficPolicy: Cluster
-      loadBalancerClass: io.cilium/l2-announcer
+      externalTrafficPolicy: Local
+      loadBalancerClass: metallb
       annotations:
         io.cilium/lb-ipam-ips: "10.137.0.230"
       ports:

@@ -298,12 +298,12 @@ minecraftServer:
   # Set the external port of the service, usefull when using the LoadBalancer service type
   servicePort: 25565
   clusterIP:
-  loadBalancerClass: "io.cilium/l2-announcer"
+  loadBalancerClass: "metallb"
   loadBalancerIP: 10.137.0.249
   # loadBalancerSourceRanges: []
-  ## Set the externalTrafficPolicy in the Service to either Cluster or Local
-  externalTrafficPolicy: Cluster
-  externalIPs:
+   ## Set the externalTrafficPolicy in the Service to either Cluster or Local
+   externalTrafficPolicy: Local
+   externalIPs:
 
   # List with URLs and paths to jar files, additionally may be a directory with jars
   # This works for both mods and plugins depending on server type
@@ -390,9 +390,9 @@ minecraftServer:
         type: LoadBalancer
         port: 24454
         loadBalancerIP: 10.137.0.249
-        loadBalancerClass: "io.cilium/l2-announcer"
+        loadBalancerClass: "metallb"
         loadBalancerSourceRanges: []
-        externalTrafficPolicy: Cluster
+        externalTrafficPolicy: Local
       ingress:
         ingressClassName: nginx
         enabled: false

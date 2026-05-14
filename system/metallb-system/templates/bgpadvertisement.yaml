@@ -1,0 +1,11 @@
+---
+apiVersion: metallb.io/v1beta1
+kind: BGPAdvertisement
+metadata:
+  name: dedicated-vips
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+    - dedicated-vips
+  # localPref and communities left at defaults
+  # aggregationLength omitted — advertise /32s for per-IP routing

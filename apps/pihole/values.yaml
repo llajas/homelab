@@ -47,14 +47,14 @@ serviceDns:
   nodePort: ""
 
   # -- `spec.externalTrafficPolicy` for the DHCP Service
-  externalTrafficPolicy: Cluster
+  externalTrafficPolicy: Local
 
   # -- A fixed `spec.loadBalancerIP` for the DNS Service
   loadBalancerIP: "10.137.0.253"
   # -- A fixed `spec.loadBalancerIP` for the IPv6 DNS Service
   loadBalancerIPv6: ""
   # -- `spec.loadBalancerClass` for the DNS Service. Only used if type is LoadBalancer.
-  loadBalancerClass: "io.cilium/l2-announcer"
+  loadBalancerClass: "metallb"
 
   # -- Annotations for the DNS service
   annotations:

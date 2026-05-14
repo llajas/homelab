@@ -1,0 +1,18 @@
+metallb:
+  loadBalancerClass: metallb
+
+  crds:
+    enabled: true
+
+  controller:
+    logLevel: info
+
+  speaker:
+    logLevel: info
+    tolerateMaster: true
+
+  frr:
+    enabled: true
+
+  frrk8s:
+    enabled: false

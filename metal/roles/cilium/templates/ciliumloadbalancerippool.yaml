@@ -4,4 +4,5 @@ metadata:
   name: default-pool
 spec:
   cidrs:
-    - cidr: 10.137.0.224/27
+    - cidr: 10.137.0.224/32
+    - cidr: 10.137.0.226/32
