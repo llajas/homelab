@@ -8,7 +8,4 @@ spec:
   myASN: 64514
   peerASN: 64512
   peerAddress: 10.137.0.1
-  nodeSelectors:
-    - matchExpressions:
-        - key: node-role.kubernetes.io/master
-          operator: DoesNotExist
+
