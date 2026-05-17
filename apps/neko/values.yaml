@@ -164,12 +164,6 @@ app-template:
           hosts:
             - neko.lajas.tech
 
-httpRoute:
-  enabled: true
-  name: neko
-  host: neko.lajas.tech
-  annotations: {}
-
   persistence:
     data:
       accessMode: ReadWriteOnce
@@ -185,3 +179,9 @@ httpRoute:
         main:
           main:
             - path: /home/neko/Downloads
+
+httpRoute:
+  enabled: true
+  name: neko
+  host: neko.lajas.tech
+  annotations: {}
