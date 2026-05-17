@@ -44,23 +44,26 @@ app-template:
             NEKO_SERVER_PROXY: "true"
             NEKO_SERVER_CORS: "*"
 
-            # --- session/ui (as you had) ---
+            # --- session/ui ---
             NEKO_DESKTOP_SCREEN: "1920x1080@30"
             NEKO_SESSION_CONTROL_PROTECTION: "false"
             NEKO_SESSION_IMPLICIT_HOSTING: "false"
             NEKO_SESSION_COOKIE_ENABLED: "false"
             NEKO_SESSION_MERCIFUL_RECONNECT: "true"
+            NEKO_SESSION_HEARTBEAT_INTERVAL: "10"
+            # Persist sessions to disk so reconnects survive pod restarts
+            NEKO_SESSION_FILE: "/home/neko/.local/share/neko/sessions.json"
             NEKO_MEMBER_PROVIDER: "multiuser"
-            NEKO_MEMBER_MULTIUSER_USER_PASSWORD:
-              valueFrom:
-                secretKeyRef:
-                  name: secrets
-                  key: member-multiuser-user-password
             NEKO_MEMBER_MULTIUSER_ADMIN_PASSWORD:
               valueFrom:
                 secretKeyRef:
                   name: secrets
                   key: member-multiuser-admin-password
+            NEKO_MEMBER_MULTIUSER_USER_PASSWORD:
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: member-multiuser-user-password
             NEKO_FILE_TRANSFER_ENABLED: "true"
             NEKO_FILE_TRANSFER_PATH: "/home/neko/Downloads"
 
