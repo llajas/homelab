@@ -19,6 +19,8 @@ spec:
       labels:
         app: zerotier-router
     spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
       initContainers:
         - name: identity-init
           image: busybox:1.36
@@ -74,15 +76,9 @@ spec:
                 - NET_RAW
                 - SYS_ADMIN
           volumeMounts:
-            - name: dev-net-tun
-              mountPath: /dev/net/tun
             - name: zerotier-data
               mountPath: /var/lib/zerotier-one
       volumes:
-        - name: dev-net-tun
-          hostPath:
-            path: /dev/net/tun
-            type: CharDevice
         - name: zerotier-data
           persistentVolumeClaim:
             claimName: zerotier-data

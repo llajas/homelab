@@ -9,7 +9,7 @@ secretName: zerotier-router
 
 zerotier:
   # Physical interface inside the pod facing the cluster network
-  localPhys: eth0
+  localPhys: ens3
   # inbound = ZeroTier clients can reach cluster services (not the reverse)
   gatewayMode: inbound
   # Fedora 39 nodes use nf_tables backend
