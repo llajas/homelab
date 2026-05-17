@@ -32,12 +32,6 @@ app-template:
             - chown -R 1000:1000 /home/neko/.local/share/neko /home/neko/Downloads
           securityContext:
             runAsUser: 0
-          volumeMounts:
-            - name: data
-              mountPath: /home/neko/.local/share/neko
-            - name: downloads
-              mountPath: /home/neko/Downloads
-
       containers:
         main:
           image:
@@ -189,12 +183,16 @@ app-template:
         main:
           main:
             - path: /home/neko/.local/share/neko
+          chown-data:
+            - path: /home/neko/.local/share/neko
     downloads:
       accessMode: ReadWriteOnce
       size: 10Gi
       advancedMounts:
         main:
           main:
+            - path: /home/neko/Downloads
+          chown-data:
             - path: /home/neko/Downloads
 
 httpRoute:
