@@ -21,6 +21,23 @@ app-template:
                       values:
                         - "true"
         runtimeClassName: nvidia
+      initContainers:
+        chown-data:
+          image:
+            repository: busybox
+            tag: latest
+          command:
+            - sh
+            - -c
+            - chown -R 1000:1000 /home/neko/.local/share/neko /home/neko/Downloads
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - name: data
+              mountPath: /home/neko/.local/share/neko
+            - name: downloads
+              mountPath: /home/neko/Downloads
+
       containers:
         main:
           image:
