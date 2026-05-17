@@ -48,7 +48,8 @@ app-template:
             NEKO_DESKTOP_SCREEN: "1920x1080@30"
             NEKO_SESSION_CONTROL_PROTECTION: "false"
             NEKO_SESSION_IMPLICIT_HOSTING: "false"
-            NEKO_SESSION_COOKIE_ENABLED: "true"
+            NEKO_SESSION_COOKIE_ENABLED: "false"
+            NEKO_SESSION_MERCIFUL_RECONNECT: "true"
             NEKO_MEMBER_PROVIDER: "multiuser"
             NEKO_MEMBER_MULTIUSER_USER_PASSWORD:
               valueFrom:
