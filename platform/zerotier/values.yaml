@@ -1,0 +1,25 @@
+image:
+  repository: zyclonite/zerotier
+  tag: "1.14.2"
+  pullPolicy: IfNotPresent
+
+# Name of the secret created by Terraform (external/modules/zerotier/main.tf)
+# Contains: ZEROTIER_NETWORK_ID, ZEROTIER_IDENTITY_PUBLIC, ZEROTIER_IDENTITY_SECRET
+secretName: zerotier-router
+
+zerotier:
+  # Physical interface inside the pod facing the cluster network
+  localPhys: eth0
+  # inbound = ZeroTier clients can reach cluster services (not the reverse)
+  gatewayMode: inbound
+  # Fedora 39 nodes use nf_tables backend
+  useIptablesNft: "true"
+
+persistence:
+  storageClass: longhorn
+  size: 256Mi
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
