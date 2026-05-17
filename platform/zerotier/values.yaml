@@ -1,6 +1,6 @@
 image:
   repository: zyclonite/zerotier
-  tag: "1.14.2"
+  tag: "1.16.1"
   pullPolicy: IfNotPresent
 
 # Name of the secret created by Terraform (external/modules/zerotier/main.tf)
