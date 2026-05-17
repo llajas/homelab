@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: {{ include "homebridge.fullname" . }}
   namespace: {{ $.Values.namespaceOverride }}
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=true
   labels:
     {{- include "homebridge.labels" . | nindent 4 }}
 spec:
