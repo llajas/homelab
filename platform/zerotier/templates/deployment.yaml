@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: zerotier-router
   namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=true
   labels:
     app: zerotier-router
 spec:
