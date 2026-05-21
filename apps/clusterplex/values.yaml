@@ -568,18 +568,12 @@ worker:
       # -- Memory Request Amount
       memory: 3Gi
 
-      # -- GPU Request Amount
-      nvidia.com/gpu: 1
-
     limits:
       # -- CPU Limit amount
       cpu: 10000m
 
       # -- Memory Limit amount
       memory: 6Gi
-
-      # -- GPU Limit Amount
-      nvidia.com/gpu: 1
 
   # -- Configure the affinity rules for the worker pods. This helps prevent multiple worker pods from
   # being scheduled on the same node as another worker pod or as the main plex media server.
