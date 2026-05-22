@@ -14,7 +14,9 @@
   loop:
     - ciliuml2announcementpolicies.cilium.io
     - ciliumloadbalancerippools.cilium.io
-    - ciliumbgppeeringpolicies.cilium.io
+    - ciliumbgpclusterconfigs.cilium.io
+    - ciliumbgppeerconfigs.cilium.io
+    - ciliumbgpadvertisements.cilium.io
   register: crd
   until: crd.resources is defined and crd.resources | length > 0
   retries: 5
@@ -26,4 +28,6 @@
   loop:
     - ciliuml2announcementpolicy.yaml
     - ciliumloadbalancerippool.yaml
-    - ciliumbgppeeringpolicy.yaml
+    - ciliumbgppeerconfig.yaml
+    - ciliumbgpclusterconfig.yaml
+    - ciliumbgpadvertisement.yaml

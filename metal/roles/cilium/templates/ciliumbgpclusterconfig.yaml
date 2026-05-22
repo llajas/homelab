@@ -1,0 +1,23 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumBGPClusterConfig
+metadata:
+  name: cilium-bgp
+spec:
+  nodeSelector:
+    matchExpressions:
+      - key: kubernetes.io/hostname
+        operator: In
+        values:
+          - metal0
+          - metal1
+          - metal2
+  bgpInstances:
+    - name: cluster-bgp
+      localASN: 64513
+      peers:
+        - name: udm-pro
+          peerASN: 64512
+          peerAddress: 10.137.0.1
+          peerConfigRef:
+            name: cilium-peer
