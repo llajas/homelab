@@ -845,7 +845,6 @@ deploymentLabels:
 
 serviceAnnotations:
   external-dns.alpha.kubernetes.io/hostname: "bluffcraft-local.lajas.tech"
-  io.cilium/lb-ipam-ips: "10.137.0.248"
 serviceLabels: {}
 
 rconServiceAnnotations: {}

@@ -289,9 +289,7 @@ minecraftServer:
   # see https://github.com/itzg/docker-minecraft-server#server-configuration
   overrideServerProperties: false
   # DEPRECATED: use top-level rconServiceAnnotations instead
-  serviceAnnotations:
-    io.cilium/lb-ipam-ips: "10.137.0.249"
-    lbipam.cilium.io/sharing-key: "hermitcraft-voice"
+  serviceAnnotations: {}
   serviceType: LoadBalancer
   ## Set the port used if the serviceType is NodePort
   #nodePort:
@@ -384,9 +382,7 @@ minecraftServer:
       service:
         enabled: true
         embedded: false
-        annotations:
-          io.cilium/lb-ipam-ips: "10.137.0.249"
-          lbipam.cilium.io/sharing-key: "hermitcraft-voice"
+        annotations: {}
         type: LoadBalancer
         port: 24454
         loadBalancerIP: 10.137.0.249
