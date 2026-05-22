@@ -1,8 +1,7 @@
-apiVersion: cilium.io/v2alpha1
+apiVersion: cilium.io/v2
 kind: CiliumLoadBalancerIPPool
 metadata:
   name: default-pool
 spec:
-  cidrs:
-    - cidr: 10.137.0.224/32
-    - cidr: 10.137.0.226/32
+  blocks:
+    - cidr: 10.137.0.224/27

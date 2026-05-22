@@ -24,12 +24,15 @@ the L2 speaker can be elected on a node that does not host a local backend pod.
 ## Current safe state
 
 - Cilium continues to own:
-  - `10.137.0.224` (`cilium-ingress`)
   - `10.137.0.226` (`public-gateway` + `gitea-ssh-lb` shared VIP)
 - Direct dedicated-IP services remain on Cilium for now, but with
   `externalTrafficPolicy=Cluster` where needed to maintain reachability.
 - MetalLB is introduced with a dedicated `loadBalancerClass` (`metallb`) so it
   can coexist safely with Cilium.
+
+The legacy shared `cilium-ingress` service on `10.137.0.224` is no longer
+needed once all HTTP exposure is handled by Gateway API and there are no live
+`Ingress` resources.
 
 ## Prerequisite before cutting services over to MetalLB BGP
 
@@ -78,4 +81,4 @@ Services to move to `spec.loadBalancerClass: metallb` first:
    router peers are expanded.
 2. Migrate the first-wave direct VIP services to `loadBalancerClass: metallb`.
 3. Remove Cilium-specific LB IPAM annotations from migrated services.
-4. Narrow the Cilium LB IPAM pool to the Cilium-owned VIPs if desired.
+4. Narrow the Cilium LB IPAM pool to the remaining Cilium-owned VIPs if desired.

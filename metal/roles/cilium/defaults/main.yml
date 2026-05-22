@@ -14,7 +14,7 @@ cilium_values:
     enableAppProtocol: true  # Required for WebSocket (kubernetes.io/ws) appProtocol support on backend Services
     enableAlpn: true  # Required for HTTP/2 ALPN negotiation on Gateway TLS listeners
   ingressController:
-    enabled: true  # Task 3: Enable Cilium ingress controller
+    enabled: false  # Retire the legacy shared cilium-ingress VIP; Gateway API remains enabled separately
   k8sServiceHost: 127.0.0.1
   k8sServicePort: 6444
   ipam:
