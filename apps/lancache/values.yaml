@@ -34,8 +34,6 @@ service:
     type: LoadBalancer
     loadBalancerClass: "metallb"
     loadBalancerIP: 10.137.0.229
-    annotations:
-      io.cilium/lb-ipam-ips: "10.137.0.229"
     ports:
       http:
         port: 80
