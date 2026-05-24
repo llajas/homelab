@@ -17,6 +17,51 @@ image:
   # -- image pull policy
   pullPolicy: IfNotPresent
 
+configmap:
+  nginx-logging:
+    enabled: true
+    data:
+      10_generic.conf: |
+        # Primary monolithic cache engine
+
+        server {
+          listen 80 reuseport;
+          listen [::]:80 reuseport;
+
+          access_log /dev/stdout cachelog;
+          error_log /dev/stderr;
+
+          include /etc/nginx/sites-available/cache.conf.d/*.conf;
+        }
+      10_sni.conf: |
+        server {
+          listen 443;
+          resolver 8.8.8.8 8.8.4.4 ipv6=off;
+          proxy_pass $ssl_preread_server_name:443;
+          ssl_preread on;
+
+          access_log /dev/stdout stream_basic;
+          error_log /dev/stderr;
+        }
+      20_upstream.conf: |
+        # Upstream server to proxy and handle inconsistent 302 redirects
+        # All cache traffic is passed through this proxy to allow rewriting of redirects without caching
+
+        # This is particularly important for sony / ps5 as upstreams redirect between them which confuses slice map on caching
+
+        server {
+
+          # Internal bind on 3128, this should not be externally mapped
+          listen localhost:3128 reuseport;
+
+          # No access_log tracking as all requests to this instance are already logged through monolithic
+
+          # access_log /dev/stdout cachelog;
+          error_log /dev/stderr;
+
+          include /etc/nginx/sites-available/upstream.conf.d/*.conf;
+        }
+
 # -- environment variables. See more environment variables in the [LanCache Monolithic documentation](https://lancache.net/docs/containers/monolithic/variables/).
 # @default -- See below
 env:
@@ -110,20 +155,26 @@ persistence:
       path: /mnt/user/lancache
       server: nas-01.storage.lajas.tech
   logs:
-    enabled: true
+    enabled: false
     mountPath: /data/logs
     accessMode: ReadWriteOnce
     size: 2Gi
+  nginx-logging:
+    enabled: true
+    type: configMap
+    name: '{{ include "common.names.fullname" . }}-nginx-logging'
+    readOnly: true
+    subPath:
+      - path: 10_generic.conf
+        mountPath: /etc/nginx/sites-enabled/10_generic.conf
+      - path: 10_sni.conf
+        mountPath: /etc/nginx/stream-enabled/10_sni.conf
+      - path: 20_upstream.conf
+        mountPath: /etc/nginx/sites-enabled/20_upstream.conf
 
 # -- The official LanCache image is only available for x86_64.
 nodeSelector:
   kubernetes.io/arch: amd64
 
-additionalContainers:
-  monolithic-logs:
-    image: busybox
-    args: [/bin/sh, -c, 'tail -n1 -F /data/logs/access.log']
-    imagePullPolicy: IfNotPresent
-    volumeMounts:
-      - name: logs
-        mountPath: /data/logs
+# Access logs now go directly to stdout/stderr via the mounted nginx config overrides above,
+# so no sidecar is needed to tail files into kubectl logs.
