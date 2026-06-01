@@ -586,17 +586,10 @@ worker:
                 operator: In
                 values:
                   - "true"
-    # podAntiAffinity:
-    #   preferredDuringSchedulingIgnoredDuringExecution:
-    #   - podAffinityTerm:
-    #       labelSelector:
-    #         matchLabels:
-    #           name: clusterplex-worker
-    #       topologyKey: kubernetes.io/hostname
-    #     weight: 100
-    #   - podAffinityTerm:
-    #       labelSelector:
-    #         matchLabels:
-    #           name: clusterplex-pms
-    #       topologyKey: kubernetes.io/hostname
-    #     weight: 50
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/instance: clusterplex
+              app.kubernetes.io/name: worker
+          topologyKey: kubernetes.io/hostname
