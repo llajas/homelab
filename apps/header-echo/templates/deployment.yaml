@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "header-echo.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{- include "header-echo.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+{{- include "header-echo.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+{{- include "header-echo.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: header-echo
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.service.port }}
+          protocol: TCP
+        env:
+        - name: HTTP_PORT
+          value: {{ .Values.service.port | quote }}
+        resources:
+{{- toYaml .Values.resources | nindent 10 }}
