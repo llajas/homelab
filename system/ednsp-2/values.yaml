@@ -14,6 +14,7 @@ external-dns:
   extraArgs:
     - --pihole-server=http://10.0.0.3
     - --pihole-api-version=6
+    - --annotation-filter=external-dns.alpha.kubernetes.io/target notin (homelab-tunnel.lajas.tech)
   interval: 24h
   triggerLoopOnEvent: true
   metrics:
