@@ -5,8 +5,3 @@ metadata:
 spec:
   controllerName: io.cilium/gateway-controller
   description: Cilium Gateway API controller
-  parametersRef:
-    group: cilium.io
-    kind: CiliumGatewayClassConfig
-    name: cilium
-    namespace: gateway-api
