@@ -30,11 +30,11 @@ spec:
         - name: lb_enable
           value: "false"
 
-        # VIP advertising mode (BGP on, ARP off by default)
+        # VIP advertising mode (ARP on, BGP off by default)
         - name: vip_arp
-          value: "{{ kubevip_vip_arp | default('false') }}"
+          value: "{{ kubevip_vip_arp | default('true') }}"
         - name: bgp_enable
-          value: "{{ kubevip_bgp_enable | default('true') }}"
+          value: "{{ kubevip_bgp_enable | default('false') }}"
 
         # Optional: pin interface (e.g., eno1)
         {% if kubevip_interface is defined %}
@@ -77,4 +77,3 @@ spec:
     - hostPath:
         path: "{{ k3s_kubeconfig_file }}"
       name: kubeconfig
-
