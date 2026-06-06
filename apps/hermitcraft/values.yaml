@@ -296,7 +296,7 @@ minecraftServer:
   # Set the external port of the service, usefull when using the LoadBalancer service type
   servicePort: 25565
   clusterIP:
-  loadBalancerClass: "metallb"
+  loadBalancerClass: ""
   loadBalancerIP: 10.137.0.249
   # loadBalancerSourceRanges: []
   ## Set the externalTrafficPolicy in the Service to either Cluster or Local
@@ -382,11 +382,14 @@ minecraftServer:
       service:
         enabled: true
         embedded: false
-        annotations: {}
+        annotations:
+          lbipam.cilium.io/ips: "10.137.0.249"
+        labels:
+          io.cilium/bgp-announce: "true"
         type: LoadBalancer
         port: 24454
         loadBalancerIP: 10.137.0.249
-        loadBalancerClass: "metallb"
+        loadBalancerClass: ""
         loadBalancerSourceRanges: []
         externalTrafficPolicy: Local
       ingress:
@@ -481,8 +484,10 @@ deploymentLabels:
   smb-dependent: "true"
 
 serviceAnnotations:
+  lbipam.cilium.io/ips: "10.137.0.249"
   external-dns.alpha.kubernetes.io/hostname: "hermitcraft-9.lajas.tech"
-serviceLabels: {}
+serviceLabels:
+  io.cilium/bgp-announce: "true"
 
 rconServiceAnnotations: {}
 rconServiceLabels: {}
