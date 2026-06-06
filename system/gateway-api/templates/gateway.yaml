@@ -7,11 +7,8 @@ spec:
   gatewayClassName: cilium
   infrastructure:
     annotations:
-      lbipam.cilium.io/ips: "10.137.0.226"
-      lbipam.cilium.io/sharing-key: public-gateway
-      lbipam.cilium.io/sharing-cross-namespace: gitea
-    labels:
-      io.cilium/bgp-announce: "true"
+      metallb.io/address-pool: gateway-test
+      metallb.io/loadBalancerIPs: "10.137.0.232"
   listeners:
   - name: http
     protocol: HTTP
