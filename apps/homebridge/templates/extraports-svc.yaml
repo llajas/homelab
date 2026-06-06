@@ -5,6 +5,9 @@ metadata:
   name: {{ include "homebridge.fullname" $ }}-{{ .name }}
   labels:
 {{ include "homebridge.labels" $ | indent 4 }}
+  {{- with .labels }}
+{{ toYaml . | nindent 4 }}
+  {{- end }}
   {{- with .annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
