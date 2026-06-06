@@ -96,7 +96,7 @@ persistence:
   storageClassName: "longhorn"
   accessModes:
     - ReadWriteOnce
-  size: 1Gi
+  size: 1500Mi
   ## persistence.skipuninstall -- Do not delete the pvc upon helm uninstall
   skipuninstall: false
 
