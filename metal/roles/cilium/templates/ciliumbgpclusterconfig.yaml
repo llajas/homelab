@@ -12,7 +12,11 @@ spec:
           - metal0
           - metal1
           - metal2
+          - metal3
+          - metal4
           - metal5
+          - virtual0
+          - virtual1
   bgpInstances:
     - name: cluster-bgp
       localASN: 64513
