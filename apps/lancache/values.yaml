@@ -32,8 +32,12 @@ env:
 service:
   main:
     type: LoadBalancer
-    loadBalancerClass: "metallb"
     loadBalancerIP: 10.137.0.229
+    annotations:
+      io.cilium/bgp-announce: "true"
+      lbipam.cilium.io/ips: 10.137.0.229
+    labels:
+      io.cilium/bgp-announce: "true"
     ports:
       http:
         port: 80
