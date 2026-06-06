@@ -52,14 +52,15 @@ serviceDns:
   # -- A fixed `spec.loadBalancerIP` for the IPv6 DNS Service
   loadBalancerIPv6: ""
   # -- `spec.loadBalancerClass` for the DNS Service. Only used if type is LoadBalancer.
-  loadBalancerClass: "metallb"
+  loadBalancerClass: ""
 
   # -- Annotations for the DNS service
-  annotations: {}
+  annotations:
+    lbipam.cilium.io/ips: "10.137.0.253"
 
   # -- Labels for the DNS service
   extraLabels:
-    {}
+    io.cilium/bgp-announce: "true"
 
 # -- Configuration for the DHCP service on port 67
 serviceDhcp:
