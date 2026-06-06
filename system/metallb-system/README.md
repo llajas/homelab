@@ -30,8 +30,9 @@ L2 speaker can be elected on a node that does not host a local backend pod.
   - `io.cilium/bgp-announce: "true"`
 - Cilium LB IPAM assigns direct VIPs using:
   - `lbipam.cilium.io/ips: <vip>`
-- The cluster-wide `CiliumL2AnnouncementPolicy` has been removed for live
-  BGP-only testing.
+- The cluster-wide `CiliumL2AnnouncementPolicy` is currently restored because
+  the shared `.226` VIP (`public-gateway` + `gitea-ssh-lb`) still needs same-LAN
+  reachability from hosts on the `10.137.0.0/24` segment.
 
 The legacy shared `cilium-ingress` service on `10.137.0.224` is no longer
 needed once all HTTP exposure is handled by Gateway API and there are no live
@@ -56,8 +57,11 @@ needed once all HTTP exposure is handled by Gateway API and there are no live
 - The UDM Pro continues to learn `/32` VIP routes over BGP.
 - Real client IP preservation works for tested workloads such as Neko and Plex
   when traffic reaches the correct backend node.
-- Same-subnet clients may fail direct VIP access after L2 removal because they
+- Same-subnet clients can fail direct VIP access after L2 removal because they
   try to ARP for the VIP locally, while BGP only influences routed traffic.
+- This behavior was observed from the workstation at `10.137.0.151`, which
+  could no longer reach `git.lajas.tech:22` or the shared `.226` VIP directly
+  until L2 was restored.
 - This means BGP-only behavior should be validated from routed clients and not
   judged solely by same-VLAN raw `curl` tests.
 
@@ -73,7 +77,7 @@ BGP-only Cilium is insufficient.
 ## Follow-up implementation items
 
 1. Decide whether the BGP-only tradeoff for same-subnet clients is acceptable,
-   or whether a narrower L2 policy is still needed for specific VIPs.
+   or whether a narrower L2 policy is needed only for the shared `.226` VIP.
 2. Continue migrating remaining direct VIP services to the Cilium BGP-only
    pattern one service at a time.
 3. Remove stale MetalLB-specific configuration from workloads that have already
