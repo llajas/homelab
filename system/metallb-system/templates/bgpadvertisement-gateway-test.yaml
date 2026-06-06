@@ -1,0 +1,9 @@
+---
+apiVersion: metallb.io/v1beta1
+kind: BGPAdvertisement
+metadata:
+  name: gateway-test
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+    - gateway-test

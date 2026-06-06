@@ -1,0 +1,10 @@
+---
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: gateway-test
+  namespace: metallb-system
+spec:
+  autoAssign: false
+  addresses:
+    - 10.137.0.232/32   # gateway metallb test VIP
