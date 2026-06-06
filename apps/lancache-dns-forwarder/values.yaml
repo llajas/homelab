@@ -157,7 +157,7 @@ app-template:
       controller: main
       type: LoadBalancer
       loadBalancerIP: 10.137.0.230
-      externalTrafficPolicy: Local
+      externalTrafficPolicy: Cluster
       loadBalancerClass: metallb
       ports:
         dns-udp:
