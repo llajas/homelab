@@ -119,10 +119,10 @@ app-template:
                 httpGet:
                   path: /metrics
                   port: 8083
-                initialDelaySeconds: 10
-                periodSeconds: 10
-                timeoutSeconds: 5
-                failureThreshold: 3
+                initialDelaySeconds: 20
+                periodSeconds: 15
+                timeoutSeconds: 10
+                failureThreshold: 5
             readiness:
               enabled: true
               custom: true
@@ -130,10 +130,10 @@ app-template:
                 httpGet:
                   path: /metrics
                   port: 8083
-                initialDelaySeconds: 5
-                periodSeconds: 5
-                timeoutSeconds: 3
-                failureThreshold: 2
+                initialDelaySeconds: 10
+                periodSeconds: 10
+                timeoutSeconds: 5
+                failureThreshold: 3
             startup:
               enabled: true
               custom: true
@@ -141,16 +141,16 @@ app-template:
                 httpGet:
                   path: /metrics
                   port: 8083
-                initialDelaySeconds: 5
-                periodSeconds: 5
-                timeoutSeconds: 3
-                failureThreshold: 30
+                initialDelaySeconds: 10
+                periodSeconds: 10
+                timeoutSeconds: 5
+                failureThreshold: 60
           resources:
             requests:
               cpu: 10m
-              memory: 32Mi
-            limits:
               memory: 64Mi
+            limits:
+              memory: 128Mi
 
   service:
     main:

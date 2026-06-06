@@ -1,9 +1,0 @@
----
-apiVersion: metallb.io/v1beta1
-kind: L2Advertisement
-metadata:
-  name: dedicated-vips
-  namespace: metallb-system
-spec:
-  ipAddressPools:
-    - dedicated-vips
