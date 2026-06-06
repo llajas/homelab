@@ -384,6 +384,7 @@ minecraftServer:
         embedded: false
         annotations:
           lbipam.cilium.io/ips: "10.137.0.249"
+          lbipam.cilium.io/sharing-key: "hermitcraft"
         labels:
           io.cilium/bgp-announce: "true"
         type: LoadBalancer
@@ -485,6 +486,7 @@ deploymentLabels:
 
 serviceAnnotations:
   lbipam.cilium.io/ips: "10.137.0.249"
+  lbipam.cilium.io/sharing-key: "hermitcraft"
   external-dns.alpha.kubernetes.io/hostname: "hermitcraft-9.lajas.tech"
 serviceLabels:
   io.cilium/bgp-announce: "true"
