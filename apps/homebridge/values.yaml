@@ -8,7 +8,7 @@ image:
   repository: homebridge/homebridge
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart version.
-  tag: "latest"
+  tag: "2026-06-05"
 
 
 namespaceOverride: homebridge
@@ -61,8 +61,10 @@ service:
 extraServices:
   - name: plex-webhook
     type: LoadBalancer
-    loadBalancerClass: metallb
     loadBalancerIP: 10.137.0.227
+    annotations:
+      lbipam.cilium.io/ips: 10.137.0.227
+      io.cilium/bgp-announce: "true"
     port: 32401
     externalTrafficPolicy: Local
     targetPort: 32401
