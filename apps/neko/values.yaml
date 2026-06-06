@@ -136,6 +136,8 @@ app-template:
       type: LoadBalancer
       externalTrafficPolicy: Local
       loadBalancerIP: 10.137.0.231
+      labels:
+        io.cilium/bgp-announce: "true"
       annotations:
         lbipam.cilium.io/ips: 10.137.0.231
         io.cilium/bgp-announce: "true"
