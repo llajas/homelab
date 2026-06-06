@@ -1,0 +1,18 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: public-gateway-metallb-test
+  namespace: kube-system
+spec:
+  gatewayClassName: cilium-metallb-test
+  infrastructure:
+    annotations:
+      metallb.io/address-pool: gateway-test
+  listeners:
+  - name: http
+    protocol: HTTP
+    port: 80
+    allowedRoutes:
+      namespaces:
+        from: All
