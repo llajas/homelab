@@ -16,7 +16,9 @@ podAnnotations: {}
 podLabels: {}
 
 serviceAnnotations:
-serviceLabels: {}
+  lbipam.cilium.io/ips: "10.137.0.250"
+serviceLabels:
+  io.cilium/bgp-announce: "true"
 
 hytaleServer:
   serviceType: LoadBalancer
@@ -24,7 +26,7 @@ hytaleServer:
   nodePort:
   clusterIP:
   loadBalancerIP: 10.137.0.250
-  loadBalancerClass: "metallb"
+  loadBalancerClass: ""
   loadBalancerSourceRanges: []
   externalTrafficPolicy: Local
   externalIPs: []
