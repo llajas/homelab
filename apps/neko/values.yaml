@@ -135,8 +135,10 @@ app-template:
       controller: main
       type: LoadBalancer
       externalTrafficPolicy: Local
-      loadBalancerClass: "metallb"
       loadBalancerIP: 10.137.0.231
+      annotations:
+        lbipam.cilium.io/ips: 10.137.0.231
+        io.cilium/bgp-announce: "true"
       ports:
         tcpmux:
           port: 52100
