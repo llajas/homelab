@@ -26,17 +26,61 @@
 
     ## Create a new account
 
-    TODO
+    The supported onboarding flow today is Kanidm-first.
 
-    ## Send initial password
+    1. Make sure you have local access to the repo and cluster kubeconfig.
+    2. Run the onboarding script:
 
-    Choose one of the methods listed below to send the initial password to the user:
+        ```sh
+        ./scripts/onboard-user johndoe "John Doe" johndoe@example.com
+        ```
+
+        This will:
+
+        - create the Kanidm account
+        - set the user's email address
+        - add the user to the `editor` group by default
+        - print a credential reset token or recovery link for first login
+
+    3. To assign non-default groups during onboarding, pass them after the email:
+
+        ```sh
+        ./scripts/onboard-user johndoe "John Doe" johndoe@example.com editor grafana_editors planka_admins
+        ```
+
+    4. If a user loses access before they complete first login, generate a recovery credential as needed:
+
+        ```sh
+        ./scripts/kanidm-reset-password johndoe
+        ```
+
+    Kanidm is the source of truth for users and groups. Dex is only the application-facing OIDC broker in front of Kanidm.
+
+    During staged Kanidm upgrades, keep Dex and the downstream application issuer settings unchanged until the Kanidm hop is validated.
+
+    ## Group assignment
+
+    Group membership determines which applications a user can access and what role they receive after login.
+
+    Common examples in this repo:
+
+    - `editor` - default baseline access used by current automation
+    - `grafana_editors@auth.lajas.tech` / `grafana_admins@auth.lajas.tech` - Grafana roles
+    - `planka_admins` / `planka_admins@auth.lajas.tech` - Planka admin roles
+
+    Before assigning a new application group, verify that the target app and its OIDC role mapping are already configured in Git.
+
+    ## Send the initial login link or token
+
+    Choose one of the methods listed below to send the initial credential-reset link or token to the user:
 
     - Share via password manager (if supported)
-    - Encrypt the password file and send it via email or chat
-    - Simply write or print the password on a piece of paper
+    - Encrypt the token or link and send it via email or chat
+    - Write or print the token or link on a piece of paper
 
-    On the first login, the user will be required to update their password.
+    On the first login, the user will be required to set or update their credentials.
+
+    There is currently no full Kanidm admin web UI workflow documented in this repo for creating users or groups. Administration is done through the Kanidm CLI and the helper scripts above.
 
 ## Appendix
 
