@@ -23,13 +23,25 @@ from kubernetes.stream import stream
 # - Kubernetes service account
 config.load_config()
 
-gitea_host = client.NetworkingV1Api().read_namespaced_ingress('gitea', 'gitea').spec.rules[0].host
+gateway_api = client.CustomObjectsApi()
+
+def get_httproute_host(namespace: str, name: str) -> str:
+    route = gateway_api.get_namespaced_custom_object(
+        group='gateway.networking.k8s.io',
+        version='v1',
+        namespace=namespace,
+        plural='httproutes',
+        name=name,
+    )
+    return route['spec']['hostnames'][0]
+
+gitea_host = get_httproute_host('gitea', 'gitea')
 gitea_user_secret = client.CoreV1Api().read_namespaced_secret('gitea-admin-secret', 'gitea')
 gitea_user = base64.b64decode(gitea_user_secret.data['username']).decode("utf-8")
 gitea_pass = base64.b64decode(gitea_user_secret.data['password']).decode("utf-8")
-gitea_url = f"http://{gitea_host}"
+gitea_url = f"https://{gitea_host}"
 
-kanidm_host = client.NetworkingV1Api().read_namespaced_ingress('kanidm', 'kanidm').spec.rules[0].host
+kanidm_host = get_httproute_host('kanidm', 'kanidm')
 
 def apply_secret(name: str, namespace: str, data: dict) -> None:
     try:
@@ -119,7 +131,7 @@ def setup_gitea_auth_with_dex():
     client_secret = base64.b64decode(
         client.CoreV1Api().read_namespaced_secret('dex.gitea', 'global-secrets').data['client_secret']
     ).decode("utf-8")
-    discovery_url = f"https://{client.NetworkingV1Api().read_namespaced_ingress('dex', 'dex').spec.rules[0].host}/.well-known/openid-configuration"
+    discovery_url = f"https://{get_httproute_host('dex', 'dex')}/.well-known/openid-configuration"
 
     # TODO currently there's no API to add new authentication sources in Gitea,
     # so we have to workaround by running Gitea CLI in a Gitea pod.
@@ -224,7 +236,7 @@ def main() -> None:
         ]
 
         gitea_oauth_apps = [
-            {'name': 'woodpecker', 'redirect_uri': f"https://{client.NetworkingV1Api().read_namespaced_ingress('woodpecker-server', 'woodpecker').spec.rules[0].host}/authorize"},
+            {'name': 'woodpecker', 'redirect_uri': f"https://{get_httproute_host('woodpecker', 'woodpecker')}/authorize"},
         ]
 
         kanidm_groups = [
@@ -233,7 +245,7 @@ def main() -> None:
         ]
 
         kanidm_oauth_apps = [
-            {'name': 'dex', 'redirect_uri': f"https://{client.NetworkingV1Api().read_namespaced_ingress('dex', 'dex').spec.rules[0].host}/callback"},
+            {'name': 'dex', 'redirect_uri': f"https://{get_httproute_host('dex', 'dex')}/callback"},
         ]
 
         for token in gitea_access_tokens:

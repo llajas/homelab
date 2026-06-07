@@ -1,14 +1,29 @@
 #!/bin/sh
 
+set -eu
+
+if [ "$#" -lt 3 ]; then
+  printf 'Usage: %s <username> <full name> <email> [group ...]\n' "$0" >&2
+  exit 1
+fi
+
 username="${1}"
 fullname="${2}"
 mail="${3}"
+shift 3
 
 export KUBECONFIG=./metal/kubeconfig.yaml
-host="$(kubectl get ingress --namespace kanidm kanidm --output jsonpath='{.spec.rules[0].host}')"
+host="$(kubectl get httproute --namespace kanidm kanidm --output jsonpath='{.spec.hostnames[0]}')"
 
 kanidm person create "${username}" "${fullname}" --url "https://${host}" --name idm_admin
 kanidm person update "${username}" --url "https://${host}" --name idm_admin --mail "${mail}"
-# TODO better group management
-kanidm group add-members "editor" "${username}" --url "https://${host}" --name idm_admin
+
+if [ "$#" -eq 0 ]; then
+  set -- editor
+fi
+
+for group in "$@"; do
+  kanidm group add-members "${group}" "${username}" --url "https://${host}" --name idm_admin
+done
+
 kanidm person credential create-reset-token "${username}" --url "https://${host}" --name idm_admin
