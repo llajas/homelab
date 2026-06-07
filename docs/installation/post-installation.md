@@ -43,7 +43,7 @@ Save the following files to a safe location like a password manager (if you're u
 
 - Dex can be updated independently.
 - Kanidm upgrades must be done sequentially between minor versions.
-- This repo is pinned to the latest supported `1.8.x` hop before any future `1.9.x` or `1.10.x` upgrade.
+- This repo is pinned to the latest supported `1.9.x` hop before any future `1.10.x` upgrade.
 - Before every Kanidm minor upgrade, run:
 
     ```sh
@@ -86,6 +86,12 @@ When upgrading Kanidm with Dex still in front of applications, use this order of
     - Planka
 
 7. Only after those checks pass should the next Kanidm minor hop be planned.
+
+Current staged path in this repo:
+
+- `1.7.4 -> 1.8.3`
+- `1.8.3 -> 1.9.4`
+- `1.9.x -> 1.10.x` only after a separate validation cycle
 
 ## Run the full test suit
 
