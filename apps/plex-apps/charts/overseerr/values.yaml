@@ -13,7 +13,7 @@ image:
   # -- image repository
   repository: ghcr.io/seerr-team/seerr
   # -- image tag
-  tag: v3.2.0
+  tag: v3.3.0
   # -- image pull policy
   pullPolicy: IfNotPresent
 
