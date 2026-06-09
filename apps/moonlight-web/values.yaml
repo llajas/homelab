@@ -1,0 +1,87 @@
+nameOverride: ""
+fullnameOverride: moonlight-web
+
+replicaCount: 1
+
+image:
+  repository: mrcreativ3001/moonlight-web-stream
+  tag: latest
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  fsGroup: 999
+  fsGroupChangePolicy: OnRootMismatch
+
+securityContext:
+  runAsUser: 999
+  runAsGroup: 999
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+
+serviceAccount:
+  create: false
+  annotations: {}
+  name: ""
+
+service:
+  internal:
+    enabled: true
+    type: ClusterIP
+    port: 8080
+    annotations: {}
+    labels: {}
+  loadBalancer:
+    enabled: true
+    type: LoadBalancer
+    port: 8080
+    loadBalancerIP: 10.137.0.232
+    externalTrafficPolicy: Cluster
+    annotations:
+      io.cilium/bgp-announce: "true"
+      lbipam.cilium.io/ips: 10.137.0.232
+    labels:
+      io.cilium/bgp-announce: "true"
+    includeHttp: true
+
+webrtc:
+  nat1to1Host: 10.137.0.232
+  udpStart: 40000
+  udpEnd: 40100
+  networkTypes: ""
+  includeLoopbackCandidates: false
+
+turn:
+  enabled: false
+  existingSecret: ""
+  onePasswordItem:
+    enabled: false
+    vault: ""
+    item: ""
+    secretName: moonlight-web-turn
+  secretKeys:
+    url: TURN_URL
+    username: TURN_USERNAME
+    credential: TURN_CREDENTIAL
+
+persistence:
+  enabled: true
+  existingClaim: ""
+  accessMode: ReadWriteOnce
+  size: 2Gi
+  storageClassName: longhorn
+  mountPath: /moonlight-web/server
+
+resources: {}
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+extraEnv: []
+extraEnvFrom: []

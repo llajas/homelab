@@ -1,0 +1,9 @@
+apiVersion: v2
+name: moonlight-web
+description: Helm chart for Moonlight Web Stream in the streaming namespace
+type: application
+version: 0.1.0
+appVersion: "latest"
+home: https://github.com/MrCreativ3001/moonlight-web-stream
+sources:
+  - https://github.com/MrCreativ3001/moonlight-web-stream
