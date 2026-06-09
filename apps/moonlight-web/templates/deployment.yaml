@@ -1,0 +1,146 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "moonlight-web.fullname" . }}
+  namespace: {{ include "moonlight-web.namespace" . }}
+  labels:
+    {{- include "moonlight-web.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "moonlight-web.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "moonlight-web.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ include "moonlight-web.serviceAccountName" . }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ include "moonlight-web.name" . }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: BIND_ADDRESS
+              value: 0.0.0.0:8080
+            - name: WEBRTC_PORT_RANGE
+              value: {{ printf "%d:%d" (int .Values.webrtc.udpStart) (int .Values.webrtc.udpEnd) | quote }}
+            {{- if .Values.webrtc.nat1to1Host }}
+            - name: WEBRTC_NAT_1TO1_HOST
+              value: {{ .Values.webrtc.nat1to1Host | quote }}
+            {{- end }}
+            - name: WEBRTC_INCLUDE_LOOPBACK_CANDIDATES
+              value: {{ ternary "true" "false" .Values.webrtc.includeLoopbackCandidates | quote }}
+            {{- if .Values.webrtc.networkTypes }}
+            - name: WEBRTC_NETWORK_TYPES
+              value: {{ .Values.webrtc.networkTypes | quote }}
+            {{- end }}
+            {{- if .Values.turn.enabled }}
+            - name: TURN_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "moonlight-web.turnSecretName" . }}
+                  key: {{ .Values.turn.secretKeys.url }}
+            - name: TURN_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "moonlight-web.turnSecretName" . }}
+                  key: {{ .Values.turn.secretKeys.username }}
+            - name: TURN_CREDENTIAL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "moonlight-web.turnSecretName" . }}
+                  key: {{ .Values.turn.secretKeys.credential }}
+            - name: WEBRTC_ICE_SERVER_0_URL
+              value: turn:$(TURN_URL):3478?transport=udp
+            - name: WEBRTC_ICE_SERVER_0_USERNAME
+              value: $(TURN_USERNAME)
+            - name: WEBRTC_ICE_SERVER_0_CREDENTIAL
+              value: $(TURN_CREDENTIAL)
+            - name: WEBRTC_ICE_SERVER_1_URL
+              value: turn:$(TURN_URL):3478?transport=tcp
+            - name: WEBRTC_ICE_SERVER_1_USERNAME
+              value: $(TURN_USERNAME)
+            - name: WEBRTC_ICE_SERVER_1_CREDENTIAL
+              value: $(TURN_CREDENTIAL)
+            - name: WEBRTC_ICE_SERVER_2_URL
+              value: turn:$(TURN_URL):5349?transport=tcp
+            - name: WEBRTC_ICE_SERVER_2_USERNAME
+              value: $(TURN_USERNAME)
+            - name: WEBRTC_ICE_SERVER_2_CREDENTIAL
+              value: $(TURN_CREDENTIAL)
+            - name: WEBRTC_ICE_SERVER_3_URL
+              value: turn:$(TURN_URL):443?transport=tcp
+            - name: WEBRTC_ICE_SERVER_3_USERNAME
+              value: $(TURN_USERNAME)
+            - name: WEBRTC_ICE_SERVER_3_CREDENTIAL
+              value: $(TURN_CREDENTIAL)
+            {{- end }}
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- with .Values.extraEnvFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 15
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          startupProbe:
+            tcpSocket:
+              port: http
+            failureThreshold: 30
+            periodSeconds: 5
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          {{- if .Values.persistence.enabled }}
+          volumeMounts:
+            - name: config
+              mountPath: {{ .Values.persistence.mountPath }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.persistence.enabled }}
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: {{ include "moonlight-web.pvcName" . }}
+      {{- end }}
