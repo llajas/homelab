@@ -1,0 +1,38 @@
+{{- if .Values.service.loadBalancer.enabled }}
+{{- $start := int .Values.webrtc.udpStart }}
+{{- $end := int .Values.webrtc.udpEnd }}
+{{- $stop := int (add1 $end) }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "moonlight-web.fullname" . }}-webrtc
+  namespace: {{ include "moonlight-web.namespace" . }}
+  labels:
+    {{- include "moonlight-web.labels" . | nindent 4 }}
+    {{- with .Values.service.loadBalancer.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.service.loadBalancer.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service.loadBalancer.type }}
+  loadBalancerIP: {{ .Values.service.loadBalancer.loadBalancerIP }}
+  externalTrafficPolicy: {{ .Values.service.loadBalancer.externalTrafficPolicy }}
+  selector:
+    {{- include "moonlight-web.selectorLabels" . | nindent 4 }}
+  ports:
+    {{- if .Values.service.loadBalancer.includeHttp }}
+    - name: http
+      port: {{ .Values.service.loadBalancer.port }}
+      targetPort: 8080
+      protocol: TCP
+    {{- end }}
+    {{- range $port := untilStep $start $stop 1 }}
+    - name: webrtc-{{ $port }}
+      port: {{ $port }}
+      targetPort: {{ $port }}
+      protocol: UDP
+    {{- end }}
+{{- end }}
