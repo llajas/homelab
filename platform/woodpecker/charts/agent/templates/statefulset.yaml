@@ -69,7 +69,14 @@ spec:
           env:
             {{- range $key, $value := .Values.env }}
             - name: {{ $key }}
+              {{- if kindIs "map" $value }}
+              {{- if $value.valueFrom }}
+              valueFrom:
+                {{- toYaml $value.valueFrom | nindent 16 }}
+              {{- end }}
+              {{- else }}
               value: {{ $value | quote }}
+              {{- end }}
             {{- end }}
           envFrom:
             {{- if .Values.mapAgentSecret }}
