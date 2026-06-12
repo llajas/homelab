@@ -29,6 +29,7 @@ agent:
     WOODPECKER_SERVER: 'woodpecker-server:9000'
     WOODPECKER_BACKEND: kubernetes
     WOODPECKER_BACKEND_K8S_NAMESPACE: woodpecker
+    WOODPECKER_BACKEND_K8S_NAMESPACE_PER_ORGANIZATION: false
     WOODPECKER_BACKEND_K8S_STORAGE_CLASS: ''
     WOODPECKER_BACKEND_K8S_VOLUME_SIZE: 10G
     WOODPECKER_BACKEND_K8S_STORAGE_RWX: true
@@ -36,6 +37,11 @@ agent:
     WOODPECKER_BACKEND_K8S_POD_ANNOTATIONS: ''
     WOODPECKER_CONNECT_RETRY_COUNT: '1'
     WOODPECKER_MAX_WORKFLOWS: 10
+    # WOODPECKER_DATABASE_DATASOURCE:
+    #   valueFrom:
+    #     secretKeyRef:
+    #       name: woodpecker-database-secret
+    #       key: datasource
 
   # -- Add extra secret that is contains environment variables
   extraSecretNamesForEnvFrom:
@@ -197,6 +203,11 @@ server:
     WOODPECKER_ADMIN: gitea_admin
     WOODPECKER_PLUGINS_PRIVILEGED: 'woodpeckerci/plugin-docker-buildx:latest'
     # WOODPECKER_GITHUB: "true"
+    # WOODPECKER_DATABASE_DATASOURCE:
+    #   valueFrom:
+    #     secretKeyRef:
+    #       name: woodpecker-database-secret
+    #       key: datasource
 
   # -- Add extra environment variables from the secrets list
   extraSecretNamesForEnvFrom:
@@ -309,6 +320,22 @@ server:
         hosts:
           - *host
 
+    grpc:
+      # -- Enable the GRPC ingress for the server component
+      enabled: false  # Migrated to Gateway API HTTPRoute
+      # -- Add annotations to the GRPC ingress
+      annotations: {}
+      # -- Defines which ingress controller will implement the GRPC resource
+      # ingressClassName: 'nginx'  # Migrated to Gateway API HTTPRoute
+      hosts:
+        - host: *host
+          paths:
+            - path: /
+      tls: []
+      #  - secretName: woodpecker-grpc-tls-certificate
+      #    hosts:
+      #      - *host
+
   # -- Specifies the ressources for the server component
   resources:
     {}
@@ -357,3 +384,6 @@ server:
       successThreshold: 1
       # -- When a probe fails, Kubernetes will try failureThreshold times before giving up (default: 3)
       failureThreshold: 3
+
+# -- Allow adding additional custom kubernets objects
+additionalObjects: []
