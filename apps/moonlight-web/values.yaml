@@ -49,6 +49,12 @@ service:
       io.cilium/bgp-announce: "true"
     includeHttp: true
 
+httpRoute:
+  enabled: true
+  name: moonlight-web
+  host: moonlight.lajas.tech
+  annotations: {}
+
 webrtc:
   nat1to1Host: 10.138.0.232
   udpStart: 40000
