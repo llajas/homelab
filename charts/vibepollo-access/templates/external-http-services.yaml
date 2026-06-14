@@ -1,0 +1,72 @@
+{{- $root := . }}
+{{- range $host := $root.Values.vibePollo.hosts }}
+{{- if or (not (hasKey $host "enabled")) $host.enabled }}
+{{- $instanceCount := int $host.instanceCount }}
+{{- $portCount := len $host.ports }}
+{{- if ne $portCount $instanceCount }}
+{{- fail (printf "vibePollo host %q has instanceCount=%d but %d ports defined" $host.name $instanceCount $portCount) }}
+{{- end }}
+{{- range $idx, $port := $host.ports }}
+{{- $instanceNumber := printf "%02d" (add1 $idx) }}
+{{- $instanceName := printf "vibepollo-%s-%s" $host.dnsLabel $instanceNumber }}
+{{- $displayName := default $host.dnsLabel $host.displayName }}
+{{- $annotations := dict "hajimari.io/appName" (printf "VibePollo %s %s" $displayName $instanceNumber) "hajimari.io/icon" ($root.Values.vibePollo.gateway.hajimariIcon | default "controller-classic") }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $instanceName }}-service
+  namespace: {{ $root.Release.Namespace }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ $port }}
+      targetPort: {{ $port }}
+      protocol: {{ $root.Values.vibePollo.serviceProtocol | default "TCP" }}
+
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: {{ $instanceName }}-service
+  namespace: {{ $root.Release.Namespace }}
+subsets:
+  - addresses:
+      - ip: {{ $host.ip }}
+    ports:
+      - port: {{ $port }}
+        protocol: {{ $root.Values.vibePollo.serviceProtocol | default "TCP" }}
+{{- if $root.Values.vibePollo.gateway.enabled }}
+
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ $instanceName }}
+  namespace: {{ $root.Release.Namespace }}
+  annotations:
+{{ toYaml $annotations | indent 4 }}
+spec:
+  parentRefs:
+    - name: public-gateway
+      group: gateway.networking.k8s.io
+      kind: Gateway
+      namespace: kube-system
+      sectionName: {{ $root.Values.vibePollo.gateway.sectionName | default "https" }}
+  hostnames:
+    - {{ printf "%s.%s" $instanceName $root.Values.vibePollo.baseDomain | quote }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - group: ""
+          kind: Service
+          name: {{ $instanceName }}-service
+          port: {{ $port }}
+          weight: 1
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

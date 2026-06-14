@@ -1,0 +1,9 @@
+vibePollo:
+  baseDomain: lajas.tech
+  serviceProtocol: TCP
+  gateway:
+    enabled: true
+    sectionName: https
+    hajimariIcon: controller-classic
+
+  hosts: []
