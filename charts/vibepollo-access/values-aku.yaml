@@ -1,0 +1,11 @@
+vibePollo:
+  hosts:
+    - enabled: false
+      name: wife-pc
+      dnsLabel: aku
+      displayName: Aku
+      ip: 10.13.33.130
+      instanceCount: 1
+      # Enable this host and adjust ports as you bring instances online.
+      ports:
+        - 11001

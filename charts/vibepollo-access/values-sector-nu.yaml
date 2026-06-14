@@ -1,0 +1,12 @@
+vibePollo:
+  hosts:
+    - enabled: true
+      name: sector-nu
+      dnsLabel: sector-nu
+      displayName: Sector Nu
+      ip: 10.13.33.129
+      instanceCount: 1
+      # Keep this list aligned with instanceCount.
+      # Each port becomes its own Service, Endpoints, and HTTPRoute.
+      ports:
+        - 11001

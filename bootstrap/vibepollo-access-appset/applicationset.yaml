@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: vibepollo-access
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - name: vibepollo-access-sector-nu
+            namespace: sector-nu
+            valueFile: values-sector-nu.yaml
+          - name: vibepollo-access-aku
+            namespace: aku
+            valueFile: values-aku.yaml
+  template:
+    metadata:
+      name: '{{name}}'
+    spec:
+      destination:
+        name: in-cluster
+        namespace: '{{namespace}}'
+      project: default
+      source:
+        repoURL: http://gitea-http.gitea:3000/ops/homelab
+        targetRevision: master
+        path: charts/vibepollo-access
+        helm:
+          valueFiles:
+            - values.yaml
+            - '{{valueFile}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - ApplyOutOfSyncOnly=true
+          - ServerSideApply=true
