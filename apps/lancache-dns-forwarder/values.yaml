@@ -156,13 +156,13 @@ app-template:
     main:
       controller: main
       type: LoadBalancer
-      loadBalancerIP: 10.137.0.230
+      loadBalancerIP: 10.138.0.230
       externalTrafficPolicy: Cluster
       labels:
         io.cilium/bgp-announce: "true"
       annotations:
         io.cilium/bgp-announce: "true"
-        lbipam.cilium.io/ips: 10.137.0.230
+        lbipam.cilium.io/ips: 10.138.0.230
       ports:
         dns-udp:
           port: 53

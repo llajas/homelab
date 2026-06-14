@@ -32,10 +32,10 @@ env:
 service:
   main:
     type: LoadBalancer
-    loadBalancerIP: 10.137.0.229
+    loadBalancerIP: 10.138.0.229
     annotations:
       io.cilium/bgp-announce: "true"
-      lbipam.cilium.io/ips: 10.137.0.229
+      lbipam.cilium.io/ips: 10.138.0.229
     labels:
       io.cilium/bgp-announce: "true"
     ports:
@@ -47,7 +47,7 @@ service:
   dns:
     enabled: true
     type: ClusterIP
-    # NOTE: LoadBalancer IP (10.137.0.230) now managed by lancache-dns-forwarder (dnsdist)
+  # NOTE: LoadBalancer IP (10.138.0.230) now managed by lancache-dns-forwarder (dnsdist)
     # which provides health-checking and automatic failover to Unbound when lancache is down
     ports:
       dns:
@@ -57,7 +57,7 @@ service:
 dnsPolicy: None
 dnsConfig:
   nameservers:
-    - 10.137.0.253
+    - 10.138.0.253
 
 dns:
   # -- Enable and configure LanCache DNS sidecar and service.
