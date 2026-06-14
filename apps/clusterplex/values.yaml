@@ -199,7 +199,7 @@ pms:
     annotations:
       io.cilium/bgp-announce: "true"
       lbipam.cilium.io/ips: 10.137.0.228
-      external-dns.alpha.kubernetes.io/hostname: "plex.lajas.tech"
+      external-dns.alpha.kubernetes.io/hostname: "pleks.lajas.tech"
       external-dns.alpha.kubernetes.io/exclude: "true"
 
     # -- Provide additional labels which may be required.
