@@ -2,7 +2,7 @@ all:
   vars:
     control_plane_endpoint: 10.137.0.100
     load_balancer_ip_pool:
-      - 10.137.0.224/27
+      - 10.138.0.224/27
 metal:
   children:
     masters:

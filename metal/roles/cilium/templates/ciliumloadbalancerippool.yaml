@@ -4,4 +4,4 @@ metadata:
   name: default-pool
 spec:
   blocks:
-    - cidr: 10.137.0.224/27
+    - cidr: 10.138.0.224/27
