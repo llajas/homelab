@@ -30,6 +30,6 @@ spec:
     backendRefs:
     - group: ""
       kind: Service
-      name: clusterplex-pms
+      name: clusterplex-pms-web
       port: 32400
       weight: 1

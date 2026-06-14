@@ -1,0 +1,25 @@
+{{- if .Values.pms.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-pms-web
+  labels:
+    app.kubernetes.io/service: {{ .Release.Name }}-pms-web
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/name: pms
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version }}
+spec:
+  type: ClusterIP
+  internalTrafficPolicy: Cluster
+  ports:
+    - name: web
+      appProtocol: http
+      port: {{ .Values.pms.config.port | default 32400 }}
+      protocol: TCP
+      targetPort: {{ .Values.pms.config.port | default 32400 }}
+  selector:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/name: pms
+{{- end }}

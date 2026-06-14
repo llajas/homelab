@@ -36,10 +36,6 @@ app-template:
           metrics: 0.0.0.0:2000
           no-autoupdate: true
           ingress:
-            - hostname: 'plex.lajas.tech'
-              service: http://clusterplex-pms.clusterplex.svc.cluster.local:32400
-              originRequest:
-                httpHostHeader: plex.lajas.tech
             - hostname: '*.lajas.tech'
               service: https://cilium-gateway-public-gateway.kube-system
               originRequest:

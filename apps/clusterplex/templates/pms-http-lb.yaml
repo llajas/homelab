@@ -12,7 +12,9 @@ metadata:
     helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version }}
 spec:
   type: LoadBalancer
+  {{- if .Values.pms.serviceConfig.loadBalancerClass }}
   loadBalancerClass: {{ .Values.pms.serviceConfig.loadBalancerClass | quote }}
+  {{- end }}
   loadBalancerIP: {{ .Values.pms.serviceConfig.loadBalancerIP | quote }}
   externalTrafficPolicy: {{ .Values.pms.serviceConfig.externalTrafficPolicy }}
   ports:

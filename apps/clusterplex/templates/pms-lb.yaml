@@ -17,14 +17,17 @@ metadata:
     {{- toYaml .Values.pms.serviceConfig.annotations | nindent 4 }}
 spec:
   type: LoadBalancer
+  {{- if .Values.pms.serviceConfig.loadBalancerClass }}
   loadBalancerClass: {{ .Values.pms.serviceConfig.loadBalancerClass | quote }}
+  {{- end }}
   loadBalancerIP: {{ .Values.pms.serviceConfig.loadBalancerIP | quote }}
   externalTrafficPolicy: {{ .Values.pms.serviceConfig.externalTrafficPolicy }}
   ports:
     - port: {{ .Values.pms.config.port | default 32400 }}
       targetPort: {{ .Values.pms.config.port | default 32400 }}
       protocol: TCP
-      name: plex
+      name: plex-web
+      appProtocol: http
     - port: {{ .Values.pms.config.relayPort | default 32499 }}
       targetPort: {{ .Values.pms.config.relayPort | default 32499 }}
       protocol: TCP
