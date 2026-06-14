@@ -61,11 +61,11 @@ service:
 extraServices:
   - name: plex-webhook
     type: LoadBalancer
-    loadBalancerIP: 10.137.0.227
+    loadBalancerIP: 10.138.0.227
     labels:
       io.cilium/bgp-announce: "true"
     annotations:
-      lbipam.cilium.io/ips: 10.137.0.227
+      lbipam.cilium.io/ips: 10.138.0.227
       io.cilium/bgp-announce: "true"
     port: 32401
     externalTrafficPolicy: Local

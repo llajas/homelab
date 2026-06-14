@@ -189,7 +189,7 @@ pms:
     # loadBalancerClass support) does not create a LoadBalancer service.
     # The external LoadBalancer service is managed by templates/pms-lb.yaml instead.
     type: ClusterIP
-    loadBalancerIP: 10.137.0.228
+    loadBalancerIP: 10.138.0.228
 
     # -- Specify the externalTrafficPolicy for the service. Options: Cluster, Local
     # [[ref](https://kubernetes.io/docs/tutorials/services/source-ip/)]
@@ -198,7 +198,7 @@ pms:
     # -- Provide additional annotations which may be required.
     annotations:
       io.cilium/bgp-announce: "true"
-      lbipam.cilium.io/ips: 10.137.0.228
+      lbipam.cilium.io/ips: 10.138.0.228
       external-dns.alpha.kubernetes.io/hostname: "pleks.lajas.tech"
 
     # -- Provide additional labels which may be required.

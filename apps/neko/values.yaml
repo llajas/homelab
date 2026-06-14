@@ -112,7 +112,7 @@ app-template:
             NEKO_WEBRTC_ICETRICKLE: "true"
             NEKO_WEBRTC_ICESERVERS_FRONTEND: '[{"urls":["stun:stun.l.google.com:19302"]}]'
             NEKO_WEBRTC_ICESERVERS_BACKEND: '[{"urls":["stun:stun.l.google.com:19302"]}]'
-            NEKO_WEBRTC_NAT1TO1: "10.137.0.231"
+            NEKO_WEBRTC_NAT1TO1: "10.138.0.231"
 
           securityContext:
             runAsUser: 0
@@ -135,11 +135,11 @@ app-template:
       controller: main
       type: LoadBalancer
       externalTrafficPolicy: Local
-      loadBalancerIP: 10.137.0.231
+      loadBalancerIP: 10.138.0.231
       labels:
         io.cilium/bgp-announce: "true"
       annotations:
-        lbipam.cilium.io/ips: 10.137.0.231
+        lbipam.cilium.io/ips: 10.138.0.231
         io.cilium/bgp-announce: "true"
       ports:
         tcpmux:

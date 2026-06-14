@@ -40,17 +40,17 @@ service:
     enabled: true
     type: LoadBalancer
     port: 8080
-    loadBalancerIP: 10.137.0.232
+    loadBalancerIP: 10.138.0.232
     externalTrafficPolicy: Cluster
     annotations:
       io.cilium/bgp-announce: "true"
-      lbipam.cilium.io/ips: 10.137.0.232
+      lbipam.cilium.io/ips: 10.138.0.232
     labels:
       io.cilium/bgp-announce: "true"
     includeHttp: true
 
 webrtc:
-  nat1to1Host: 10.137.0.232
+  nat1to1Host: 10.138.0.232
   udpStart: 40000
   udpEnd: 40100
   networkTypes: ""
