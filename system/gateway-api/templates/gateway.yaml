@@ -7,7 +7,7 @@ spec:
   gatewayClassName: cilium
   infrastructure:
     annotations:
-      lbipam.cilium.io/ips: "10.137.0.226"
+      lbipam.cilium.io/ips: "10.138.0.226"
       lbipam.cilium.io/sharing-key: public-gateway
       lbipam.cilium.io/sharing-cross-namespace: gitea
     labels:
