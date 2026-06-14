@@ -19,6 +19,61 @@ They are not permanent, we can change them in the future if better alternatives 
 
     - CHANGEME
 
+## Split ClusterPlex Gateway and direct Plex services
+
+**Context**
+
+Plex needs two different access paths with different networking tradeoffs:
+
+- `plex.lajas.tech` is normal HTTPS web access. LAN clients resolve it to the
+  public Gateway VIP, and public clients reach the same Gateway through
+  Cloudflare Tunnel.
+- Direct Plex clients can still use Plex's native `:32400` access path, where
+  preserving the original client IP is useful for Plex behavior and logging.
+
+Those paths cannot safely share one Kubernetes `LoadBalancer` Service. When a
+Cilium Gateway `HTTPRoute` points at a `LoadBalancer` Service that also uses
+`externalTrafficPolicy: Local`, Cilium Gateway can return `no healthy upstream`.
+Changing the Service to `externalTrafficPolicy: Cluster` makes the Gateway path
+work, but it removes the direct Plex path's source-IP preservation. This matches
+the behavior tracked in [cilium/cilium#41482](https://github.com/cilium/cilium/issues/41482).
+
+**Decision**
+
+Expose ClusterPlex with two Services:
+
+- `clusterplex-pms-web`: a dedicated `ClusterIP` Service on port `32400`, used
+  only as the Gateway API `HTTPRoute` backend for `plex.lajas.tech`.
+- `clusterplex-pms`: a direct `LoadBalancer` Service for Plex client access on
+  `10.138.0.228`, keeping `externalTrafficPolicy: Local` and publishing the
+  optional direct name `pleks.lajas.tech`.
+
+The `clusterplex-plex` `HTTPRoute` keeps the Cloudflare/ExternalDNS annotations
+that publish `plex.lajas.tech` to `homelab-tunnel.lajas.tech`, but its backend
+references `clusterplex-pms-web` instead of the direct LoadBalancer Service.
+Cloudflared then forwards tunneled `*.lajas.tech` traffic to the public Gateway,
+where Gateway API hostname routing selects the matching `HTTPRoute`.
+
+Do not assign the Gateway VIP `10.138.0.226` to the direct Plex Service. That VIP
+belongs to `kube-system/public-gateway` and should receive HTTPS traffic on
+ports `80` and `443`; direct Plex `:32400` traffic stays on `10.138.0.228`.
+
+**Consequences**
+
+- Gateway-backed Plex access uses a normal ClusterIP backend and avoids the
+  Cilium `no healthy upstream` failure mode.
+- Direct Plex clients can still use `10.138.0.228:32400` or
+  `pleks.lajas.tech:32400` while preserving client IPs with
+  `externalTrafficPolicy: Local`.
+- `plex.lajas.tech` must not be published by the direct LoadBalancer Service;
+  it belongs to the Gateway/Cloudflare Tunnel path.
+- Public DNS and Cloudflare Tunnel are separate layers: the HTTPRoute annotation
+  points public DNS at `homelab-tunnel.lajas.tech`, while cloudflared's wildcard
+  ingress rule forwards tunneled requests to the Gateway Service.
+- Plex may see Gateway/Envoy as the peer on the HTTPS path unless it honors
+  forwarded headers such as `X-Forwarded-For`. Real client IP preservation is
+  guaranteed only on the separate direct Plex LoadBalancer path.
+
 ## Remove the Docker wrapper for Nix shell
 
 **Context**

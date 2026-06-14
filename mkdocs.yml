@@ -70,6 +70,7 @@ nav:
     - Troubleshooting:
       - how-to-guides/troubleshooting/deployment.md
       - how-to-guides/troubleshooting/argocd.md
+      - how-to-guides/troubleshooting/cilium-off-link-vips.md
       - how-to-guides/troubleshooting/cert-manager.md
       - how-to-guides/troubleshooting/gitea.md
       - how-to-guides/troubleshooting/longhorn.md
