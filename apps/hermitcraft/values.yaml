@@ -297,7 +297,7 @@ minecraftServer:
   servicePort: 25565
   clusterIP:
   loadBalancerClass: ""
-  loadBalancerIP: 10.137.0.249
+  loadBalancerIP: 10.138.0.249
   # loadBalancerSourceRanges: []
   ## Set the externalTrafficPolicy in the Service to either Cluster or Local
   externalTrafficPolicy: Local
@@ -383,13 +383,13 @@ minecraftServer:
         enabled: true
         embedded: false
         annotations:
-          lbipam.cilium.io/ips: "10.137.0.249"
+          lbipam.cilium.io/ips: "10.138.0.249"
           lbipam.cilium.io/sharing-key: "hermitcraft"
         labels:
           io.cilium/bgp-announce: "true"
         type: LoadBalancer
         port: 24454
-        loadBalancerIP: 10.137.0.249
+        loadBalancerIP: 10.138.0.249
         loadBalancerClass: ""
         loadBalancerSourceRanges: []
         externalTrafficPolicy: Local
@@ -485,7 +485,7 @@ deploymentLabels:
   smb-dependent: "true"
 
 serviceAnnotations:
-  lbipam.cilium.io/ips: "10.137.0.249"
+  lbipam.cilium.io/ips: "10.138.0.249"
   lbipam.cilium.io/sharing-key: "hermitcraft"
   external-dns.alpha.kubernetes.io/hostname: "hermitcraft-9.lajas.tech"
 serviceLabels:

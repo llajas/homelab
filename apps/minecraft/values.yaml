@@ -659,7 +659,7 @@ minecraftServer:
   servicePort: 25565
   clusterIP:
   loadBalancerClass: ""
-  loadBalancerIP: 10.137.0.248
+  loadBalancerIP: 10.138.0.248
   # loadBalancerSourceRanges: []
   ## Set the externalTrafficPolicy in the Service to either Cluster or Local
   externalTrafficPolicy: Local
@@ -844,7 +844,7 @@ deploymentLabels:
   smb-dependent: "true"
 
 serviceAnnotations:
-  lbipam.cilium.io/ips: "10.137.0.248"
+  lbipam.cilium.io/ips: "10.138.0.248"
   external-dns.alpha.kubernetes.io/hostname: "bluffcraft-local.lajas.tech"
 serviceLabels:
   io.cilium/bgp-announce: "true"
