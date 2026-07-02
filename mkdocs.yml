@@ -79,6 +79,7 @@ nav:
     - Architecture:
       - reference/architecture/overview.md
       - reference/architecture/networking.md
+      - reference/architecture/lancache-dns-failover.md
       - reference/architecture/decision-records.md
     - reference/license.md
     - reference/changelog.md
