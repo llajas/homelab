@@ -44,6 +44,9 @@ additionalContainers:
       - name: dns
         containerPort: 53
         protocol: UDP
+      - name: dns-tcp
+        containerPort: 53
+        protocol: TCP
     livenessProbe:
       exec:
         command:
@@ -92,6 +95,11 @@ service:
         enabled: true
         protocol: UDP
         containerPort: 53
+      dns-tcp:
+        enabled: true
+        protocol: TCP
+        port: 53
+        targetPort: 53
 {{ end }}
 {{- end -}}
 {{- $_ := mergeOverwrite .Values (include "lancache.harcodedValues" . | fromYaml) -}}

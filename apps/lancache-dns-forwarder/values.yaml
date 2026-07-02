@@ -45,6 +45,7 @@ app-template:
                   address="$LANCACHE_IP:53",
                   name="lancache-dns",
                   order=1,
+                  tcpOnly=true,
                   checkInterval=1,
                   checkTimeout=1000,
                   maxCheckFailures=3,
@@ -58,6 +59,7 @@ app-template:
                   address="$UNBOUND_IP:53",
                   name="unbound-fallback",
                   order=2,
+                  tcpOnly=true,
                   checkInterval=5,
                   checkTimeout=1000,
                   maxCheckFailures=3,
@@ -157,7 +159,7 @@ app-template:
       controller: main
       type: LoadBalancer
       loadBalancerIP: 10.138.0.230
-      externalTrafficPolicy: Cluster
+      externalTrafficPolicy: Local
       labels:
         io.cilium/bgp-announce: "true"
       annotations:
