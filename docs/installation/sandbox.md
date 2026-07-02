@@ -46,7 +46,7 @@ make
 
 The homepage should be available at <https://home.127-0-0-1.nip.io> (ignore the security warning because we don’t have valid certificates).
 
-See [admin credentials](../post-installation/#admin-credentials) for default passwords.
+See [admin credentials](post-installation.md#admin-credentials) for default passwords.
 
 If you want to make some changes, simply commit to the local `dev` branch and push it to Gitea in the sandbox:
 

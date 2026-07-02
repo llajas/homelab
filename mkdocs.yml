@@ -81,6 +81,8 @@ nav:
       - reference/architecture/networking.md
       - reference/architecture/lancache-dns-failover.md
       - reference/architecture/decision-records.md
+    - Hardware:
+      - reference/hardware/cloudkey.md
     - reference/license.md
     - reference/changelog.md
     - reference/roadmap.md
