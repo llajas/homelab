@@ -12,7 +12,7 @@ image:
   repository: ghcr.io/thephaseless/byparr
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: v2.1.0
+  tag: 2.1.0
 
 sharedMemory:
   enabled: true
