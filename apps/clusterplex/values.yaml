@@ -6,10 +6,10 @@ global:
     repository: linuxserver/plex
 
     # -- The image tag to use
-    tag: latest
+    tag: 1.43.2.10687-563d026ea-ls312
 
     # -- Defines when the image should be pulled. Options are Always (default), IfNotPresent, and Never
-    imagePullPolicy: Always
+    imagePullPolicy: IfNotPresent
 
   # -- The CluterPlex version of docker mod images to pull
   # @default -- The appVersion for this chart

@@ -5,7 +5,7 @@ global:
 image:
   repository: '{{ .Values.global.plexImage.repository }}'
   tag: '{{ .Values.global.plexImage.tag | default "latest" }}'
-  imagePullPolicy: '{{ .Values.global.plexImage.imagePullPolicy }}'
+  pullPolicy: '{{ .Values.global.plexImage.imagePullPolicy }}'
 
 controller:
   type: statefulset
