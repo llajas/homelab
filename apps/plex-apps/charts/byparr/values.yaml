@@ -6,14 +6,17 @@ env:
   - PUID: 1000
   - PGID: 1000
   - TZ: "America/Chicago"
-  - USE_HEADLESS: default
-  
+  - LOG_LEVEL: "INFO"
 
 image:
   repository: ghcr.io/thephaseless/byparr
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: 2
+  tag: v2.1.0
+
+sharedMemory:
+  enabled: true
+  sizeLimit: 512Mi
 
 replicaCount: 1
 
@@ -39,4 +42,3 @@ ingress:
     tls:
       secretName: byparr-tls-certificate
       host: *host
-

@@ -30,7 +30,7 @@ dependencies:
     version: 4.5.2
     repository: "file://./charts/common"
   - name: byparr
-    version: 0.1.0
+    version: 0.1.1
     repository: "file://./charts/byparr"
   - name: cleanuparr
     version: 0.1.1

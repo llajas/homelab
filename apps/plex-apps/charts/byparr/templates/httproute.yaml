@@ -18,5 +18,5 @@ spec:
         type: PathPrefix
         value: /
     backendRefs:
-    - name: {{ include "common.names.fullname" . }}
+    - name: {{ include "byparr.fullname" . }}
       port: {{ .Values.service.port }}

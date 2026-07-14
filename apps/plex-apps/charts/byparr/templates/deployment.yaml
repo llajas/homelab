@@ -29,6 +29,11 @@ spec:
         ports:
         - containerPort: {{ .Values.service.port }}
           name: byparr
+        {{- if .Values.sharedMemory.enabled }}
+        volumeMounts:
+        - name: dshm
+          mountPath: /dev/shm
+        {{- end }}
         env:
         {{- range .Values.env }}
         {{- $pair := . | toYaml | fromYaml }}
@@ -37,4 +42,11 @@ spec:
           value: "{{ $value }}"
         {{- end }}
         {{- end }}
+      {{- if .Values.sharedMemory.enabled }}
+      volumes:
+      - name: dshm
+        emptyDir:
+          medium: Memory
+          sizeLimit: {{ .Values.sharedMemory.sizeLimit | quote }}
+      {{- end }}
  
