@@ -9,22 +9,22 @@ dependencies:
     version: 5.4.2
     repository: "file://./charts/overseerr"
   - name: prowlarr
-    version: 4.5.2
+    version: 4.5.3
     repository: "file://./charts/prowlarr"
   - name: radarr
-    version: 16.3.2
+    version: 16.3.3
     repository: "file://./charts/radarr"
   - name: rdtclient
     version: 0.1.1
     repository: "file://./charts/rdtclient"
   - name: sabnzbd
-    version: 9.4.2
+    version: 9.4.3
     repository: "file://./charts/sabnzbd"
   - name: sonarr
-    version: 16.3.2
+    version: 16.3.3
     repository: "file://./charts/sonarr"
   - name: tautulli
-    version: 1.1.5
+    version: 1.1.6
     repository: "file://./charts/tautulli"
   - name: common
     version: 4.5.2
@@ -33,5 +33,5 @@ dependencies:
     version: 0.1.0
     repository: "file://./charts/byparr"
   - name: cleanuparr
-    version: 0.1.0
+    version: 0.1.1
     repository: "file://./charts/cleanuparr"

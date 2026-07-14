@@ -1,9 +1,9 @@
 ---
 apiVersion: v2
-appVersion: 2.3.7.5365
+appVersion: 2.4.0.5397
 description: Indexer manager/proxy built on the popular arr net base stack to integrate with your various PVR apps.
 name: prowlarr
-version: 4.5.2
+version: 4.5.3
 kubeVersion: ">=1.16.0-0"
 keywords:
   - prowlarr
