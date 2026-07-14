@@ -173,9 +173,7 @@ probes:
     enabled: true
     custom: true
     spec:
-      httpGet:
-        scheme: HTTP
-        path: /identity
+      tcpSocket:
         port: {{ .Values.pms.config.port | default 32400 }}
       initialDelaySeconds: 120
       timeoutSeconds: 5
