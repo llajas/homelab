@@ -6,12 +6,13 @@ env:
   - PUID: 1000
   - PGID: 1000
   - TZ: "America/Chicago"
+  - SKIP_CHOWN: "true"
 
 image:
   repository: rogerfar/rdtclient
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: 2.0.133
+  tag: 2.0.140
 
 replicaCount: 1
 

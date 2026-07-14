@@ -15,7 +15,7 @@ dependencies:
     version: 16.3.2
     repository: "file://./charts/radarr"
   - name: rdtclient
-    version: 0.1.0
+    version: 0.1.1
     repository: "file://./charts/rdtclient"
   - name: sabnzbd
     version: 9.4.2
