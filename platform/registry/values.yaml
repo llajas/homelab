@@ -46,7 +46,7 @@ docker-registry:
     size: 10Gi
   garbageCollect:
     enabled: true
-    deleteUntagged: true
+    deleteUntagged: false
     schedule: "0 1 * * *" # Runs daily at 1 AM
     resources:
       requests:
