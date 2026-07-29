@@ -371,6 +371,7 @@ initContainers:
 sidecarContainers:
   - name: geyser
     image: "registry.lajas.tech/geyser:latest"
+    imagePullPolicy: IfNotPresent
     volumeMounts:
       - name: geyser-data
         mountPath: /app
