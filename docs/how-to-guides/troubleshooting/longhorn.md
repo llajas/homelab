@@ -36,6 +36,14 @@ See [Set Backup Target](https://longhorn.io/docs/1.5.3/snapshots-and-backups/bac
 
 ## Troubleshooting
 
+### Lower available space on GPU nodes
+
+Nodes with GPUs can show less disk space available to Longhorn than otherwise similar nodes. This does not necessarily mean Longhorn is using the disk unevenly. GPU-capable nodes often run larger workloads and keep larger container image layers, model data, cache directories, or other host-local artifacts outside of Longhorn's managed replica data.
+
+When comparing Longhorn usage across nodes, check both the Longhorn scheduled replica data and the node's raw filesystem availability. A node can have very little Longhorn scheduled storage while still being close to Longhorn's free-space scheduling threshold because non-Longhorn data is consuming the underlying filesystem.
+
+If this happens, prefer freeing host-local space first, such as pruning unused container images or moving non-Longhorn caches, before forcing Longhorn replica movement. Forced rebalancing can create rebuild I/O and should be treated as an intentional maintenance action.
+
 ### `disk failure/volume failed fsck check`
 
 For issues that generate the following event:
