@@ -6,7 +6,7 @@ kube-prometheus-stack:
     additionalDataSources:
       - name: Loki
         type: loki
-        url: http://loki.loki:3100
+        url: http://loki-gateway.loki
       # Thanos Query for long-term metrics (via Thanos Query Frontend)
       - name: Thanos
         type: prometheus
