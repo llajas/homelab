@@ -1,73 +1,68 @@
 # home-assistant
 
-![Version: 13.4.2](https://img.shields.io/badge/Version-13.4.2-informational?style=flat-square) ![AppVersion: 2022.5.4](https://img.shields.io/badge/AppVersion-2022.5.4-informational?style=flat-square)
+![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![AppVersion: 2026.8.2](https://img.shields.io/badge/AppVersion-2026.8.2-informational?style=flat-square)
 
 Home Assistant
 
-**This chart is not maintained by the upstream project and any issues with the chart should be raised [here](https://github.com/k8s-at-home/charts/issues/new/choose)**
+This chart deploys Home Assistant Container with the bjw-s app-template chart.
 
 ## Source Code
 
 * <https://github.com/home-assistant/home-assistant>
-* <https://github.com/cdr/code-server>
-* <https://github.com/k8s-at-home/charts/tree/master/charts/stable/home-assistant>
+* <https://github.com/bjw-s-labs/helm-charts/tree/main/charts/other/app-template>
 
 ## Requirements
 
-Kubernetes: `>=1.16.0-0`
+Kubernetes: supported by the cluster Gateway API and monitoring CRDs used in this repo.
 
 ## Dependencies
 
 | Repository | Name | Version |
 |------------|------|---------|
-| https://charts.bitnami.com/bitnami | influxdb | 5.3.5 |
-| https://charts.bitnami.com/bitnami | mariadb | 11.0.14 |
-| https://charts.bitnami.com/bitnami | postgresql | 11.6.12 |
-| https://library-charts.k8s-at-home.com | common | 4.5.2 |
+| https://bjw-s-labs.github.io/helm-charts | app-template | 4.4.0 |
 
 ## TL;DR
 
 ```console
-helm repo add k8s-at-home https://k8s-at-home.com/charts/
+helm repo add bjw-s https://bjw-s-labs.github.io/helm-charts
 helm repo update
-helm install home-assistant k8s-at-home/home-assistant
+helm install homeassistant . --namespace homeassistant
 ```
 
 ## Installing the Chart
 
-To install the chart with the release name `home-assistant`
+To install the chart with the release name `homeassistant`
 
 ```console
-helm install home-assistant k8s-at-home/home-assistant
+helm install homeassistant . --namespace homeassistant
 ```
 
 ## Uninstalling the Chart
 
-To uninstall the `home-assistant` deployment
+To uninstall the `homeassistant` deployment
 
 ```console
-helm uninstall home-assistant
+helm uninstall homeassistant --namespace homeassistant
 ```
 
-The command removes all the Kubernetes components associated with the chart **including persistent volumes** and deletes the release.
+The command removes the Helm release resources. Persistent volume retention depends on the cluster storage class and reclaim policy.
 
 ## Configuration
 
-Read through the [values.yaml](./values.yaml) file. It has several commented out suggested values.
-Other values may be used from the [values.yaml](https://github.com/k8s-at-home/library-charts/tree/main/charts/stable/common/values.yaml) from the [common library](https://github.com/k8s-at-home/library-charts/tree/main/charts/stable/common).
+Read through the [values.yaml](./values.yaml) file. Most workload options are under the `app-template` key and follow the bjw-s app-template values schema.
 
 Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`.
 
 ```console
-helm install home-assistant \
-  --set env.TZ="America/New York" \
-    k8s-at-home/home-assistant
+helm install homeassistant . \
+  --namespace homeassistant \
+  --set app-template.controllers.main.containers.main.env.TZ="America/New_York"
 ```
 
 Alternatively, a YAML file that specifies the values for the above parameters can be provided while installing the chart.
 
 ```console
-helm install home-assistant k8s-at-home/home-assistant -f values.yaml
+helm install homeassistant . --namespace homeassistant -f values.yaml
 ```
 
 ## Custom configuration
@@ -148,35 +143,24 @@ endpoint in your Home-Assistant configuration. See the [official documentation](
 
 ## Values
 
-**Important**: When deploying an application Helm chart you can add more values from our common library chart [here](https://github.com/k8s-at-home/library-charts/tree/main/charts/stable/common)
+Most workload settings live under `app-template` and follow the bjw-s app-template values schema. Home Assistant-specific routing and alert settings are configured under `httpRoute` and `metrics`.
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| addons.codeserver | object | See values.yaml | Enable and configure codeserver for the chart.    This allows for easy access to configuration.yaml |
-| env | object | See below | environment variables. |
-| env.TZ | string | `"UTC"` | Set the container timezone |
-| image.pullPolicy | string | `"IfNotPresent"` | image pull policy |
-| image.repository | string | `"ghcr.io/home-assistant/home-assistant"` | image repository |
-| image.tag | string | chart.appVersion | image tag |
-| influxdb | object | See values.yaml | Enable and configure influxdb database subchart under this key.    For more options see [influxdb chart documentation](https://github.com/bitnami/charts/tree/master/bitnami/influxdb) |
-| ingress.main | object | See values.yaml | Enable and configure ingress settings for the chart under this key. |
-| mariadb | object | See values.yaml | Enable and configure mariadb database subchart under this key.    For more options see [mariadb chart documentation](https://github.com/bitnami/charts/tree/master/bitnami/mariadb) |
-| metrics.enabled | bool | See values.yaml | Enable and configure a Prometheus serviceMonitor for the chart under this key. |
-| metrics.prometheusRule | object | See values.yaml | Enable and configure Prometheus Rules for the chart under this key. |
-| metrics.prometheusRule.rules | list | See prometheusrules.yaml | Configure additionial rules for the chart under this key. |
-| metrics.serviceMonitor.interval | string | `"1m"` |  |
-| metrics.serviceMonitor.labels | object | `{}` |  |
-| metrics.serviceMonitor.scrapeTimeout | string | `"30s"` |  |
-| persistence | object | See values.yaml | Configure persistence settings for the chart under this key. |
-| persistence.usb | object | See values.yaml | Configure a hostPathMount to mount a USB device in the container. |
-| postgresql | object | See values.yaml | Enable and configure postgresql database subchart under this key.    For more options see [postgresql chart documentation](https://github.com/bitnami/charts/tree/master/bitnami/postgresql) |
-| securityContext | object | `{"privileged":null}` | Enable devices to be discoverable hostNetwork: true -- When hostNetwork is true set dnsPolicy to ClusterFirstWithHostNet dnsPolicy: ClusterFirstWithHostNet |
-| securityContext.privileged | bool | `nil` | Privileged securityContext may be required if USB devics are accessed directly through the host machine |
-| service | object | See values.yaml | Configures service settings for the chart. Normally this does not need to be modified. |
+| app-template.controllers.main.containers.main.image.tag | string | `"2026.8.2"` | Home Assistant container version |
+| app-template.controllers.main.containers.main.env.TZ | string | `"America/Chicago"` | Container timezone |
+| app-template.defaultPodOptions.hostNetwork | bool | `true` | Enables LAN discovery behavior expected by Home Assistant Container |
+| app-template.defaultPodOptions.dnsPolicy | string | `"ClusterFirstWithHostNet"` | Required DNS policy when using host networking |
+| app-template.persistence.config | object | See values.yaml | Persistent `/config` volume |
+| app-template.persistence.custom-config | object | See values.yaml | ConfigMap mounted for reverse-proxy trusted proxy configuration |
+| app-template.serviceMonitor.main | object | See values.yaml | Prometheus scrape config for `/api/prometheus` |
+| httpRoute | object | See values.yaml | Gateway API route for `home-assistant.lajas.tech` |
+| metrics.enabled | bool | `true` | Enables Home Assistant monitoring resources |
+| metrics.prometheusRule.enabled | bool | `true` | Enables the absence alert |
 
 ## Changelog
 
-### Version 13.4.2
+### Version 0.1.0
 
 #### Added
 
@@ -184,22 +168,18 @@ N/A
 
 #### Changed
 
-* Upgraded `common` chart dependency to version 4.5.2
+* Migrated the chart from k8s-at-home common to bjw-s app-template
+* Upgraded Home Assistant to version 2026.8.2
 
 #### Fixed
 
 N/A
 
-### Older versions
-
-A historical overview of changes can be found on [ArtifactHUB](https://artifacthub.io/packages/helm/k8s-at-home/home-assistant?modal=changelog)
-
 ## Support
 
-- See the [Docs](https://docs.k8s-at-home.com/our-helm-charts/getting-started/)
-- Open an [issue](https://github.com/k8s-at-home/charts/issues/new/choose)
-- Ask a [question](https://github.com/k8s-at-home/organization/discussions)
-- Join our [Discord](https://discord.gg/sTMX7Vh) community
+- See the [Home Assistant documentation](https://www.home-assistant.io/docs/)
+- See the [Home Assistant Container installation guide](https://www.home-assistant.io/installation/linux#install-home-assistant-container)
+- See the [bjw-s app-template documentation](https://bjw-s-labs.github.io/helm-charts/docs/app-template/)
 
 ----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v0.1.1](https://github.com/k8s-at-home/helm-docs/releases/v0.1.1)
+Maintained as part of this homelab repository.
