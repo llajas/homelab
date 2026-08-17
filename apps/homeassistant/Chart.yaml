@@ -1,40 +1,23 @@
 ---
 apiVersion: v2
-appVersion: 2025.7.3
+appVersion: 2026.8.2
 description: Home Assistant
 name: home-assistant
-version: 14.0.0
-kubeVersion: ">=1.16.0-0"
+type: application
+version: 0.1.0
 keywords:
   - home-assistant
   - hass
   - homeassistant
-home: https://github.com/k8s-at-home/charts/tree/master/charts/stable/home-assistant
+home: https://www.home-assistant.io/
 icon: https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Home_Assistant_Logo.svg/519px-Home_Assistant_Logo.svg.png
 sources:
   - https://github.com/home-assistant/home-assistant
-  - https://github.com/cdr/code-server
-  - https://github.com/k8s-at-home/charts/tree/master/charts/stable/home-assistant
-maintainers:
-  - name: billimek
-    email: jeff@billimek.com
 dependencies:
-  - name: common
-    repository: https://library-charts.k8s-at-home.com
-    version: 4.5.2
-  - name: postgresql
-    version: 16.7.21
-    repository: https://charts.bitnami.com/bitnami
-    condition: postgresql.enabled
-  - name: mariadb
-    version: 21.0.3
-    repository: https://charts.bitnami.com/bitnami
-    condition: mariadb.enabled
-  - name: influxdb
-    version: 7.1.10
-    repository: https://charts.bitnami.com/bitnami
-    condition: influxdb.enabled
+  - name: app-template
+    repository: https://bjw-s-labs.github.io/helm-charts
+    version: 4.4.0
 annotations:
   artifacthub.io/changes: |-
     - kind: changed
-      description: Upgraded `common` chart dependency to version 4.5.2
+      description: Migrated chart to bjw-s app-template and upgraded Home Assistant to version 2026.8.2

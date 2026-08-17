@@ -1,210 +1,128 @@
-#
-# IMPORTANT NOTE
-#
-# This chart inherits from our common library chart. You can check the default values/options here:
-# https://github.com/k8s-at-home/library-charts/tree/main/charts/stable/common/values.yaml
-#
+global:
+  nameOverride: homeassistant
 
-image:
-  # -- image repository
-  repository: ghcr.io/home-assistant/home-assistant
-  # -- image tag
-  # @default -- chart.appVersion
-  tag:
-  # -- image pull policy
-  pullPolicy: IfNotPresent
+app-template:
+  controllers:
+    main:
+      strategy: Recreate
+      initContainers:
+        merge-custom-config:
+          image:
+            repository: busybox
+            tag: 1.37.0
+            pullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - -c
+            - >-
+              touch /config/configuration.yaml;
+              if grep -q 'use_x_forwarded_for' /config/configuration.yaml; then
+                echo "Configuration already exists, skipping append.";
+              else
+                echo "Appending custom configuration.";
+                printf '\n' >> /config/configuration.yaml;
+                cat /custom-config/custom-config.yaml >> /config/configuration.yaml;
+              fi;
+      containers:
+        main:
+          image:
+            repository: ghcr.io/home-assistant/home-assistant
+            tag: 2026.8.2
+            pullPolicy: IfNotPresent
+          env:
+            TZ: America/Chicago
+          ports:
+            - name: http
+              containerPort: 8123
+              protocol: TCP
+          probes:
+            liveness:
+              enabled: true
+              custom: true
+              spec:
+                tcpSocket:
+                  port: 8123
+                periodSeconds: 10
+                timeoutSeconds: 1
+                failureThreshold: 3
+            readiness:
+              enabled: true
+              custom: true
+              spec:
+                tcpSocket:
+                  port: 8123
+                periodSeconds: 10
+                timeoutSeconds: 1
+                failureThreshold: 3
+            startup:
+              enabled: true
+              custom: true
+              spec:
+                tcpSocket:
+                  port: 8123
+                periodSeconds: 5
+                timeoutSeconds: 1
+                failureThreshold: 30
 
-# -- environment variables.
-# @default -- See below
-env:
-  # -- Set the container timezone
-  TZ: CST
+  service:
+    main:
+      controller: main
+      ports:
+        http:
+          port: 8123
+          targetPort: http
+          protocol: HTTP
 
-# -- Configures service settings for the chart. Normally this does not need to be modified.
-# @default -- See values.yaml
-service:
-  main:
-    ports:
-      http:
-        port: 8123
+  serviceMonitor:
+    main:
+      enabled: true
+      serviceName: '{{ include "bjw-s.common.lib.chart.names.fullname" . }}'
+      endpoints:
+        - port: http
+          scheme: http
+          path: /api/prometheus
+          interval: 1m
+          scrapeTimeout: 30s
 
-ingress:
-  # -- Enable and configure ingress settings for the chart under this key.
-  # @default -- See values.yaml
-  main:
-    enabled: false  # Migrated to Gateway API HTTPRoute
-    # ingressClassName: nginx  # Migrated to Gateway API HTTPRoute
-    annotations:
-      cert-manager.io/cluster-issuer: letsencrypt-prod
-      hajimari.io/appName: Home-Assistant
-      hajimari.io/icon: home-assistant
-    hosts:
-      - host: &host home-assistant.lajas.tech
-        paths:
-          - path: /
-            pathType: Prefix
-    tls:
-      - secretName: ha-tls-certificate
-        hosts:
-          - *host
-
-# -- Enable devices to be discoverable
-hostNetwork: true
-
-# -- When hostNetwork is true set dnsPolicy to ClusterFirstWithHostNet
-# dnsPolicy: ClusterFirstWithHostNet
-
-securityContext:
-  # -- (bool) Privileged securityContext may be required if USB devics are accessed directly through the host machine
-  privileged:  # true
-
-# -- Configure persistence settings for the chart under this key.
-# @default -- See values.yaml
-persistence:
-  config:
-    enabled: true
-  # -- Configure a hostPathMount to mount a USB device in the container.
-  # @default -- See values.yaml
-  usb:
-    enabled: false
-    type: hostPath
-    hostPath: /path/to/device
-
-  custom-config:
-    enabled: true
-    type: configMap
-    name: home-assistant-custom-config
-
-# -- Enable and configure mariadb database subchart under this key.
-#    For more options see [mariadb chart documentation](https://github.com/bitnami/charts/tree/master/bitnami/mariadb)
-# @default -- See values.yaml
-mariadb:
-  enabled: false
-  architecture: standalone
-  auth:
-    database: home-assistant
-    username: home-assistant
-    password: home-assistant-pass
-    rootPassword: home-assistantrootpass
-  primary:
-    persistence:
-      enabled: false
-      # storageClass: ""
-
-# -- Enable and configure postgresql database subchart under this key.
-#    For more options see [postgresql chart documentation](https://github.com/bitnami/charts/tree/master/bitnami/postgresql)
-# @default -- See values.yaml
-postgresql:
-  enabled: false
-  image:
-    repository: bitnami/postgresql
-    tag: 17.5.0
-  postgresqlUsername: home-assistant
-  postgresqlPassword: home-assistant-pass
-  postgresqlDatabase: home-assistant
   persistence:
-    primary:
-      enabled: false
-      # storageClass: ""
+    config:
+      enabled: true
+      accessMode: ReadWriteOnce
+      size: 1Gi
+      advancedMounts:
+        main:
+          main:
+            - path: /config
+          merge-custom-config:
+            - path: /config
+    custom-config:
+      enabled: true
+      type: configMap
+      name: home-assistant-custom-config
+      advancedMounts:
+        main:
+          main:
+            - path: /custom-config
+              readOnly: true
+          merge-custom-config:
+            - path: /custom-config
+              readOnly: true
 
-# -- Enable and configure influxdb database subchart under this key.
-#    For more options see [influxdb chart documentation](https://github.com/bitnami/charts/tree/master/bitnami/influxdb)
-# @default -- See values.yaml
-influxdb:
-  enabled: false
-  architecture: standalone
-  database: home_assistant
-  authEnabled: false
-  persistence:
-    enabled: false
-    # storageClass: ""
-    # size: 8Gi
+  defaultPodOptions:
+    hostNetwork: true
+    dnsPolicy: ClusterFirstWithHostNet
+
+httpRoute:
+  enabled: true
+  name: homeassistant
+  host: home-assistant.lajas.tech
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    hajimari.io/appName: Home-Assistant
+    hajimari.io/icon: home-assistant
 
 metrics:
-  # -- Enable and configure a Prometheus serviceMonitor for the chart under this key.
-  # @default -- See values.yaml
   enabled: true
-  serviceMonitor:
-    interval: 1m
-    scrapeTimeout: 30s
-    labels: {}
-    ## See https://www.home-assistant.io/docs/authentication/ for where to find
-    ## long lived access token creation under your account profile, which is
-    ## needed to monitor Home Assistant
-    # bearerTokenSecret:
-    #   name: ""
-    #   key: ""
-
-  # -- Enable and configure Prometheus Rules for the chart under this key.
-  # @default -- See values.yaml
   prometheusRule:
     enabled: true
     labels: {}
-    # -- Configure additionial rules for the chart under this key.
-    # @default -- See prometheusrules.yaml
-    rules:
-      - alert: HomeAssistantAbsent
-        annotations:
-          description: Home Assistant has disappeared from Prometheus service discovery.
-          summary: Home Assistant is down.
-        expr: |
-          absent(up{job=~".*home-assistant.*"} == 1)
-        for: 5m
-        labels:
-          severity: critical
-
-addons:
-  # -- Enable and configure codeserver for the chart.
-  #    This allows for easy access to configuration.yaml
-  # @default -- See values.yaml
-  codeserver:
-    enabled: false
-    args:
-      - --auth
-      - none
-      - --user-data-dir
-      - /data/config/.vscode
-    volumeMounts:
-      - name: config
-        mountPath: /data/config
-
-# ...
-
-          #initContainers:
-          #  custom-init:
-          #    image: busybox
-          #    command: ['sh', '-c', 'cat /custom-config/custom-config.yaml >> /config/configuration.yaml']
-          #    imagePullPolicy: Always
-          #    name: merge-config
-          #    volumeMounts:
-          #      - name: config
-          #        mountPath: /config
-          #      - name: custom-config
-          #        mountPath: /custom-config
-
-sidecarContainers:
-  - name: config-sidecar
-    image: busybox
-    imagePullPolicy: Always
-    command:
-      - /bin/sh
-      - -c
-      - >-
-          while [ ! -f /config/configuration.yaml ]; do sleep 1; done;
-          if grep -q 'use_x_forwarded_for' /config/configuration.yaml; then
-            echo "Configuration already exists, skipping append.";
-          else
-            echo "Appending custom configuration.";
-            cat /custom-config/custom-config.yaml >> /config/configuration.yaml;
-          fi;
-          sleep infinity
-    volumeMounts:
-      - name: config
-        mountPath: /config
-      - name: custom-config
-        mountPath: /custom-config
-
-volumes:
-  - name: custom-config-volume
-    configMap:
-      name: home-assistant-custom-config
