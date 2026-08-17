@@ -87,8 +87,7 @@ app-template:
   persistence:
     config:
       enabled: true
-      accessMode: ReadWriteOnce
-      size: 1Gi
+      existingClaim: homeassistant-home-assistant-config
       advancedMounts:
         main:
           main:
