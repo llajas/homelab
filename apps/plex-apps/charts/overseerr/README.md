@@ -1,6 +1,6 @@
 # overseerr
 
-![Version: 5.4.2](https://img.shields.io/badge/Version-5.4.2-informational?style=flat-square) ![AppVersion: 1.26.1](https://img.shields.io/badge/AppVersion-1.26.1-informational?style=flat-square)
+![Version: 5.5.0](https://img.shields.io/badge/Version-5.5.0-informational?style=flat-square) ![AppVersion: v3.4.1](https://img.shields.io/badge/AppVersion-v3.4.1-informational?style=flat-square)
 
 Overseerr is a free and open source software application for managing requests for your media library. It integrates with your existing services such as Sonarr, Radarr and Plex!
 
@@ -80,15 +80,15 @@ N/A
 | env.LOG_LEVEL | string | `"info"` | Set the application log level |
 | env.TZ | string | `"UTC"` | Set the container timezone |
 | image.pullPolicy | string | `"IfNotPresent"` | image pull policy |
-| image.repository | string | `"ghcr.io/sct/overseerr"` | image repository |
-| image.tag | string | `"1.26.1"` | image tag |
+| image.repository | string | `"ghcr.io/seerr-team/seerr"` | image repository |
+| image.tag | string | `"v3.4.1"` | image tag |
 | ingress.main | object | See values.yaml | Enable and configure ingress settings for the chart under this key. |
 | persistence | object | See values.yaml | Configure persistence settings for the chart under this key. |
 | service | object | See values.yaml | Configures service settings for the chart. |
 
 ## Changelog
 
-### Version 5.4.2
+### Version 5.5.0
 
 #### Added
 
@@ -97,6 +97,7 @@ N/A
 #### Changed
 
 * Upgraded `common` chart dependency to version 4.5.2
+* Migrated to Seerr image and non-root security context defaults
 
 #### Fixed
 
