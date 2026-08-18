@@ -45,6 +45,49 @@ app-template:
                 periodSeconds: 5
                 timeoutSeconds: 1
                 failureThreshold: 30
+        matter:
+          image:
+            repository: ghcr.io/matter-js/matterjs-server
+            tag: stable
+            pullPolicy: IfNotPresent
+          args:
+            - --storage-path
+            - /data
+          env:
+            TZ: America/Chicago
+            LOG_LEVEL: info
+          ports:
+            - name: matter
+              containerPort: 5580
+              protocol: TCP
+          probes:
+            liveness:
+              enabled: true
+              custom: true
+              spec:
+                tcpSocket:
+                  port: 5580
+                periodSeconds: 10
+                timeoutSeconds: 1
+                failureThreshold: 3
+            readiness:
+              enabled: true
+              custom: true
+              spec:
+                tcpSocket:
+                  port: 5580
+                periodSeconds: 10
+                timeoutSeconds: 1
+                failureThreshold: 3
+            startup:
+              enabled: true
+              custom: true
+              spec:
+                tcpSocket:
+                  port: 5580
+                periodSeconds: 5
+                timeoutSeconds: 1
+                failureThreshold: 30
 
   service:
     main:
@@ -74,6 +117,14 @@ app-template:
         main:
           main:
             - path: /config
+    matter:
+      enabled: true
+      accessMode: ReadWriteOnce
+      size: 1Gi
+      advancedMounts:
+        main:
+          matter:
+            - path: /data
 
   defaultPodOptions:
     hostNetwork: true

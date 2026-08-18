@@ -116,6 +116,26 @@ affinity:
 
 ... where a node with an attached zwave and/or zigbee controller USB device is labeled with `app: zwave-controller`
 
+### Matter
+
+This chart runs the Matter server as a sidecar container in the same pod as Home Assistant. The Matter server listens on
+port `5580` and stores its Matter fabric data on a dedicated persistent volume mounted at `/data`.
+
+After deploying the chart, add the Matter integration in Home Assistant and use the following server URL when prompted for
+an existing Matter server:
+
+```text
+ws://127.0.0.1:5580/ws
+```
+
+The Matter server intentionally is not exposed through Gateway API, Ingress, or Cloudflare Tunnel. Home Assistant is the
+only client that needs access, and keeping the WebSocket listener local avoids exposing the Matter control plane.
+
+Matter depends on local LAN multicast discovery and IPv6. Keep `app-template.defaultPodOptions.hostNetwork` enabled, make
+sure the selected node has working IPv6 on the LAN, and avoid network policies or VLAN boundaries that block mDNS/DNS-SD
+between Home Assistant, Matter Wi-Fi devices, and Thread border routers. For Thread devices, a Thread border router is
+still required; the Matter server is a Matter controller, not a Thread border router.
+
 ### Websockets
 
 If an ingress controller is being used with home assistant, web sockets must be enabled using annotations to enable support of web sockets.
@@ -148,11 +168,12 @@ Most workload settings live under `app-template` and follow the bjw-s app-templa
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | app-template.controllers.main.containers.main.image.tag | string | `"2026.8.2"` | Home Assistant container version |
+| app-template.controllers.main.containers.matter.image.tag | string | `"stable"` | Matter.js server container version |
 | app-template.controllers.main.containers.main.env.TZ | string | `"America/Chicago"` | Container timezone |
 | app-template.defaultPodOptions.hostNetwork | bool | `true` | Enables LAN discovery behavior expected by Home Assistant Container |
 | app-template.defaultPodOptions.dnsPolicy | string | `"ClusterFirstWithHostNet"` | Required DNS policy when using host networking |
 | app-template.persistence.config | object | See values.yaml | Persistent `/config` volume |
-| app-template.persistence.custom-config | object | See values.yaml | ConfigMap mounted for reverse-proxy trusted proxy configuration |
+| app-template.persistence.matter | object | See values.yaml | Persistent `/data` volume for Matter fabric data |
 | app-template.serviceMonitor.main | object | See values.yaml | Prometheus scrape config for `/api/prometheus` |
 | httpRoute | object | See values.yaml | Gateway API route for `home-assistant.lajas.tech` |
 | metrics.enabled | bool | `true` | Enables Home Assistant monitoring resources |
