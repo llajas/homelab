@@ -5,24 +5,6 @@ app-template:
   controllers:
     main:
       strategy: Recreate
-      initContainers:
-        merge-custom-config:
-          image:
-            repository: busybox
-            tag: 1.37.0
-            pullPolicy: IfNotPresent
-          command:
-            - /bin/sh
-            - -c
-            - >-
-              touch /config/configuration.yaml;
-              if grep -q 'use_x_forwarded_for' /config/configuration.yaml; then
-                echo "Configuration already exists, skipping append.";
-              else
-                echo "Appending custom configuration.";
-                printf '\n' >> /config/configuration.yaml;
-                cat /custom-config/custom-config.yaml >> /config/configuration.yaml;
-              fi;
       containers:
         main:
           image:
@@ -92,20 +74,6 @@ app-template:
         main:
           main:
             - path: /config
-          merge-custom-config:
-            - path: /config
-    custom-config:
-      enabled: true
-      type: configMap
-      name: home-assistant-custom-config
-      advancedMounts:
-        main:
-          main:
-            - path: /custom-config
-              readOnly: true
-          merge-custom-config:
-            - path: /custom-config
-              readOnly: true
 
   defaultPodOptions:
     hostNetwork: true
