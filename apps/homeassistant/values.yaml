@@ -156,15 +156,15 @@ configuration:
     forceInit="{{ .Values.configuration.forceInit }}"
     if [ "$forceInit" = "true" ]; then
       echo "Force init is enabled, overwriting the configuration file"
+      echo "Cleaning up - keeping only 10 most recent backups before creating a new one..."
+      ls -t /config/configuration.yaml.* 2>/dev/null | tail -n +11 | xargs -r rm
       current_time=$(date +%Y%m%d_%H%M%S)
       echo "Backup the current configuration file to configuration.yaml.$current_time"
-      cp /config/configuration.yaml /config/configuration.yaml.$current_time
-      echo "Before cleanup - all backup files:"
-      ls -l /config/configuration.yaml.*
-      echo "Cleaning up - keeping only 10 most recent backups..."
-      ls -t /config/configuration.yaml.* 2>/dev/null | tail -n +11 | xargs -r rm
-      echo "After cleanup - remaining backup files:"
-      ls -l /config/configuration.yaml.*
+      if ! cp /config/configuration.yaml /config/configuration.yaml.$current_time; then
+        echo "Backup copy failed, continuing with merge anyway"
+      fi
+      echo "Remaining backup files:"
+      ls -l /config/configuration.yaml.* 2>/dev/null || true
       if [[ ! -s /config/configuration.yaml ]]; then
         cat /config-templates/configuration.yaml > /config/configuration.yaml
       else
