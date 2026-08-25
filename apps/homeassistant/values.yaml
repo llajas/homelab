@@ -13,9 +13,9 @@ image:
 imagePullSecrets: []
 
 serviceAccount:
-  create: true
+  create: false
   annotations: {}
-  name: ""
+  name: default
 
 commonLabels: {}
 podAnnotations: {}

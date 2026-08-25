@@ -54,7 +54,6 @@ Common labels.
 {{- define "home-assistant.labels" -}}
 {{- $labels := dict -}}
 {{- $labels = mergeOverwrite $labels (include "home-assistant.selectorLabels" . | fromYaml) -}}
-{{- $labels = mergeOverwrite $labels (dict "helm.sh/chart" (include "home-assistant.chart" .)) -}}
 {{- if .Chart.AppVersion -}}
 {{- $labels = mergeOverwrite $labels (dict "app.kubernetes.io/version" .Chart.AppVersion) -}}
 {{- end -}}
