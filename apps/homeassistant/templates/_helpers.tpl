@@ -43,6 +43,7 @@ Create chart name and version.
 Selector labels.
 */}}
 {{- define "home-assistant.selectorLabels" -}}
+app.kubernetes.io/controller: main
 app.kubernetes.io/name: {{ include "home-assistant.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
