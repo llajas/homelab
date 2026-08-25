@@ -78,7 +78,7 @@ initContainers:
 
 configuration:
   enabled: true
-  forceInit: true
+  forceInit: false
   trusted_proxies:
     - 10.69.0.0/16
     - 192.168.42.0/24
