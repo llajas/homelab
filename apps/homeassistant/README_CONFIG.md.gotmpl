@@ -5,78 +5,76 @@
 {{- define "custom.custom.configuration" -}}
 {{ template "custom.custom.configuration.header" . }}
 
-### HTTP 400 bad request while accessing from your browser
+### Managed `configuration.yaml`
 
-When configuring Home Assistant behind a reverse proxy make sure you configure the [http](https://www.home-assistant.io/integrations/http) component and set `trusted_proxies` correctly and `use_x_forwarded_for` to `true`.
+This chart owns Home Assistant's `configuration.yaml` through `configuration.templateConfig` and an init container that
+writes or merges the managed config into the existing `/config` volume.
 
-For example (by edit the configuration.yaml hosted in your pod):
+`configuration.forceInit: true` is enabled in the current values so each start merges the existing live file with the
+Helm-managed template, creating timestamped backups and keeping only the 10 most recent backups.
+
+### Gateway API / reverse proxy handling
+
+When `httpRoute.enabled: true`, the managed `configuration.yaml` includes:
 
 ```yaml
 http:
-  server_host: 0.0.0.0
-  ip_ban_enabled: true
-  login_attempts_threshold: 5
   use_x_forwarded_for: true
   trusted_proxies:
-  # Pod CIDR
-  - 10.69.0.0/16
-  # Node CIDR
-  - 192.168.42.0/24
+    - 10.69.0.0/16
+    - 192.168.42.0/24
+    - 127.0.0.0/8
 ```
 
-### Z-Wave / Zigbee
+The chart also requires `httpRoute.parentRefs` to be set and will fail rendering if it is empty.
 
-A Z-Wave and/or Zigbee controller device could be used with Home Assistant if passed through from the host to the pod. Skip this section if you are using zwave2mqtt and/or zigbee2mqtt or plan to.
+### HTTPRoute
 
-First you will need to mount your Z-Wave and/or Zigbee device into the pod, you can do so by adding the following to your values:
+The current values render:
 
 ```yaml
+httpRoute:
+  enabled: true
+  parentRefs:
+    - name: public-gateway
+      namespace: kube-system
+      sectionName: https
+  hostnames:
+    - home-assistant.lajas.tech
+```
+
+This chart renders both the main HTTPS `HTTPRoute` and an HTTP redirect route back to HTTPS.
+
+### Persistence
+
+This chart preserves the current Home Assistant config volume by binding the Deployment to the existing claim:
+
+```yaml
+controller:
+  type: Deployment
+
 persistence:
-  usb:
-    enabled: true
-    type: hostPath
-    hostPath: /path/to/device
+  enabled: true
+  existingClaim: homeassistant-home-assistant-config
+  accessMode: ReadWriteOnce
+  size: 1Gi
+  storageClass: longhorn
 ```
 
-Second you will need to set a nodeAffinity rule, for example:
+Matter state is preserved separately on the existing `homeassistant` PVC mounted at `/data`.
+
+### Recorder retention
+
+Recorder retention is managed directly in the owned `configuration.yaml` template:
 
 ```yaml
-affinity:
-  nodeAffinity:
-    requiredDuringSchedulingIgnoredDuringExecution:
-      nodeSelectorTerms:
-      - matchExpressions:
-        - key: app
-          operator: In
-          values:
-          - zwave-controller
+recorder:
+  purge_keep_days: 365
+  auto_purge: true
+  auto_repack: true
 ```
 
-... where a node with an attached zwave and/or zigbee controller USB device is labeled with `app: zwave-controller`
-
-### Websockets
-
-If an ingress controller is being used with home assistant, web sockets must be enabled using annotations to enable support of web sockets.
-
-Using NGINX as an example the following will need to be added to your values:
-
-```yaml
-ingress:
-  main:
-    enabled: true
-    annotations:
-      nginx.org/websocket-services: home-assistant
-    hosts:
-      - host: home-assistant.example.org
-        paths:
-          - path: /
-```
-
-The value derived is the name of the kubernetes service object for home-assistant
-
-### Metrics collection
-
-If metrics collection is enabled through the `metrics.enabled: true` setting, make sure to also enable the Prometheus
-endpoint in your Home-Assistant configuration. See the [official documentation](https://www.home-assistant.io/integrations/prometheus/) for more details on how to set this up.
+Home Assistant keeps detailed recorder history for `purge_keep_days`, while long-term statistics for eligible sensors may
+remain available beyond that window as hourly aggregates.
 
 {{- end -}}

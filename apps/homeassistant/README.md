@@ -1,33 +1,21 @@
 # home-assistant
 
-![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![AppVersion: 2026.8.2](https://img.shields.io/badge/AppVersion-2026.8.2-informational?style=flat-square)
+![Version: 0.2.0](https://img.shields.io/badge/Version-0.2.0-informational?style=flat-square) ![AppVersion: 2026.8.2](https://img.shields.io/badge/AppVersion-2026.8.2-informational?style=flat-square)
 
 Home Assistant
 
-This chart deploys Home Assistant Container with the bjw-s app-template chart.
+This chart deploys Home Assistant with native chart templates in this repository. It owns `configuration.yaml`, keeps the
+existing `/config` PVC, uses Gateway API `HTTPRoute`, and preserves the Matter sidecar and monitoring resources used in
+this homelab.
 
 ## Source Code
 
 * <https://github.com/home-assistant/home-assistant>
-* <https://github.com/bjw-s-labs/helm-charts/tree/main/charts/other/app-template>
+* <https://github.com/pajikos/home-assistant-helm-chart>
 
 ## Requirements
 
 Kubernetes: supported by the cluster Gateway API and monitoring CRDs used in this repo.
-
-## Dependencies
-
-| Repository | Name | Version |
-|------------|------|---------|
-| https://bjw-s-labs.github.io/helm-charts | app-template | 4.4.0 |
-
-## TL;DR
-
-```console
-helm repo add bjw-s https://bjw-s-labs.github.io/helm-charts
-helm repo update
-helm install homeassistant . --namespace homeassistant
-```
 
 ## Installing the Chart
 
@@ -45,76 +33,76 @@ To uninstall the `homeassistant` deployment
 helm uninstall homeassistant --namespace homeassistant
 ```
 
-The command removes the Helm release resources. Persistent volume retention depends on the cluster storage class and reclaim policy.
+The command removes the Helm release resources. The existing `/config` PVC is retained by the dedicated
+`templates/config-pvc.yaml` manifest and its `helm.sh/resource-policy: keep` annotation.
 
 ## Configuration
 
-Read through the [values.yaml](./values.yaml) file. Most workload options are under the `app-template` key and follow the bjw-s app-template values schema.
-
-Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`.
-
-```console
-helm install homeassistant . \
-  --namespace homeassistant \
-  --set app-template.controllers.main.containers.main.env.TZ="America/New_York"
-```
-
-Alternatively, a YAML file that specifies the values for the above parameters can be provided while installing the chart.
-
-```console
-helm install homeassistant . --namespace homeassistant -f values.yaml
-```
+Read through the [values.yaml](./values.yaml) file. This chart is configured directly from top-level values rather than a
+subchart-specific schema.
 
 ## Custom configuration
 
-### HTTP 400 bad request while accessing from your browser
+### Managed `configuration.yaml`
 
-When configuring Home Assistant behind a reverse proxy make sure you configure the [http](https://www.home-assistant.io/integrations/http) component and set `trusted_proxies` correctly and `use_x_forwarded_for` to `true`.
+This chart owns Home Assistant's `configuration.yaml` through `configuration.templateConfig` and an init container that
+writes or merges the managed config into the existing `/config` volume.
 
-For example (by edit the configuration.yaml hosted in your pod):
+`configuration.forceInit: true` is enabled in the current values so each start merges the existing live file with the
+Helm-managed template, creating timestamped backups and keeping only the 10 most recent backups.
+
+### Gateway API / reverse proxy handling
+
+When `httpRoute.enabled: true`, the managed `configuration.yaml` includes:
 
 ```yaml
 http:
-  server_host: 0.0.0.0
-  ip_ban_enabled: true
-  login_attempts_threshold: 5
   use_x_forwarded_for: true
   trusted_proxies:
-  # Pod CIDR
-  - 10.69.0.0/16
-  # Node CIDR
-  - 192.168.42.0/24
+    - 10.69.0.0/16
+    - 192.168.42.0/24
+    - 127.0.0.0/8
 ```
 
-### Z-Wave / Zigbee
+The chart also requires `httpRoute.parentRefs` to be set and will fail rendering if it is empty.
 
-A Z-Wave and/or Zigbee controller device could be used with Home Assistant if passed through from the host to the pod. Skip this section if you are using zwave2mqtt and/or zigbee2mqtt or plan to.
+### HTTPRoute
 
-First you will need to mount your Z-Wave and/or Zigbee device into the pod, you can do so by adding the following to your values:
+The current values render:
 
 ```yaml
+httpRoute:
+  enabled: true
+  parentRefs:
+    - name: public-gateway
+      namespace: kube-system
+      sectionName: https
+  hostnames:
+    - home-assistant.lajas.tech
+```
+
+This chart renders both:
+
+- the main HTTPS `HTTPRoute`
+- an HTTP redirect route that sends traffic to HTTPS with `301`
+
+### Persistence
+
+This chart preserves the current Home Assistant config volume by binding the Deployment to the existing claim:
+
+```yaml
+controller:
+  type: Deployment
+
 persistence:
-  usb:
-    enabled: true
-    type: hostPath
-    hostPath: /path/to/device
+  enabled: true
+  existingClaim: homeassistant-home-assistant-config
+  accessMode: ReadWriteOnce
+  size: 1Gi
+  storageClass: longhorn
 ```
 
-Second you will need to set a nodeAffinity rule, for example:
-
-```yaml
-affinity:
-  nodeAffinity:
-    requiredDuringSchedulingIgnoredDuringExecution:
-      nodeSelectorTerms:
-      - matchExpressions:
-        - key: app
-          operator: In
-          values:
-          - zwave-controller
-```
-
-... where a node with an attached zwave and/or zigbee controller USB device is labeled with `app: zwave-controller`
+Matter state is preserved separately on the existing `homeassistant` PVC mounted at `/data`.
 
 ### Matter
 
@@ -128,79 +116,47 @@ an existing Matter server:
 ws://127.0.0.1:5580/ws
 ```
 
-The Matter server intentionally is not exposed through Gateway API, Ingress, or Cloudflare Tunnel. Home Assistant is the
-only client that needs access, and keeping the WebSocket listener local avoids exposing the Matter control plane.
-
-Matter depends on local LAN multicast discovery and IPv6. Keep `app-template.defaultPodOptions.hostNetwork` enabled, make
-sure the selected node has working IPv6 on the LAN, and avoid network policies or VLAN boundaries that block mDNS/DNS-SD
-between Home Assistant, Matter Wi-Fi devices, and Thread border routers. For Thread devices, a Thread border router is
-still required; the Matter server is a Matter controller, not a Thread border router.
-
-### Websockets
-
-If an ingress controller is being used with home assistant, web sockets must be enabled using annotations to enable support of web sockets.
-
-Using NGINX as an example the following will need to be added to your values:
-
-```yaml
-ingress:
-  main:
-    enabled: true
-    annotations:
-      nginx.org/websocket-services: home-assistant
-    hosts:
-      - host: home-assistant.example.org
-        paths:
-          - path: /
-```
-
-The value derived is the name of the kubernetes service object for home-assistant
-
 ### Metrics collection
 
-If metrics collection is enabled through the `metrics.enabled: true` setting, make sure to also enable the Prometheus
-endpoint in your Home-Assistant configuration. See the [official documentation](https://www.home-assistant.io/integrations/prometheus/) for more details on how to set this up.
+If metrics collection is enabled through `serviceMonitor.enabled: true`, the managed `configuration.yaml` also includes the
+Home Assistant `prometheus:` block and the chart renders both a `ServiceMonitor` and the `HomeAssistantAbsent`
+`PrometheusRule`.
+
+### Recorder retention
+
+Recorder retention is managed directly in the owned `configuration.yaml` template:
+
+```yaml
+recorder:
+  purge_keep_days: 365
+  auto_purge: true
+  auto_repack: true
+```
+
+Home Assistant keeps detailed recorder history for `purge_keep_days`, while long-term statistics for eligible sensors may
+remain available beyond that window as hourly aggregates.
 
 ## Values
 
-Most workload settings live under `app-template` and follow the bjw-s app-template values schema. Home Assistant-specific routing and alert settings are configured under `httpRoute` and `metrics`.
+Most workload settings live in `values.yaml` at the top level.
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| app-template.controllers.main.containers.main.image.tag | string | `"2026.8.2"` | Home Assistant container version |
-| app-template.controllers.main.containers.matter.image.tag | string | `"stable"` | Matter.js server container version |
-| app-template.controllers.main.containers.main.env.TZ | string | `"America/Chicago"` | Container timezone |
-| app-template.defaultPodOptions.hostNetwork | bool | `true` | Enables LAN discovery behavior expected by Home Assistant Container |
-| app-template.defaultPodOptions.dnsPolicy | string | `"ClusterFirstWithHostNet"` | Required DNS policy when using host networking |
-| app-template.persistence.config | object | See values.yaml | Persistent `/config` volume |
-| app-template.persistence.matter | object | See values.yaml | Persistent `/data` volume for Matter fabric data |
-| app-template.serviceMonitor.main | object | See values.yaml | Prometheus scrape config for `/api/prometheus` |
-| httpRoute | object | See values.yaml | Gateway API route for `home-assistant.lajas.tech` |
-| metrics.enabled | bool | `true` | Enables Home Assistant monitoring resources |
-| metrics.prometheusRule.enabled | bool | `true` | Enables the absence alert |
-
-## Changelog
-
-### Version 0.1.0
-
-#### Added
-
-N/A
-
-#### Changed
-
-* Migrated the chart from k8s-at-home common to bjw-s app-template
-* Upgraded Home Assistant to version 2026.8.2
-
-#### Fixed
-
-N/A
+| `image.tag` | string | `"2026.8.2"` | Home Assistant container version |
+| `controller.type` | string | `"Deployment"` | Deployment controller used so the chart can bind the existing `/config` PVC by claim name |
+| `persistence.existingClaim` | string | `"homeassistant-home-assistant-config"` | Existing PVC mounted at `/config` |
+| `matter.persistence.existingClaim` | string | `"homeassistant"` | Existing PVC mounted at `/data` for Matter |
+| `configuration.enabled` | bool | `true` | Enables managed `configuration.yaml` |
+| `configuration.forceInit` | bool | `true` | Merges managed config into the live `configuration.yaml` on startup |
+| `httpRoute.enabled` | bool | `true` | Enables Gateway API routing |
+| `httpRoute.parentRefs` | list | See values.yaml | Required Gateway attachment refs |
+| `serviceMonitor.enabled` | bool | `true` | Enables Prometheus scraping resources |
+| `metrics.prometheusRule.enabled` | bool | `true` | Enables the absence alert |
 
 ## Support
 
 - See the [Home Assistant documentation](https://www.home-assistant.io/docs/)
 - See the [Home Assistant Container installation guide](https://www.home-assistant.io/installation/linux#install-home-assistant-container)
-- See the [bjw-s app-template documentation](https://bjw-s-labs.github.io/helm-charts/docs/app-template/)
 
 ----------------------------------------------
 Maintained as part of this homelab repository.
