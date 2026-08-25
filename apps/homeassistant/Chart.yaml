@@ -4,7 +4,7 @@ appVersion: 2026.8.2
 description: Home Assistant
 name: home-assistant
 type: application
-version: 0.1.0
+version: 0.2.0
 keywords:
   - home-assistant
   - hass
@@ -13,11 +13,8 @@ home: https://www.home-assistant.io/
 icon: https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Home_Assistant_Logo.svg/519px-Home_Assistant_Logo.svg.png
 sources:
   - https://github.com/home-assistant/home-assistant
-dependencies:
-  - name: app-template
-    repository: https://bjw-s-labs.github.io/helm-charts
-    version: 4.4.0
+  - https://github.com/pajikos/home-assistant-helm-chart
 annotations:
   artifacthub.io/changes: |-
     - kind: changed
-      description: Migrated chart to bjw-s app-template and upgraded Home Assistant to version 2026.8.2
+      description: Pivoted chart to native Home Assistant templates with managed configuration.yaml and Gateway API support

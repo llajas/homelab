@@ -1,56 +1,79 @@
 {{- if .Values.httpRoute.enabled }}
+{{- include "home-assistant.validateHTTPRoute" . -}}
+{{- $fullName := include "home-assistant.fullname" . -}}
+{{- $svcPort := .Values.service.port -}}
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: {{ .Values.httpRoute.name }}
-  namespace: {{ .Release.Namespace }}
-{{- with .Values.httpRoute.annotations }}
+  name: {{ $fullName }}
+  namespace: {{ include "home-assistant.namespace" . }}
+  labels:
+    {{- include "home-assistant.labels" . | nindent 4 }}
+    {{- with .Values.httpRoute.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.httpRoute.annotations }}
   annotations:
-{{- toYaml . | nindent 4 }}
-{{- end }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   parentRefs:
-  - name: public-gateway
-    group: gateway.networking.k8s.io
-    kind: Gateway
-    namespace: kube-system
-    sectionName: https
+    {{- toYaml .Values.httpRoute.parentRefs | nindent 4 }}
+  {{- with .Values.httpRoute.hostnames }}
   hostnames:
-  - {{ .Values.httpRoute.host | quote }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   rules:
-  - matches:
-    - path:
-        type: PathPrefix
-        value: /
-    backendRefs:
-    - group: ""
-      kind: Service
-      name: {{ include "bjw-s.common.lib.chart.names.fullname" . }}
-      port: 8123
-      weight: 1
+    - matches:
+        {{- with .Values.httpRoute.matches }}
+        {{- toYaml . | nindent 8 }}
+        {{- else }}
+        - path:
+            type: PathPrefix
+            value: /
+        {{- end }}
+      backendRefs:
+        - name: {{ $fullName }}
+          port: {{ $svcPort }}
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: {{ .Values.httpRoute.name }}-http-redirect
-  namespace: {{ .Release.Namespace }}
+  name: {{ $fullName }}-http-redirect
+  namespace: {{ include "home-assistant.namespace" . }}
+  labels:
+    {{- include "home-assistant.labels" . | nindent 4 }}
 spec:
   parentRefs:
-  - name: public-gateway
-    group: gateway.networking.k8s.io
-    kind: Gateway
-    namespace: kube-system
-    sectionName: http
+    {{- range .Values.httpRoute.parentRefs }}
+    - name: {{ .name }}
+      {{- with .namespace }}
+      namespace: {{ . }}
+      {{- end }}
+      {{- with .group }}
+      group: {{ . }}
+      {{- end }}
+      {{- with .kind }}
+      kind: {{ . }}
+      {{- end }}
+      sectionName: http
+    {{- end }}
+  {{- with .Values.httpRoute.hostnames }}
   hostnames:
-  - {{ .Values.httpRoute.host | quote }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   rules:
-  - matches:
-    - path:
-        type: PathPrefix
-        value: /
-    filters:
-    - type: RequestRedirect
-      requestRedirect:
-        scheme: https
-        statusCode: 301
+    - matches:
+        {{- with .Values.httpRoute.matches }}
+        {{- toYaml . | nindent 8 }}
+        {{- else }}
+        - path:
+            type: PathPrefix
+            value: /
+        {{- end }}
+      filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            statusCode: 301
 {{- end }}

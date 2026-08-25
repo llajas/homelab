@@ -1,0 +1,28 @@
+{{- if .Values.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "home-assistant.fullname" . }}
+  namespace: {{ include "home-assistant.namespace" . }}
+  labels:
+    {{- include "home-assistant.labels" . | nindent 4 }}
+    {{- with .Values.serviceMonitor.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  endpoints:
+    - interval: {{ .Values.serviceMonitor.scrapeInterval }}
+      port: http
+      path: /api/prometheus
+      {{- if and .Values.serviceMonitor.bearerToken (and .Values.serviceMonitor.bearerToken.secretName .Values.serviceMonitor.bearerToken.secretKey) }}
+      bearerTokenSecret:
+        name: {{ .Values.serviceMonitor.bearerToken.secretName }}
+        key: {{ .Values.serviceMonitor.bearerToken.secretKey }}
+      {{- end }}
+  namespaceSelector:
+    matchNames:
+      - {{ include "home-assistant.namespace" . }}
+  selector:
+    matchLabels:
+      {{- include "home-assistant.selectorLabels" . | nindent 6 }}
+{{- end }}

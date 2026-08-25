@@ -1,0 +1,183 @@
+{{- include "home-assistant.validateController" . | trim }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "home-assistant.fullname" . }}
+  namespace: {{ include "home-assistant.namespace" . }}
+  labels:
+    {{- include "home-assistant.labels" . | nindent 4 }}
+    {{- with .Values.controller.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.deploymentAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "home-assistant.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: {{ .Values.deploymentStrategy }}
+  template:
+    metadata:
+      labels:
+        {{- include "home-assistant.podLabels" . | nindent 8 }}
+      annotations:
+        {{- if .Values.configuration.enabled }}
+        checksum/init-script: {{ include (print $.Template.BasePath "/configmap-init-script.yaml") . | sha256sum }}
+        checksum/hass-configuration: {{ include (print $.Template.BasePath "/configmap-hass-config.yaml") . | sha256sum }}
+        {{- end }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- if .Values.hostNetwork }}
+      hostNetwork: true
+      {{- end }}
+      {{- if .Values.hostname }}
+      hostname: {{ .Values.hostname | quote }}
+      {{- end }}
+      {{- if .Values.dnsPolicy }}
+      dnsPolicy: {{ .Values.dnsPolicy }}
+      {{- end }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "home-assistant.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- if .Values.dnsConfig }}
+      dnsConfig:
+        {{- toYaml .Values.dnsConfig | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- with .Values.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.env }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: 8123
+              protocol: TCP
+            {{- with .Values.additionalPorts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- with .Values.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.startupProbe }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - mountPath: /config
+              name: config
+            {{- with .Values.additionalMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+        {{- if .Values.matter.enabled }}
+        - name: matter
+          image: "{{ .Values.matter.image.repository }}:{{ .Values.matter.image.tag }}"
+          imagePullPolicy: {{ .Values.matter.image.pullPolicy }}
+          args:
+            {{- toYaml .Values.matter.args | nindent 12 }}
+          env:
+            {{- toYaml .Values.matter.env | nindent 12 }}
+          ports:
+            {{- toYaml .Values.matter.ports | nindent 12 }}
+          livenessProbe:
+            {{- toYaml .Values.matter.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.matter.readinessProbe | nindent 12 }}
+          startupProbe:
+            {{- toYaml .Values.matter.startupProbe | nindent 12 }}
+          {{- with .Values.matter.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - mountPath: /data
+              name: matter
+        {{- end }}
+      {{- if or (.Values.configuration.enabled) .Values.initContainers }}
+      initContainers:
+        {{- with .Values.initContainers }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- if .Values.configuration.enabled }}
+        - name: {{ .Values.configuration.initContainer.name }}
+          image: {{ .Values.configuration.initContainer.image }}
+          {{- with .Values.configuration.initContainer.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          command: {{ toYaml .Values.configuration.initContainer.command | nindent 12 }}
+          args: {{ toYaml .Values.configuration.initContainer.args | nindent 12 }}
+          volumeMounts:
+            {{- range .Values.configuration.initContainer.volumeMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .mountPath }}
+              {{- if .subPath }}
+              subPath: {{ .subPath }}
+              {{- end }}
+            {{- end }}
+            - mountPath: /config
+              name: config
+        {{- end }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.priorityClassName }}
+      priorityClassName: {{ .Values.priorityClassName }}
+      {{- end }}
+      volumes:
+        {{- if .Values.configuration.enabled }}
+        - name: init-volume
+          configMap:
+            name: init-script
+        - name: config-volume
+          configMap:
+            name: hass-configuration
+        {{- end }}
+        - name: config
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingClaim }}
+        {{- if .Values.matter.enabled }}
+        - name: matter
+          persistentVolumeClaim:
+            claimName: {{ .Values.matter.persistence.existingClaim }}
+        {{- end }}
+        {{- with .Values.additionalVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}

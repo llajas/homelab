@@ -1,160 +1,304 @@
-global:
-  nameOverride: homeassistant
+namespaceOverride: ""
 
-app-template:
-  controllers:
-    main:
-      strategy: Recreate
-      initContainers:
-        chown-matter-data:
-          image:
-            repository: busybox
-            tag: "1.36"
-            pullPolicy: IfNotPresent
-          command:
-            - sh
-            - -c
-            - chown -R 1000:1000 /data
-          securityContext:
-            runAsUser: 0
-      containers:
-        main:
-          image:
-            repository: ghcr.io/home-assistant/home-assistant
-            tag: 2026.8.2
-            pullPolicy: IfNotPresent
-          env:
-            TZ: America/Chicago
-          ports:
-            - name: http
-              containerPort: 8123
-              protocol: TCP
-          probes:
-            liveness:
-              enabled: true
-              custom: true
-              spec:
-                tcpSocket:
-                  port: 8123
-                periodSeconds: 10
-                timeoutSeconds: 1
-                failureThreshold: 3
-            readiness:
-              enabled: true
-              custom: true
-              spec:
-                tcpSocket:
-                  port: 8123
-                periodSeconds: 10
-                timeoutSeconds: 1
-                failureThreshold: 3
-            startup:
-              enabled: true
-              custom: true
-              spec:
-                tcpSocket:
-                  port: 8123
-                periodSeconds: 5
-                timeoutSeconds: 1
-                failureThreshold: 30
-        matter:
-          image:
-            repository: ghcr.io/matter-js/matterjs-server
-            tag: stable
-            pullPolicy: IfNotPresent
-          args:
-            - --storage-path
-            - /data
-          env:
-            TZ: America/Chicago
-            LOG_LEVEL: info
-          ports:
-            - name: matter
-              containerPort: 5580
-              protocol: TCP
-          probes:
-            liveness:
-              enabled: true
-              custom: true
-              spec:
-                tcpSocket:
-                  port: 5580
-                periodSeconds: 10
-                timeoutSeconds: 1
-                failureThreshold: 3
-            readiness:
-              enabled: true
-              custom: true
-              spec:
-                tcpSocket:
-                  port: 5580
-                periodSeconds: 10
-                timeoutSeconds: 1
-                failureThreshold: 3
-            startup:
-              enabled: true
-              custom: true
-              spec:
-                tcpSocket:
-                  port: 5580
-                periodSeconds: 5
-                timeoutSeconds: 1
-                failureThreshold: 30
+nameOverride: homeassistant
+fullnameOverride: homeassistant
 
-  service:
-    main:
-      controller: main
-      ports:
-        http:
-          port: 8123
-          targetPort: http
-          protocol: HTTP
+replicaCount: 1
 
-  serviceMonitor:
-    main:
-      enabled: true
-      serviceName: '{{ include "bjw-s.common.lib.chart.names.fullname" . }}'
-      endpoints:
-        - port: http
-          scheme: http
-          path: /api/prometheus
-          interval: 1m
-          scrapeTimeout: 30s
+image:
+  repository: ghcr.io/home-assistant/home-assistant
+  pullPolicy: IfNotPresent
+  tag: 2026.8.2
 
-  persistence:
-    config:
-      enabled: true
-      existingClaim: homeassistant-home-assistant-config
-      advancedMounts:
-        main:
-          main:
-            - path: /config
-    matter:
-      enabled: true
-      accessMode: ReadWriteOnce
-      size: 1Gi
-      advancedMounts:
-        main:
-          chown-matter-data:
-            - path: /data
-          matter:
-            - path: /data
+imagePullSecrets: []
 
-  defaultPodOptions:
-    hostNetwork: true
-    dnsPolicy: ClusterFirstWithHostNet
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+commonLabels: {}
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+env:
+  - name: TZ
+    value: America/Chicago
+
+envFrom: []
+
+hostNetwork: true
+hostname: ""
+dnsPolicy: ClusterFirstWithHostNet
+dnsConfig: {}
+
+service:
+  type: ClusterIP
+  port: 8123
+  annotations: {}
 
 httpRoute:
   enabled: true
-  name: homeassistant
-  host: home-assistant.lajas.tech
+  labels: {}
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
     hajimari.io/appName: Home-Assistant
     hajimari.io/icon: home-assistant
+  parentRefs:
+    - name: public-gateway
+      namespace: kube-system
+      sectionName: https
+  hostnames:
+    - home-assistant.lajas.tech
+  matches: []
+
+resources: {}
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+priorityClassName: ""
+
+initContainers:
+  - name: chown-matter-data
+    image: busybox:1.36
+    imagePullPolicy: IfNotPresent
+    command:
+      - sh
+      - -c
+      - chown -R 1000:1000 /data
+    securityContext:
+      runAsUser: 0
+    volumeMounts:
+      - name: matter
+        mountPath: /data
+
+configuration:
+  enabled: true
+  forceInit: true
+  trusted_proxies:
+    - 10.69.0.0/16
+    - 192.168.42.0/24
+    - 127.0.0.0/8
+  templateConfig: |-
+    # Loads default set of integrations. Do not remove.
+    default_config:
+
+    recorder:
+      purge_keep_days: 365
+      auto_purge: true
+      auto_repack: true
+
+    {{- if .Values.httpRoute.enabled }}
+    http:
+      use_x_forwarded_for: true
+      trusted_proxies:
+        {{- range .Values.configuration.trusted_proxies }}
+        - {{ . }}
+        {{- end }}
+    {{- end }}
+
+    # Load frontend themes from the themes folder
+    frontend:
+      themes: !include_dir_merge_named themes
+
+    # Text to speech
+    tts:
+      - platform: google_translate
+
+    automation: !include automations.yaml
+    script: !include scripts.yaml
+    scene: !include scenes.yaml
+
+    template:
+      - sensor:
+          - name: Office Busy Bar Focus Active Numeric
+            unique_id: office_busy_bar_focus_active_numeric
+            unit_of_measurement: "h"
+            state: >
+              {{ "{%" }} if is_state('binary_sensor.office_busy_bar_focus_active', 'on') {{ "%}" }}
+                1
+              {{ "{%" }} else {{ "%}" }}
+                0
+              {{ "{%" }} endif {{ "%}" }}
+
+    sensor:
+      - platform: history_stats
+        name: Office Busy Bar Focus Time Today
+        unique_id: office_busy_bar_focus_time_today_helper
+        entity_id: binary_sensor.office_busy_bar_focus_active
+        state: "on"
+        type: time
+        start: "{{ "{{" }} today_at('00:00') {{ "}}" }}"
+        end: "{{ "{{" }} now() {{ "}}" }}"
+
+      - platform: integration
+        source: sensor.office_busy_bar_focus_active_numeric
+        name: Office Busy Bar Focus Time Total
+        unique_id: office_busy_bar_focus_time_total_helper
+        unit_time: h
+        method: left
+        round: 2
+        max_sub_interval:
+          minutes: 5
+  initScript: |-
+    #!/bin/bash
+    set -e
+
+    if [ ! -f /config/configuration.yaml ]; then
+      echo "Configuration file not found, creating a new one"
+      cp /config-templates/configuration.yaml /config/configuration.yaml
+    fi
+
+    forceInit="{{ .Values.configuration.forceInit }}"
+    if [ "$forceInit" = "true" ]; then
+      echo "Force init is enabled, overwriting the configuration file"
+      current_time=$(date +%Y%m%d_%H%M%S)
+      echo "Backup the current configuration file to configuration.yaml.$current_time"
+      cp /config/configuration.yaml /config/configuration.yaml.$current_time
+      echo "Before cleanup - all backup files:"
+      ls -l /config/configuration.yaml.*
+      echo "Cleaning up - keeping only 10 most recent backups..."
+      ls -t /config/configuration.yaml.* 2>/dev/null | tail -n +11 | xargs -r rm
+      echo "After cleanup - remaining backup files:"
+      ls -l /config/configuration.yaml.*
+      if [[ ! -s /config/configuration.yaml ]]; then
+        cat /config-templates/configuration.yaml > /config/configuration.yaml
+      else
+        yq eval-all --inplace 'select(fileIndex == 0) *d select(fileIndex == 1)' /config/configuration.yaml /config-templates/configuration.yaml
+      fi
+    fi
+
+    if [ ! -f /config/automations.yaml ]; then
+      echo "Automations file not found, creating a new one"
+      touch /config/automations.yaml
+      echo "[]" >> /config/automations.yaml
+    fi
+
+    if [ ! -f /config/scripts.yaml ]; then
+      echo "Scripts file not found, creating a new one"
+      touch /config/scripts.yaml
+    fi
+
+    if [ ! -f /config/scenes.yaml ]; then
+      echo "Scenes file not found, creating a new one"
+      touch /config/scenes.yaml
+    fi
+  initContainer:
+    name: setup-config
+    image: mikefarah/yq:4
+    securityContext:
+      runAsUser: 0
+    command: ["/bin/sh", "-c"]
+    args:
+      - /bin/sh /mnt/init/init.sh
+    volumeMounts:
+      - name: init-volume
+        mountPath: /mnt/init/init.sh
+        subPath: init.sh
+      - name: config-volume
+        mountPath: /config-templates
+
+persistence:
+  enabled: true
+  accessMode: ReadWriteOnce
+  size: 1Gi
+  storageClass: longhorn
+  existingClaim: homeassistant-home-assistant-config
+  existingVolume: ""
+  annotations:
+    helm.sh/resource-policy: keep
+  matchLabels: {}
+  matchExpressions: {}
+
+matter:
+  enabled: true
+  persistence:
+    enabled: true
+    existingClaim: homeassistant
+    size: 1Gi
+    storageClass: longhorn
+    annotations: {}
+  image:
+    repository: ghcr.io/matter-js/matterjs-server
+    tag: stable
+    pullPolicy: IfNotPresent
+  args:
+    - --storage-path
+    - /data
+  env:
+    - name: TZ
+      value: America/Chicago
+    - name: LOG_LEVEL
+      value: info
+  ports:
+    - name: matter
+      containerPort: 5580
+      protocol: TCP
+  livenessProbe:
+    tcpSocket:
+      port: 5580
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
+  readinessProbe:
+    tcpSocket:
+      port: 5580
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
+  startupProbe:
+    tcpSocket:
+      port: 5580
+    periodSeconds: 5
+    timeoutSeconds: 1
+    failureThreshold: 30
+  resources: {}
+
+additionalVolumes: []
+additionalMounts: []
+additionalServices: []
+additionalPorts: []
+
+livenessProbe:
+  tcpSocket:
+    port: 8123
+  periodSeconds: 10
+  timeoutSeconds: 1
+  failureThreshold: 3
+
+readinessProbe:
+  tcpSocket:
+    port: 8123
+  periodSeconds: 10
+  timeoutSeconds: 1
+  failureThreshold: 3
+
+startupProbe:
+  tcpSocket:
+    port: 8123
+  periodSeconds: 5
+  timeoutSeconds: 1
+  failureThreshold: 30
+
+serviceMonitor:
+  enabled: true
+  scrapeInterval: 1m
+  labels: {}
+  bearerToken: {}
 
 metrics:
   enabled: true
   prometheusRule:
     enabled: true
     labels: {}
+
+controller:
+  type: Deployment
+  labels: {}
+
+deploymentAnnotations: {}
+deploymentStrategy: Recreate
