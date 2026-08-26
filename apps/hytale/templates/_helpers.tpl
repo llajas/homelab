@@ -46,7 +46,7 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 {{- if ne (toString (index . 1)) "default" }}
 {{- if or (index . 1) (kindIs "float64" (index . 1)) (kindIs "bool" (index . 1)) }}
         - name: {{ index . 0 }}
-          value: {{ index . 1 | quote }}
+          value: {{ index . 1 | toString | quote }}
 {{- end }}
 {{- end }}
 {{- end }}
