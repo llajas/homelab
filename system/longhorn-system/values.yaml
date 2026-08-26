@@ -3,6 +3,7 @@ longhorn:
     nodeDownPodDeletionPolicy: delete-both-statefulset-and-deployment-pod
     storageMinimalAvailablePercentage: 20
     concurrentAutomaticEngineUpgradePerNodeLimit: 1
+    guaranteedInstanceManagerCPU: '{"v1":"6","v2":"31"}'
     # Clean up snapshots created during backup jobs automatically
     autoCleanupRecurringJobBackupSnapshot: true
   persistence:
