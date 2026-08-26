@@ -2,6 +2,7 @@ longhorn:
   defaultSettings:
     nodeDownPodDeletionPolicy: delete-both-statefulset-and-deployment-pod
     storageMinimalAvailablePercentage: 20
+    concurrentAutomaticEngineUpgradePerNodeLimit: 1
     # Clean up snapshots created during backup jobs automatically
     autoCleanupRecurringJobBackupSnapshot: true
   persistence:
