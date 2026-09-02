@@ -49,6 +49,15 @@ thanos:
   storegateway:
     enabled: true
     replicaCount: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 512Mi
+        ephemeral-storage: 50Mi
+      limits:
+        cpu: 500m
+        memory: 1536Mi
+        ephemeral-storage: 2Gi
     persistence:
       enabled: true
       size: 8Gi
@@ -59,6 +68,15 @@ thanos:
     retentionResolutionRaw: 30d
     retentionResolution5m: 60d
     retentionResolution1h: 1y
+    resources:
+      requests:
+        cpu: 100m
+        memory: 512Mi
+        ephemeral-storage: 50Mi
+      limits:
+        cpu: 500m
+        memory: 1536Mi
+        ephemeral-storage: 2Gi
     persistence:
       enabled: true
       size: 8Gi
