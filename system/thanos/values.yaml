@@ -21,6 +21,15 @@ thanos:
   query:
     enabled: true
     replicaCount: 1
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+        ephemeral-storage: 50Mi
+      limits:
+        cpu: 1
+        memory: 1Gi
+        ephemeral-storage: 2Gi
     replicaLabel:
       - replica
     dnsDiscovery:
@@ -42,6 +51,15 @@ thanos:
   queryFrontend:
     enabled: true
     replicaCount: 1
+    resources:
+      requests:
+        cpu: 200m
+        memory: 256Mi
+        ephemeral-storage: 50Mi
+      limits:
+        cpu: 1
+        memory: 512Mi
+        ephemeral-storage: 2Gi
     ingress:
       enabled: false
 

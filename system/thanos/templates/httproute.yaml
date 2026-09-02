@@ -20,5 +20,5 @@ spec:
         type: PathPrefix
         value: /
     backendRefs:
-    - name: thanos-query
+    - name: thanos-query-frontend
       port: 9090
