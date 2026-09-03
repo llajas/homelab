@@ -1,0 +1,301 @@
+---
+# Austin Dumpster/Trash Fire -> Home Assistant -> Physical Dumpster Fire lamp.
+#
+# Polls the City of Austin real-time fire dataset every ~5 minutes for
+# `DUMP - Dumpster Fire` and `TRASH - Trash Fire` incidents. When previously
+# unseen incidents appear, presses `button.dumpster_fire_trigger` at most once
+# (only if the flame LEDs are currently OFF) and starts/restarts an activity
+# timer. When the timer expires, presses the button once more (only if the
+# flame LEDs are currently ON) to turn the lamp off.
+#
+# The poller script (/config/austin_dumpster_fire_poll.py) owns all HTTP,
+# JSON, and persistent seen-ID deduplication. This package owns all
+# HA-side physical-device policy.
+#
+# To disable the entire feature without touching ESPHome, toggle
+# input_boolean.austin_dumpster_fire_enabled to off.
+
+input_boolean:
+  austin_dumpster_fire_enabled:
+    name: Austin Dumpster Fire Automation Enabled
+    icon: mdi:fire
+
+logger:
+  logs:
+    austin_dumpster_fire: info
+
+input_number:
+  austin_dumpster_fire_timeout_minutes:
+    name: Austin Dumpster Fire Activity Timeout
+    min: 1
+    max: 240
+    step: 1
+    initial: 15
+    unit_of_measurement: min
+    mode: box
+    icon: mdi:timer-sand
+
+timer:
+  austin_dumpster_fire_activity:
+    name: Austin Dumpster Fire Activity
+    restore: true
+    icon: mdi:timer-outline
+
+command_line:
+  - sensor:
+      name: Austin Dumpster Fire Poll
+      unique_id: austin_dumpster_fire_poll
+      command: /usr/local/bin/python3 /config/austin_dumpster_fire_poll.py
+      command_timeout: 30
+      scan_interval: 300
+      value_template: "{{ value_json.new_run_id }}"
+      json_attributes:
+        - poll_ok
+        - initialized
+        - new_incident_count
+        - new_ids
+        - current_count
+        - seen_count
+        - last_poll
+        - last_incident_id
+        - last_issue_reported
+        - last_address
+        - last_published_date
+        - last_status
+        - error
+
+template:
+  - sensor:
+      - name: Austin Dumpster Fire Last Poll
+        unique_id: austin_dumpster_fire_last_poll
+        state: "{{ state_attr('sensor.austin_dumpster_fire_poll', 'last_poll') }}"
+        device_class: timestamp
+        icon: mdi:clock-check-outline
+        availability: >
+          {{ state_attr('sensor.austin_dumpster_fire_poll', 'last_poll') not in
+             [none, 'None', ''] }}
+
+      - name: Austin Dumpster Fire Last Incident
+        unique_id: austin_dumpster_fire_last_incident
+        state: "{{ state_attr('sensor.austin_dumpster_fire_poll', 'last_incident_id') }}"
+        icon: mdi:fire
+        attributes:
+          issue_reported: >
+            {{ state_attr('sensor.austin_dumpster_fire_poll', 'last_issue_reported') }}
+          address: >
+            {{ state_attr('sensor.austin_dumpster_fire_poll', 'last_address') }}
+          published_date: >
+            {{ state_attr('sensor.austin_dumpster_fire_poll', 'last_published_date') }}
+          status: >
+            {{ state_attr('sensor.austin_dumpster_fire_poll', 'last_status') }}
+        availability: >
+          {{ state_attr('sensor.austin_dumpster_fire_poll', 'last_incident_id') not in
+             [none, 'None', ''] }}
+
+      - name: Austin Dumpster Fire Recent Count
+        unique_id: austin_dumpster_fire_recent_count
+        state: "{{ state_attr('sensor.austin_dumpster_fire_poll', 'seen_count') | int(0) }}"
+        icon: mdi:counter
+        unit_of_measurement: incidents
+
+      - name: Austin Dumpster Fire Poll OK
+        unique_id: austin_dumpster_fire_poll_ok
+        state: >
+          {{ state_attr('sensor.austin_dumpster_fire_poll', 'poll_ok') | string | lower }}
+        icon: mdi:check-network-outline
+
+automation:
+  - id: austin_dumpster_fire_set_log_level
+    alias: Austin Dumpster Fire - Ensure Logger Level
+    description: >
+      Set the austin_dumpster_fire logger to INFO on startup and on
+      automation reload so operational log lines survive across
+      restarts without needing a full HA restart after a `logger:`
+      config change.
+    mode: single
+    trigger:
+      - platform: homeassistant
+        event: start
+      - platform: event
+        event_type: automation_reloaded
+    action:
+      - service: logger.set_level
+        data:
+          austin_dumpster_fire: info
+
+  - id: austin_dumpster_fire_new_incident_detected
+    alias: Austin Dumpster Fire - New Incident Detected
+    description: >
+      Fires when the poller reports one or more previously-unseen
+      DUMP/TRASH incidents. Presses the Trigger button once if the
+      flame LEDs are currently OFF, then starts or restarts the
+      activity timer.
+    mode: queued
+    max: 5
+    trigger:
+      - platform: state
+        entity_id: sensor.austin_dumpster_fire_poll
+    condition:
+      - condition: state
+        entity_id: input_boolean.austin_dumpster_fire_enabled
+        state: "on"
+    action:
+      - variables:
+          new_count: "{{ state_attr('sensor.austin_dumpster_fire_poll', 'new_incident_count') | int(0) }}"
+          from_state: "{{ trigger.from_state.state if trigger.from_state is not none else 'none' }}"
+          to_state: "{{ trigger.to_state.state if trigger.to_state is not none else 'none' }}"
+          new_ids: "{{ state_attr('sensor.austin_dumpster_fire_poll', 'new_ids') }}"
+          last_id: "{{ state_attr('sensor.austin_dumpster_fire_poll', 'last_incident_id') }}"
+          last_issue: "{{ state_attr('sensor.austin_dumpster_fire_poll', 'last_issue_reported') }}"
+          last_addr: "{{ state_attr('sensor.austin_dumpster_fire_poll', 'last_address') }}"
+          last_pub: "{{ state_attr('sensor.austin_dumpster_fire_poll', 'last_published_date') }}"
+          last_stat: "{{ state_attr('sensor.austin_dumpster_fire_poll', 'last_status') }}"
+          flame_state: "{{ states('binary_sensor.office_dumpster_fire_flame_state') }}"
+          timeout_minutes: "{{ states('input_number.austin_dumpster_fire_timeout_minutes') | int(15) }}"
+      - service: system_log.write
+        data:
+          level: info
+          logger: austin_dumpster_fire
+          message: >-
+            Trigger fired from_state={{ from_state }} to_state={{ to_state }}
+            new_count={{ new_count }} flame_state={{ flame_state }}.
+      - choose:
+          - conditions:
+              - condition: template
+                value_template: "{{ new_count | int(0) <= 0 }}"
+            sequence:
+              - service: system_log.write
+                data:
+                  level: debug
+                  logger: austin_dumpster_fire
+                  message: >-
+                    Ignoring trigger: new_incident_count={{ new_count }} not > 0
+                    (state re-emit without new incidents).
+              - stop: "no new incidents in this state change"
+          - conditions:
+              - condition: template
+                value_template: >-
+                  {{ from_state in ['unknown', 'unavailable', 'none']
+                     or to_state in ['unknown', 'unavailable', 'none']
+                     or (to_state | int(-1)) <= (from_state | int(-1)) }}
+            sequence:
+              - service: system_log.write
+                data:
+                  level: debug
+                  logger: austin_dumpster_fire
+                  message: >-
+                    Ignoring trigger: from/to state not a monotonic bump
+                    (from={{ from_state }} to={{ to_state }}).
+              - stop: "not a real new_run_id increment"
+      - service: system_log.write
+        data:
+          level: info
+          logger: austin_dumpster_fire
+          message: >-
+            New Austin dumpster/trash fire activity detected: count={{ new_count }},
+            ids={{ new_ids }}, last_id={{ last_id }}, last_issue={{ last_issue }},
+            last_address={{ last_addr }}, last_published={{ last_pub }},
+            last_status={{ last_stat }}, flame_state={{ flame_state }},
+            timeout_minutes={{ timeout_minutes }}.
+      - choose:
+          - conditions:
+              - condition: template
+                value_template: "{{ flame_state == 'off' }}"
+            sequence:
+              - service: system_log.write
+                data:
+                  level: info
+                  logger: austin_dumpster_fire
+                  message: >-
+                    Lamp was OFF -> pressing Trigger to turn ON.
+              - service: button.press
+                target:
+                  entity_id: button.dumpster_fire_trigger
+          - conditions:
+              - condition: template
+                value_template: "{{ flame_state == 'on' }}"
+            sequence:
+              - service: system_log.write
+                data:
+                  level: info
+                  logger: austin_dumpster_fire
+                  message: >-
+                    Lamp already ON -> no Trigger press.
+          - conditions:
+              - condition: template
+                value_template: "{{ flame_state not in ['on', 'off'] }}"
+            sequence:
+              - service: system_log.write
+                data:
+                  level: warning
+                  logger: austin_dumpster_fire
+                  message: >-
+                    Flame State unavailable ({{ flame_state }}) -> no Trigger press.
+      - service: timer.start
+        target:
+          entity_id: timer.austin_dumpster_fire_activity
+        data:
+          duration: >-
+            {{ '%02d:%02d:00' | format((timeout_minutes | int(15)) // 60,
+                                       (timeout_minutes | int(15)) % 60) }}
+      - service: system_log.write
+        data:
+          level: info
+          logger: austin_dumpster_fire
+          message: >-
+            Activity timer restarted for {{ timeout_minutes }} minute(s).
+
+  - id: austin_dumpster_fire_timer_finished
+    alias: Austin Dumpster Fire - Activity Timer Finished
+    description: >
+      Fires when the activity timer expires. Presses the Trigger
+      button exactly once if the flame LEDs are currently ON. Does
+      nothing if the lamp is already OFF or the sensor is unavailable.
+    mode: single
+    trigger:
+      - platform: event
+        event_type: timer.finished
+        event_data:
+          entity_id: timer.austin_dumpster_fire_activity
+    condition:
+      - condition: state
+        entity_id: input_boolean.austin_dumpster_fire_enabled
+        state: "on"
+    action:
+      - variables:
+          flame_state: "{{ states('binary_sensor.office_dumpster_fire_flame_state') }}"
+      - choose:
+          - conditions:
+              - condition: template
+                value_template: "{{ flame_state == 'on' }}"
+            sequence:
+              - service: system_log.write
+                data:
+                  level: info
+                  logger: austin_dumpster_fire
+                  message: >-
+                    Timer expired, Flame State ON -> pressing Trigger to turn OFF.
+              - service: button.press
+                target:
+                  entity_id: button.dumpster_fire_trigger
+          - conditions:
+              - condition: template
+                value_template: "{{ flame_state == 'off' }}"
+            sequence:
+              - service: system_log.write
+                data:
+                  level: info
+                  logger: austin_dumpster_fire
+                  message: >-
+                    Timer expired, Flame State OFF -> no action.
+          - conditions:
+              - condition: template
+                value_template: "{{ flame_state not in ['on', 'off'] }}"
+            sequence:
+              - service: system_log.write
+                data:
+                  level: warning
+                  logger: austin_dumpster_fire
+                  message: >-
+                    Timer expired, Flame State unavailable ({{ flame_state }}) ->
+                    no action.

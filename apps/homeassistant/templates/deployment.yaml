@@ -29,6 +29,9 @@ spec:
         checksum/init-script: {{ include (print $.Template.BasePath "/configmap-init-script.yaml") . | sha256sum }}
         checksum/hass-configuration: {{ include (print $.Template.BasePath "/configmap-hass-config.yaml") . | sha256sum }}
         {{- end }}
+        {{- if .Values.austinDumpsterFire.enabled }}
+        checksum/austin-dumpster-fire: {{ include (print $.Template.BasePath "/configmap-austin-dumpster-fire.yaml") . | sha256sum }}
+        {{- end }}
         {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -142,6 +145,10 @@ spec:
               subPath: {{ .subPath }}
               {{- end }}
             {{- end }}
+            {{- if .Values.austinDumpsterFire.enabled }}
+            - name: austin-dumpster-fire-volume
+              mountPath: /config-austin-dumpster-fire
+            {{- end }}
             - mountPath: /config
               name: config
         {{- end }}
@@ -169,6 +176,11 @@ spec:
         - name: config-volume
           configMap:
             name: hass-configuration
+        {{- end }}
+        {{- if .Values.austinDumpsterFire.enabled }}
+        - name: austin-dumpster-fire-volume
+          configMap:
+            name: austin-dumpster-fire-files
         {{- end }}
         - name: config
           persistentVolumeClaim:

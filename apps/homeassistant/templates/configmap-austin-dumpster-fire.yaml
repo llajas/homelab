@@ -1,0 +1,14 @@
+{{- if .Values.austinDumpsterFire.enabled -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: austin-dumpster-fire-files
+  namespace: {{ include "home-assistant.namespace" . }}
+  labels:
+    {{- include "home-assistant.labels" . | nindent 4 }}
+data:
+  austin_dumpster_fire.yaml: |
+{{ .Files.Get "files/austin_dumpster_fire.yaml" | indent 4 }}
+  austin_dumpster_fire_poll.py: |
+{{ .Files.Get "files/austin_dumpster_fire_poll.py" | indent 4 }}
+{{- end -}}

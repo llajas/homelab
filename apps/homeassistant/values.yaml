@@ -87,6 +87,9 @@ configuration:
     # Loads default set of integrations. Do not remove.
     default_config:
 
+    homeassistant:
+      packages: !include_dir_named packages
+
     recorder:
       purge_keep_days: 365
       auto_purge: true
@@ -177,6 +180,14 @@ configuration:
     if [ ! -f /config/scenes.yaml ]; then
       echo "Scenes file not found, creating a new one"
       touch /config/scenes.yaml
+    fi
+
+    if [ -d /config-austin-dumpster-fire ]; then
+      echo "Syncing Austin Dumpster Fire package files from ConfigMap"
+      mkdir -p /config/packages
+      cp /config-austin-dumpster-fire/austin_dumpster_fire.yaml /config/packages/austin_dumpster_fire.yaml
+      cp /config-austin-dumpster-fire/austin_dumpster_fire_poll.py /config/austin_dumpster_fire_poll.py
+      chmod +x /config/austin_dumpster_fire_poll.py
     fi
   initContainer:
     name: setup-config
@@ -293,3 +304,6 @@ controller:
 
 deploymentAnnotations: {}
 deploymentStrategy: Recreate
+
+austinDumpsterFire:
+  enabled: true
