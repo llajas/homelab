@@ -51,6 +51,13 @@ thanos:
   queryFrontend:
     enabled: true
     replicaCount: 1
+    extraFlags:
+      - --query-range.split-interval=24h
+      - --query-range.max-query-parallelism=4
+      - --query-range.max-retries-per-request=3
+      - --query-range.max-query-length=220d
+      - --query-frontend.log-queries-longer-than=30s
+      - --query-frontend.compress-responses
     resources:
       requests:
         cpu: 200m
@@ -69,13 +76,13 @@ thanos:
     replicaCount: 1
     resources:
       requests:
-        cpu: 100m
-        memory: 512Mi
+        cpu: 200m
+        memory: 2Gi
         ephemeral-storage: 50Mi
       limits:
-        cpu: 500m
-        memory: 1536Mi
-        ephemeral-storage: 2Gi
+        cpu: 1
+        memory: 4Gi
+        ephemeral-storage: 4Gi
     persistence:
       enabled: true
       size: 8Gi
