@@ -207,7 +207,7 @@ configuration:
 persistence:
   enabled: true
   accessMode: ReadWriteOnce
-  size: 1Gi
+  size: 5Gi
   storageClass: longhorn
   existingClaim: homeassistant-home-assistant-config
   existingVolume: ""
