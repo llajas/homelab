@@ -10,6 +10,9 @@ image:
 # ### WARNING ###
 replicaCount: 1
 
+nameOverride: ""
+fullnameOverride: ""
+
 ## Configure resource requests and limits
 ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
 ##
@@ -39,6 +42,8 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+revisionHistoryLimit: 10
 
 podSecurityContext:
   runAsUser: 1000
@@ -80,70 +85,324 @@ startupProbe:
   failureThreshold: 30
   periodSeconds: 10
 
+## Array of initContainers to add to include in deployment (supports templating)
+##
 # initContainers:
 #   - name: do-something
 #     image: busybox
 #     command: ['do', 'something']
-#     volumesMounts:
+#     volumeMounts:
+#       - name: nfs
+#         mountPath: /mnt/volume
+#         readOnly: true
+#   - |
+#     name: {{ template "minecraft.fullname" . }}-init
+#     image: busybox
+#     command: ['do', 'something']
+#     volumeMounts:
 #       - name: nfs
 #         mountPath: /mnt/volume
 #         readOnly: true
 initContainers:
   - name: check-world-data
-    image: alpine:latest  # Using Alpine for the shell and tar utilities
+    image: alpine:latest
     command: ["/bin/sh", "-c"]
     args:
       - |
         #!/bin/sh
-        # Check for the existence of the 'cat-pajamas' file in /data
-        if [ -f "/data/cat-pajamas" ]; then
-            echo "Unique identifier 'cat-pajamas' found. Proceeding with server startup."
-        else
-            echo "Unique identifier 'cat-pajamas' not found. Fetching the latest backup..."
-            # Find the latest backup file based on the naming convention and timestamp
-            LATEST_BACKUP=$(ls -t /backups/Hermitcraft-*.tgz | head -1)
-            if [ -n "$LATEST_BACKUP" ]; then
-                echo "Restoring from backup: $LATEST_BACKUP"
-                # Create a temporary directory to extract the .tgz backup
-                TEMP_DIR=$(mktemp -d)
-                tar -xzf "$LATEST_BACKUP" -C "$TEMP_DIR"
-                # Find the .tar file inside the extracted directory
-                TAR_FILE=$(find "$TEMP_DIR" -name "*.tar")
-                if [ -n "$TAR_FILE" ]; then
-                    # Extract the .tar file contents
-                    tar -xf "$TAR_FILE" -C "$TEMP_DIR"
-                fi
-                # Identify the directory containing the actual data
-                DATA_DIR=$(find "$TEMP_DIR" -mindepth 1 -maxdepth 1 -type d -name '.')
-                if [ -n "$DATA_DIR" ]; then
-                    # Move contents of the '.' directory to /data
-                    cp -a "$DATA_DIR/." /data/
-                else
-                    # If no '.' directory, move all contents of TEMP_DIR
-                    cp -a "$TEMP_DIR/." /data/
-                fi
-                # Clean up the temporary directory
-                rm -rf "$TEMP_DIR"
-                echo "Backup restored into /data."
-            else
-                echo "No backup found in /backups."
+        set -eu
+
+        # Configuration
+        readonly IDENTIFIER_FILE="/data/cat-pajamas"
+        readonly BACKUP_DIR="/backups"
+        readonly BACKUP_PATTERN="GrindCraft-*.tgz"
+        readonly DATA_DIR="/data"
+        readonly WORLD_NAME="GrindCraft"
+        readonly WORLD_DEST="${DATA_DIR}/${WORLD_NAME}"
+
+        # Logging functions
+        log_info() {
+            echo "[INFO] $(date '+%Y-%m-%d %H:%M:%S') - $*"
+        }
+
+        log_error() {
+            echo "[ERROR] $(date '+%Y-%m-%d %H:%M:%S') - $*" >&2
+        }
+
+        log_warn() {
+            echo "[WARN] $(date '+%Y-%m-%d %H:%M:%S') - $*" >&2
+        }
+
+        cleanup_temp() {
+            if [ -n "${TEMP_DIR:-}" ] && [ -d "$TEMP_DIR" ]; then
+                log_info "Cleaning up temporary directory: $TEMP_DIR"
+                rm -rf "$TEMP_DIR" || log_warn "Failed to remove temporary directory"
             fi
-        fi
+        }
+
+        validate_backup() {
+            local backup_file="$1"
+
+            if [ ! -f "$backup_file" ]; then
+                log_error "Backup file does not exist: $backup_file"
+                return 1
+            fi
+
+            if [ ! -r "$backup_file" ]; then
+                log_error "Backup file is not readable: $backup_file"
+                return 1
+            fi
+
+            if ! tar -tzf "$backup_file" >/dev/null 2>&1; then
+                log_error "Backup file is corrupted or invalid: $backup_file"
+                return 1
+            fi
+
+            log_info "Backup file validation passed: $backup_file"
+            return 0
+        }
+
+        extract_world_data() {
+            local backup_file="$1"
+            local temp_dir="$2"
+
+            log_info "Extracting backup archive..."
+            if ! tar -xzf "$backup_file" -C "$temp_dir"; then
+                log_error "Failed to extract backup archive"
+                return 1
+            fi
+
+            # Some backup formats may contain nested .tar files
+            local tar_files
+            tar_files=$(find "$temp_dir" -type f -name "*.tar" 2>/dev/null || true)
+
+            if [ -n "$tar_files" ]; then
+                log_info "Found nested tar archive(s), extracting..."
+                echo "$tar_files" | while IFS= read -r tar_file; do
+                    [ -n "$tar_file" ] || continue
+                    if [ -f "$tar_file" ]; then
+                        log_info "Extracting nested archive: $(basename "$tar_file")"
+                        if ! tar -xf "$tar_file" -C "$temp_dir"; then
+                            log_error "Failed to extract nested archive: $tar_file"
+                            exit 1
+                        fi
+                    fi
+                done
+            fi
+
+            return 0
+        }
+
+        find_world_data() {
+            local temp_dir="$1"
+            local found_level_dat=""
+            local found_dir=""
+
+            # First preference: exact world folder name
+            found_level_dat=$(find "$temp_dir" -type f -path "*/${WORLD_NAME}/level.dat" -print -quit 2>/dev/null || true)
+            if [ -n "$found_level_dat" ]; then
+                dirname "$found_level_dat"
+                return 0
+            fi
+
+            # Fallback: any level.dat
+            found_level_dat=$(find "$temp_dir" -type f -name "level.dat" -print -quit 2>/dev/null || true)
+            if [ -n "$found_level_dat" ]; then
+                found_dir=$(dirname "$found_level_dat")
+                log_warn "Did not find ${WORLD_NAME}/level.dat specifically; using fallback world directory: $found_dir"
+                echo "$found_dir"
+                return 0
+            fi
+
+            return 1
+        }
+
+        copy_world_data() {
+            local source_dir="$1"
+            local dest_dir="$2"
+
+            if [ ! -d "$source_dir" ]; then
+                log_error "Source directory does not exist: $source_dir"
+                return 1
+            fi
+
+            if [ ! -f "$source_dir/level.dat" ]; then
+                log_error "Source directory does not appear to be a valid world: missing level.dat in $source_dir"
+                return 1
+            fi
+
+            log_info "Restoring world data from $source_dir to $dest_dir"
+
+            # Remove any newly-generated or partial world at destination
+            if [ -d "$dest_dir" ]; then
+                log_info "Removing existing destination directory: $dest_dir"
+                rm -rf "$dest_dir"
+            fi
+
+            if ! mkdir -p "$dest_dir"; then
+                log_error "Failed to create destination directory: $dest_dir"
+                return 1
+            fi
+
+            # Copy directory contents without flattening to /data root
+            if ! cp -a "$source_dir"/. "$dest_dir"/; then
+                log_error "Failed to copy world data"
+                return 1
+            fi
+
+            if [ ! -f "$dest_dir/level.dat" ]; then
+                log_error "Restore verification failed: $dest_dir/level.dat not found"
+                return 1
+            fi
+
+            log_info "World restore verification passed: $dest_dir/level.dat exists"
+            return 0
+        }
+
+        restore_from_backup() {
+            log_info "Starting backup restoration process..."
+
+            local latest_backup
+            latest_backup=$(ls -t "$BACKUP_DIR"/$BACKUP_PATTERN 2>/dev/null | head -1 || true)
+
+            if [ -z "$latest_backup" ]; then
+                log_warn "No backup files found matching pattern: $BACKUP_PATTERN"
+                log_warn "Checked directory: $BACKUP_DIR"
+                return 1
+            fi
+
+            log_info "Found latest backup: $(basename "$latest_backup")"
+            log_info "Backup size: $(du -h "$latest_backup" | cut -f1)"
+
+            if ! validate_backup "$latest_backup"; then
+                log_error "Backup validation failed, cannot proceed"
+                return 1
+            fi
+
+            TEMP_DIR=$(mktemp -d)
+            trap cleanup_temp EXIT INT TERM
+
+            log_info "Created temporary directory: $TEMP_DIR"
+
+            if ! extract_world_data "$latest_backup" "$TEMP_DIR"; then
+                log_error "Failed to extract backup data"
+                return 1
+            fi
+
+            local world_data_dir
+            if ! world_data_dir=$(find_world_data "$TEMP_DIR"); then
+                log_error "Could not locate world data in backup"
+                return 1
+            fi
+
+            log_info "Located world data in: $world_data_dir"
+
+            if ! copy_world_data "$world_data_dir" "$WORLD_DEST"; then
+                log_error "Failed to restore world data"
+                return 1
+            fi
+
+            if ! touch "$IDENTIFIER_FILE"; then
+                log_warn "Failed to create identifier file: $IDENTIFIER_FILE"
+            else
+                log_info "Created identifier file: $IDENTIFIER_FILE"
+            fi
+
+            log_info "Backup restoration completed successfully"
+            return 0
+        }
+
+        main() {
+            log_info "Starting world data check..."
+
+            if [ -f "$IDENTIFIER_FILE" ]; then
+                log_info "Unique identifier found: $(basename "$IDENTIFIER_FILE")"
+                log_info "World data already exists, proceeding with server startup"
+                return 0
+            fi
+
+            log_info "Unique identifier not found, restoration required"
+
+            if [ ! -d "$BACKUP_DIR" ]; then
+                log_error "Backup directory does not exist: $BACKUP_DIR"
+                exit 1
+            fi
+
+            if [ ! -r "$BACKUP_DIR" ]; then
+                log_error "Backup directory is not readable: $BACKUP_DIR"
+                exit 1
+            fi
+
+            if restore_from_backup; then
+                log_info "World data restoration completed successfully"
+            else
+                log_error "World data restoration failed"
+                exit 1
+            fi
+        }
+
+        main "$@"
     volumeMounts:
       - name: datadir
         mountPath: /data
       - name: backupdir
         mountPath: /backups
 
+## Array of additional sidecards to include in the deployment (supports templating)
+##
 # sidecarContainers:
 #   - name: do-something
 #     image: busybox
 #     command: ['do', 'something']
-#     volumesMounts:
+#     volumeMounts:
 #       - name: nfs
 #         mountPath: /mnt/volume
 #         readOnly: true
-sidecarContainers: []
+#   - |
+#     name: {{ template "minecraft.fullname" . }}-sidecar
+#     image: busybox
+#     command: ['do', 'something', 'with', 'rcon']
+#     env:
+#       - name: RCON_PASSWORD
+#         valueFrom:
+#           secretKeyRef:
+#             name: '{{ .Values.minecraftServer.rcon.existingSecret | default (printf "%s-rcon" (include "minecraft.fullname" .)) }}'
+#             key: "{{ .Values.minecraftServer.rcon.secretKey | default "rcon-password" }}"
+sidecarContainers:
+  - name: geyser
+    image: "registry.lajas.tech/geyser:latest"
+    imagePullPolicy: IfNotPresent
+    volumeMounts:
+      - name: geyser-data
+        mountPath: /app
+      - name: geyser-config-temp
+        mountPath: /config-temp
+    ports:
+      - name: geyser-mc
+        containerPort: 19132
+        protocol: UDP
+  - name: spectrum-sync
+    image: "registry.lajas.tech/cloudflare-spectrum-sync:sha-a6a038e7"
+    env:
+      - name: API_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: spectrum-secrets
+            key: cloudflare_api_token
+      - name: ZONE_ID
+        valueFrom:
+          secretKeyRef:
+            name: spectrum-secrets
+            key: cloudflare_zone_id
+      - name: CUSTOM_DOMAIN
+        valueFrom:
+          secretKeyRef:
+            name: spectrum-secrets
+            key: custom_domain
+      - name: SPECTRUM_PROTOCOL
+        value: "minecraft"
+      - name: SPECTRUM_PORT
+        value: "25565"
 
 # extraVolumes:
 #   - volumeMounts:
@@ -152,16 +411,28 @@ sidecarContainers: []
 #         readOnly: true
 #     volumes:
 #       - name: nfs
-#         server: some.nfs.server.com
-#         path: /
-#         mountOptions:
-#           - port=2049
-#           - hard
-#           - vers=4
+#         nfs:
+#           server: some.nfs.server.com
+#           path: /
+#           mountOptions:
+#             - port=2049
+#             - hard
+#             - vers=4
 extraVolumes:
   - volumeMounts:
-      - name: backupdir
-        mountPath: /backups
+      - name: geyser-config-temp
+        mountPath: /geyser-temp/config.yml
+        subPath: config.yml
+      - name: geyser-data
+        mountPath: /app
+    volumes:
+      - name: geyser-config-temp
+        configMap:
+          name: geyser-config
+      - name: geyser-data
+        persistentVolumeClaim:
+          claimName: geyser-data-pvc
+
 
 ## Array of extra objects to deploy with the release
 ##
@@ -176,21 +447,108 @@ extraVolumes:
 #         {
 #           "key": "value"
 #         }
-extraDeploy: []
+extraDeploy:
+  - |
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: geyser-config
+    data:
+      config.yml: |
+        bedrock:
+          port: 19132
+          clone-remote-port: false
+          motd1: "Lost in the Grind"
+          motd2: "Brought to you by Geyser-MC!"
+          server-name: "GrindCraft"
+          compression-level: 6
+          enable-proxy-protocol: false
+        remote:
+          address: "grindcraft.grindcraft.svc.cluster.local"
+          port: 25565
+          auth-type: "online"
+          allow-password-authentication: true
+          use-proxy-protocol: false
+          forward-hostname: false
+        floodgate-key-file: "key.pem"
+        saved-user-logins:
+          - SpecOp eX
+          - Aliizsa
+        pending-authentication-timeout: 120
+        command-suggestions: true
+        passthrough-motd: true
+        passthrough-player-counts: true
+        legacy-ping-passthrough: false
+        ping-passthrough-interval: 3
+        forward-player-ping: false
+        max-players: 100
+        debug-mode: false
+        allow-third-party-capes: false
+        allow-third-party-ears: false
+        show-cooldown: "title"
+        show-coordinates: true
+        disable-bedrock-scaffolding: false
+        emote-offhand-workaround: "disabled"
+        cache-images: 0
+        allow-custom-skulls: true
+        max-visible-custom-skulls: 128
+        custom-skull-render-distance: 32
+        add-non-bedrock-items: true
+        above-bedrock-nether-building: true
+        force-resource-packs: true
+        xbox-achievements-enabled: true
+        log-player-ip-addresses: true
+        notify-on-new-bedrock-update: true
+        unusable-space-block: "minecraft:barrier"
+        metrics:
+          enabled: false
+          uuid: "433f7310-2203-47df-9eb2-54234c4f5da9"
+        scoreboard-packet-threshold: 20
+        enable-proxy-connections: false
+        mtu: 1400
+        use-direct-connection: true
+        disable-compression: true
+        config-version: 4
+  - |
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: geyser-data-pvc
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
+
+## Extra fields to set on the pod
+##
+## Fields set here will be added to the end of the Pod spec
+## Can include any fields from https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#PodSpec
+## that are not already set by the chart.
+##
+## The value of the field will be interpretted as a template.
+##
+# extraPodSpec:
+#   priorityClassName: 'my-priority-class'
+extraPodSpec: {}
 
 minecraftServer:
   # This must be overridden, since we can't accept this for the user.
   eula: "TRUE"
   # One of: LATEST, SNAPSHOT, or a specific version (ie: "1.7.9").
-  version: "1.20"
-  # This can be one of "VANILLA", "FORGE", "SPIGOT", "BUKKIT", "PAPER", "FTBA", "SPONGEVANILLA", "CURSEFORGE", or "FABRIC"
+  version: "26.2"
+  ## The type of Minecraft server to run, check for related settings below
+  ## Common types: "VANILLA", "FABRIC", "FORGE", "SPIGOT", "BUKKIT", "PAPER",
+  ## "FTBA", "SPONGEVANILLA", "AUTO_CURSEFORGE"
+  ## ref: https://docker-minecraft-server.readthedocs.io/en/latest/types-and-platforms
   type: "FABRIC"
   # If type is set to FORGE, this sets the version; this is ignored if forgeInstallerUrl is set
   forgeVersion:
-  # If type is set to SPONGEVANILLA, this sets the version
-  spongeVersion:
   # If type is set to FORGE, this sets the URL to download the Forge installer
   forgeInstallerUrl:
+  # If type is set to SPONGEVANILLA, this sets the version
+  spongeVersion:
   # If type is set to BUKKIT, this sets the URL to download the Bukkit package
   bukkitDownloadUrl:
   # If type is set to SPIGOT, this sets the URL to download the Spigot package
@@ -203,6 +561,14 @@ minecraftServer:
   ftbModpackVersionId:
   # If type is set to CURSEFORGE, this sets the server mod to run. Can also provide url to curseforge package.
   cfServerMod:
+  ## If type is set to FABRIC, this sets the version of fabric server launcher
+  ## to use. Defaults to latest available for minecraftServer.version.
+  ##
+  ## For a custom launcher, see: https://docker-minecraft-server.readthedocs.io/en/latest/types-and-platforms/server-types/fabric/
+  fabricLauncherVersion:
+  ## If type is set to FABRIC, this sets the version of fabric-loader to use.
+  ## Defaults to latest available for minecraftServer.version.
+  fabricLoaderVersion:
   # Set to true if running Feed The Beast and get an error like "unable to launch forgemodloader"
   ftbLegacyJavaFixer: default
   # One of: peaceful, easy, normal, and hard
@@ -248,7 +614,7 @@ minecraftServer:
   # One of: creative, survival, adventure, spectator
   gameMode: survival
   # Message of the Day
-  motd: "A Secret Java Server!"
+  motd: "Lost in the Grind"
   # If true, enable player-vs-player damage.
   pvp: true
   # One of: DEFAULT, FLAT, LARGEBIOMES, AMPLIFIED, CUSTOMIZED
@@ -256,7 +622,7 @@ minecraftServer:
   # When levelType == FLAT or CUSTOMIZED, this can be used to further customize map generation.
   # ref: https://hub.docker.com/r/itzg/minecraft-server/
   generatorSettings:
-  worldSaveName: Hermitcraft
+  worldSaveName: GrindCraft
   # If set, this URL will be downloaded at startup and used as a starting point
   downloadWorldUrl:
   # force re-download of server file
@@ -268,10 +634,10 @@ minecraftServer:
   # A list of VanillaTweaks Share Codes to download. (https://vanillatweaks.net/share#wUq1iz => "wUq1iz")
   vanillaTweaksShareCodes: []
   # Optional URI to a resource pack. The player may choose to use it.
-  resourcePackUrl: https://download.mc-packs.net/pack/eb17202ea28f673fb590e0ee805ba9de7135ba87.zip
+  resourcePackUrl:
   # Optional SHA-1 digest of the resource pack, in lowercase hexadecimal.
   # It is recommended to specify this, because it is used to verify the integrity of the resource pack.
-  resourcePackSha: eb17203ea28f673fb590e0ee805ba9de7135ba87
+  resourcePackSha:
   # When true, players will be prompted for a response and will be disconnected if they decline the required pack
   resourcePackEnforce: true
   # Check accounts against Minecraft account service.
@@ -284,15 +650,12 @@ minecraftServer:
   jvmOpts: ""
   # Options like -X that need to proceed general JVM options
   jvmXXOpts: ""
-  # By default, the server configuration will be created and set based on the following environment variables, but only the first time the server is started
-  # If you would like to override the server configuration each time the container starts up, you can set this to true
-  # see https://github.com/itzg/docker-minecraft-server#server-configuration
-  overrideServerProperties: false
+  overrideServerProperties: default
   # DEPRECATED: use top-level rconServiceAnnotations instead
   serviceAnnotations: {}
   serviceType: LoadBalancer
   ## Set the port used if the serviceType is NodePort
-  #nodePort:
+  nodePort:
   # Set the external port of the service, usefull when using the LoadBalancer service type
   servicePort: 25565
   clusterIP:
@@ -312,13 +675,22 @@ minecraftServer:
   spigetResources: []
 
   # Additional service specs to be defined
-  extraServiceSpec: {}
+  extraServiceSpec:
+    ports:
+      - name: geyser-mc
+        port: 19132
+        targetPort: 19132
+        protocol: UDP
+      - name: minecraft
+        port: 25565
+        targetPort: minecraft
+        protocol: TCP
 
   # A list of Modrinth project slugs with optional version after colon
   modrinth:
     projects: []
-    # Downloads Modrinth project dependencies marked as optional
-    optionalDependencies: false
+    # Specifies whether to download Modrinth dependencies. The allowed values are: none, required, optional
+    downloadDependencies: optional
     # The version type is used to determine the newest version to use from each project. The allowed values are: release, beta, alpha
     allowedVersionType: release
 
@@ -327,7 +699,7 @@ minecraftServer:
     # CurseForge API key obtained from developer console
     apiKey:
       key: "CHANGEME!"
-      existingSecret: ""
+      existingSecret: "minecraft-player-secrets"
       secretKey: cf-api-key
     # Link to modpack in general or a specific file
     # NOTE: In case of specific file - do not point at server file
@@ -370,38 +742,17 @@ minecraftServer:
     ## Set the external port if the rcon serviceType is NodePort
     nodePort:
     clusterIP:
+    loadBalancerClass:
     loadBalancerIP:
     # loadBalancerSourceRanges: []
     ## Set the externalTrafficPolicy in the Service to either Cluster or Local
     # externalTrafficPolicy: Cluster
 
-  extraPorts:
-    - name: audio
-      containerPort: 24454
-      protocol: UDP
-      service:
-        enabled: true
-        embedded: false
-        annotations:
-          lbipam.cilium.io/ips: "10.138.0.249"
-          lbipam.cilium.io/sharing-key: "hermitcraft"
-        labels:
-          io.cilium/bgp-announce: "true"
-        type: LoadBalancer
-        port: 24454
-        loadBalancerIP: 10.138.0.249
-        loadBalancerClass: ""
-        loadBalancerSourceRanges: []
-        externalTrafficPolicy: Local
-      ingress:
-        ingressClassName: nginx
-        enabled: false
-        annotations: {}
-        hosts:
-          - name: audio.local
-            path: /
-        tls: {}
+  ## set this to false to not have colorized logs
+  tty: true
 
+  extraPorts:
+    []
 
     # These options allow you to expose another port from the Minecraft server, plugins such
     # as dynmap (8123) and bluemap (8100) will require this for access to their web interfaces
@@ -461,6 +812,8 @@ envFrom:
 persistence:
   labels: {}
   annotations: {}
+  ## specify an alternative volume to be mounted to /data instead of datadir.
+  # altDataVolumeName: ""
   ## minecraft data Persistent Volume Storage Class
   ## If defined, storageClassName: <storageClass>
   ## If set to "-", storageClassName: "", which disables dynamic provisioning
@@ -473,6 +826,8 @@ persistence:
     # Set this to false if you don't care to persist state between restarts.
     enabled: true
     Size: 10Gi
+    accessModes:
+      - ReadWriteOnce
     # existingClaim: nil
     ## specify a subpath in the volume where the data is. Useful when sharing volumes with other apps.
     # subPath: /path/to/dataDir
@@ -486,8 +841,7 @@ deploymentLabels:
 
 serviceAnnotations:
   lbipam.cilium.io/ips: "10.138.0.249"
-  lbipam.cilium.io/sharing-key: "hermitcraft"
-  external-dns.alpha.kubernetes.io/hostname: "hermitcraft-9.lajas.tech"
+  external-dns.alpha.kubernetes.io/hostname: "thegrind.lajas.tech"
 serviceLabels:
   io.cilium/bgp-announce: "true"
 
@@ -505,6 +859,10 @@ mcbackup:
 
   #  wait 2 minutes before starting
   initialDelay: 2m
+
+  # Sets `BACKUP_NAME`, defaults to `minecraftServer.worldSaveName`
+  # WARN: When using restic and sharing the `mcbackup.resticRepository` across multiple minecraft server deployments: either `mcbackup.backupName` or `mcbackup.resticHostname` must be unique!
+  backupName:
 
   # ***set to 0 or smaller, script will run once and exit.  DO NOT SET TO 0 or smaller, this will cause K8s to kill your pod!***
   # backupInterval="1.5d" -> backup every one and a half days (36 hours)
@@ -525,7 +883,7 @@ mcbackup:
   # logs folder and cache (used by i.e. PaperMC server).
   excludes: "*.jar,cache,logs"
 
-  # backup methods, see https://github.com/itzg/docker-mc-backup e.g. tar, rclone, restic
+  # backup methods, see https://github.com/itzg/docker-mc-backup e.g. tar, rclone, restic, rsync
   backupMethod: tar
   # tar and rclone methods
   destDir: /backups
@@ -561,6 +919,10 @@ mcbackup:
   resticAdditionalTags: "mc_backups"
   # see https://restic.readthedocs.io/en/latest/060_forget.html
   pruneResticRetention: "--keep-daily 7 --keep-weekly 5 --keep-monthly 12 --keep-yearly 75"
+  # Sets `RESTIC_HOSTNAME`
+  # Required because the container hostname changes on every recreate of the pod which prevents restic from pruning snapshots from previous pods/hostnames
+  # WARN: When using restic and sharing the `mcbackup.resticRepository` across multiple minecraft server deployments: either `mcbackup.backupName` or `mcbackup.resticHostname` must be unique!
+  resticHostname:
 
   # At least one of RESTIC_PASSWORD* env variables need to be defined, see https://restic.readthedocs.io/en/latest/030_preparing_a_new_repo.html
   resticEnvs:
@@ -589,6 +951,7 @@ mcbackup:
       cpu: 500m
 
   persistence:
+    annotations: {}
     ## minecraft data Persistent Volume Storage Class
     ## If defined, storageClassName: <storageClass>
     ## If set to "-", storageClassName: "", which disables dynamic provisioning
@@ -600,22 +963,48 @@ mcbackup:
     backupDir:
       # Set this to false if you don't care to persist state between restarts.
       enabled: true
-      size: 63Ti
-      existingClaim: false
+      Size: 63Ti
+      # existingClaim: nil
+      accessModes:
+        - ReadWriteMany
     # Switch between "smb" and "nfs" as needed
     storageType: "smb"
     # Can be empty for NFS or 'smb' as appropriate
     storageClass: "smb"
     # Optional: Specify a volume name if using smb - Default it 'smb-pv-world-backup-hc'
     volumeName: ""
-    annotations: {}
 
     # SMB Configuration
     smb:
       server: "//nas-01.storage.lajas.tech/"
-      shareName: "minecraft_world_backup/hermitcraft/"
+      shareName: "minecraft_world_backup/grindcraft"
+      secret: "smb-creds"
 
     # NFS Configuration
-    # nfs:
-    #   server: "nas-01.storage.lajas.tech"
-    #   path: "/mnt/user/minecraft-worlds"
+    nfs:
+      server: "nas-01.storage.lajas.tech"
+      path: "/mnt/user/minecraft-worlds"
+
+#opSecret:
+#  vault: "z3emsr5qi5xqk33wthv5fpmfqa"
+#  item: "wczp2hwip4lt7zxbjjkajcpnsy"
+#  secretName: "spectrum-secrets"
+
+opSecrets:
+  vault: "z3emsr5qi5xqk33wthv5fpmfqa"
+  secrets:
+    - name: spectrum-secrets
+      item: "wczp2hwip4lt7zxbjjkajcpnsy"
+      secretName: "spectrum-secrets"
+    - name: smb-creds
+      item: "ygmkhtq6qsphcymjceabnfhniq"
+      secretName: "smb-creds"
+    - name: minecraft-player-secrets
+      item: "weatiwfamdvnxzf7bapu6ow2wy"
+      secretName: "minecraft-player-secrets"
+
+# dnsPolicy: ClusterFirst
+# dnsConfig:
+#   options:
+#   - name: ndots
+#     value: '1'

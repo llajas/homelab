@@ -1,4 +1,0 @@
-{{- range .Values.extraDeploy }}
----
-{{ include "extraDeploy.render" (dict "value" . "context" $) }}
-{{- end }}

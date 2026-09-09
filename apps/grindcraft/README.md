@@ -1,6 +1,6 @@
-# Minecraft
+# GrindCraft — Lost in the Grind
 
-[Minecraft](https://minecraft.net/en/) is a game about placing blocks and going on adventures.
+**GrindCraft** (motto: *"Lost in the Grind"*) is a Minecraft server featuring Bedrock crossplay via Geyser.
 
 ## Introduction
 
@@ -101,3 +101,4 @@ For a quickstart guide to setting up a Kubernetes cluster and deploying
 Minecraft servers using this Helm Chart see:
 
 [gilesknap/k3s-minecraft](https://github.com/gilesknap/k3s-minecraft)
+
