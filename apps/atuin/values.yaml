@@ -69,6 +69,7 @@ app-template:
             pullPolicy: IfNotPresent
           env:
             POSTGRES_DB: atuin
+            PGDATA: /var/lib/postgresql/data/pgdata
             POSTGRES_USER:
               valueFrom:
                 secretKeyRef:
