@@ -1,0 +1,139 @@
+app-template:
+  controllers:
+    atuin:
+      strategy: Recreate
+      pod:
+        securityContext:
+          fsGroup: 1000
+          fsGroupChangePolicy: OnRootMismatch
+      containers:
+        app:
+          image:
+            repository: ghcr.io/atuinsh/atuin
+            tag: 18.21.0
+            pullPolicy: IfNotPresent
+          args:
+            - start
+          env:
+            ATUIN_DB_URI:
+              valueFrom:
+                secretKeyRef:
+                  name: atuin-secrets
+                  key: ATUIN_DB_URI
+            ATUIN_HOST: 0.0.0.0
+            ATUIN_PORT: "8888"
+            # Disable after the intended users have registered.
+            ATUIN_OPEN_REGISTRATION: "true"
+            ATUIN_PATH: ""
+            TZ: America/Chicago
+          probes:
+            startup:
+              enabled: true
+              custom: true
+              spec:
+                httpGet:
+                  path: /healthz
+                  port: 8888
+                failureThreshold: 30
+                periodSeconds: 10
+            liveness:
+              enabled: true
+              custom: true
+              spec:
+                httpGet:
+                  path: /healthz
+                  port: 8888
+                periodSeconds: 10
+            readiness:
+              enabled: true
+              custom: true
+              spec:
+                httpGet:
+                  path: /healthz
+                  port: 8888
+                periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+    postgresql:
+      strategy: Recreate
+      containers:
+        database:
+          image:
+            repository: postgres
+            tag: 17.6-alpine
+            pullPolicy: IfNotPresent
+          env:
+            POSTGRES_DB: atuin
+            POSTGRES_USER:
+              valueFrom:
+                secretKeyRef:
+                  name: atuin-secrets
+                  key: ATUIN_DB_USERNAME
+            POSTGRES_PASSWORD:
+              valueFrom:
+                secretKeyRef:
+                  name: atuin-secrets
+                  key: ATUIN_DB_PASSWORD
+          probes:
+            liveness:
+              enabled: true
+            readiness:
+              enabled: true
+            startup:
+              enabled: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+
+  service:
+    atuin:
+      controller: atuin
+      ports:
+        http:
+          port: 8888
+    postgresql:
+      controller: postgresql
+      ports:
+        postgresql:
+          port: 5432
+
+  persistence:
+    config:
+      type: persistentVolumeClaim
+      accessMode: ReadWriteOnce
+      size: 100Mi
+      retain: true
+      advancedMounts:
+        atuin:
+          app:
+            - path: /config
+    database:
+      type: persistentVolumeClaim
+      accessMode: ReadWriteOnce
+      size: 5Gi
+      retain: true
+      advancedMounts:
+        postgresql:
+          database:
+            - path: /var/lib/postgresql/data
+
+opSecrets:
+  vault: z3emsr5qi5xqk33wthv5fpmfqa
+  secrets:
+    - item: 6o2zjpth35ju2xcugfwkahfnui
+      secretName: atuin-secrets
+
+httpRoute:
+  host: atuin.lajas.tech
+  gateway:
+    name: public-gateway
+    namespace: kube-system

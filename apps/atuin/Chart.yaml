@@ -1,0 +1,13 @@
+apiVersion: v2
+name: atuin
+description: Self-hosted Atuin shell history synchronization server
+type: application
+version: 0.0.0
+appVersion: 18.21.0
+home: https://atuin.sh
+sources:
+  - https://github.com/atuinsh/atuin
+dependencies:
+  - name: app-template
+    version: 4.1.2
+    repository: https://bjw-s-labs.github.io/helm-charts
