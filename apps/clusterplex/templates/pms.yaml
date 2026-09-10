@@ -140,9 +140,7 @@ probes:
     enabled: true
     custom: true
     spec:
-      httpGet:
-        scheme: HTTP
-        path: /identity
+      tcpSocket:
         port: {{ .Values.pms.config.port | default 32400 }}
       periodSeconds: 10
       failureThreshold: 30
