@@ -115,9 +115,8 @@ persistence:
       server: nas-01.storage.lajas.tech
   logs:
     enabled: true
+    type: emptyDir
     mountPath: /data/logs
-    accessMode: ReadWriteOnce
-    size: 2Gi
 
 # -- The official LanCache image is only available for x86_64.
 nodeSelector:
