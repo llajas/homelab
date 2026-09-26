@@ -117,6 +117,7 @@ persistence:
     enabled: true
     type: emptyDir
     mountPath: /data/logs
+    sizeLimit: 512Mi
 
 # -- The official LanCache image is only available for x86_64.
 nodeSelector:
@@ -125,7 +126,28 @@ nodeSelector:
 additionalContainers:
   monolithic-logs:
     image: busybox
-    args: [/bin/sh, -c, 'tail -F /data/logs/access.log']
+    args:
+      - /bin/sh
+      - -c
+      - |
+        set -eu
+
+        touch /data/logs/access.log
+        tail -F /data/logs/access.log &
+        tail_pid=$!
+        trap 'kill "${tail_pid}"' EXIT INT TERM
+
+        while kill -0 "${tail_pid}" 2>/dev/null; do
+          sleep 60
+          used_kib="$(du -sk /data/logs | cut -f1)"
+          if [ "${used_kib}" -gt 262144 ]; then
+            for log_file in /data/logs/*.log; do
+              if [ -f "${log_file}" ]; then
+                : > "${log_file}"
+              fi
+            done
+          fi
+        done
     imagePullPolicy: IfNotPresent
     volumeMounts:
       - name: logs-ephemeral
