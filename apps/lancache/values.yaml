@@ -113,7 +113,7 @@ persistence:
     nfs:
       path: /mnt/user/lancache
       server: nas-01.storage.lajas.tech
-  logs:
+  logs-ephemeral:
     enabled: true
     type: emptyDir
     mountPath: /data/logs
@@ -128,5 +128,5 @@ additionalContainers:
     args: [/bin/sh, -c, 'tail -F /data/logs/access.log']
     imagePullPolicy: IfNotPresent
     volumeMounts:
-      - name: logs
+      - name: logs-ephemeral
         mountPath: /data/logs
