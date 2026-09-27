@@ -1,9 +1,9 @@
 ---
 apiVersion: v2
-appVersion: 5.0.4
+appVersion: 5.1.2
 description: Free and easy binary newsreader
 name: sabnzbd
-version: 9.4.3
+version: 9.4.4
 kubeVersion: ">=1.16.0-0"
 keywords:
   - sabnzbd
@@ -22,5 +22,7 @@ dependencies:
     version: 4.5.2
 annotations:
   artifacthub.io/changes: |-
+    - kind: changed
+      description: Updated SABnzbd to version 5.1.2
     - kind: changed
       description: Upgraded `common` chart dependency to version 4.5.2
