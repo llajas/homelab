@@ -97,9 +97,10 @@ kubectl -n opencode run nfs-check --rm -it --restart=Never \
 ## Internal routing and authentication
 
 `opencode.lajas.tech` attaches only to the HTTPS listener on
-`kube-system/public-gateway`. The HTTPRoute deliberately has none of the
-annotations used by the existing Cloudflare tunnel publication workflow. Add a
-LAN DNS record resolving the hostname to the gateway VIP (`10.138.0.226`).
+`kube-system/public-gateway`. Cloudflare ExternalDNS and both Pi-hole
+ExternalDNS instances create records from the same HTTPRoute, each pointing to
+the gateway VIP (`10.138.0.226`). It has none of the annotations used by the
+Cloudflare tunnel publication workflow.
 
 Basic Auth terminates in an nginx sidecar. OpenCode itself listens only on pod
 loopback port `4097` and never receives the server password, so agent shell

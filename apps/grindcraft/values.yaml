@@ -841,6 +841,7 @@ deploymentLabels:
 
 serviceAnnotations:
   lbipam.cilium.io/ips: "10.138.0.249"
+  external-dns.alpha.kubernetes.io/exclude: "true"
   external-dns.alpha.kubernetes.io/hostname: "thegrind.lajas.tech"
 serviceLabels:
   io.cilium/bgp-announce: "true"
