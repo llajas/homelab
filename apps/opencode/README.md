@@ -34,9 +34,9 @@ Create the 1Password item with these fields:
 
 | Field | Value |
 | --- | --- |
-| `username` | `opencode` |
+| `username` | `opencode_server` |
 | `password` | A strong generated password |
-| `htpasswd` | `opencode:<password hash>` |
+| `htpasswd` | `opencode_server:<password hash>` |
 
 The 1Password operator creates the `opencode-server-auth` Secret. Provider
 credentials are separate. Authenticate providers after deployment from the
@@ -45,12 +45,12 @@ remote environment, and never add `auth.json` to Git.
 Generate the `htpasswd` value without storing the plaintext in shell history:
 
 ```bash
-docker run --rm -it httpd:2.4.65-alpine htpasswd -nB opencode
+docker run --rm -it httpd:2.4.65-alpine htpasswd -nB opencode_server
 ```
 
 The command prompts for the password without placing it in shell history. Copy
-the complete `opencode:<hash>` line into the item. The local client reads the
-same plaintext from the item's `password` field.
+the complete `opencode_server:<hash>` line into the item. The local client reads
+the same plaintext from the item's `password` field.
 
 ## Image
 
@@ -143,7 +143,7 @@ Keep the local OpenCode binary installed, then add the wrapper to the shell:
 
 ```bash
 alias opencode="$HOME/ghq/github.com/llajas/homelab/scripts/opencode-remote"
-export OPENCODE_SERVER_USERNAME=opencode
+export OPENCODE_SERVER_USERNAME=opencode_server
 export OPENCODE_SERVER_PASSWORD="$(op read 'op://z3emsr5qi5xqk33wthv5fpmfqa/4msntvjd4yesnjuli2ywrkic5i/password')"
 ```
 
