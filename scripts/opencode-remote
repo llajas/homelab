@@ -1,0 +1,46 @@
+#!/bin/sh
+
+set -eu
+
+local_root=${OPENCODE_LOCAL_ROOT:-"$HOME/ghq"}
+remote_root=${OPENCODE_REMOTE_ROOT:-/workspace/ghq}
+server=${OPENCODE_SERVER_URL:-https://opencode.lajas.tech}
+
+if [ -z "${OPENCODE_SERVER_PASSWORD:-}" ]; then
+  echo "OPENCODE_SERVER_PASSWORD must be set for the remote OpenCode server." >&2
+  exit 1
+fi
+
+if [ ! -d "$local_root" ]; then
+  echo "OpenCode local workspace root does not exist: $local_root" >&2
+  exit 1
+fi
+
+local_root=$(CDPATH= cd "$local_root" && pwd -P)
+local_dir=$(pwd -P)
+
+case "$local_dir" in
+  "$local_root")
+    remote_dir=$remote_root
+    ;;
+  "$local_root"/*)
+    remote_dir="$remote_root/${local_dir#"$local_root"/}"
+    ;;
+  *)
+    echo "Current directory is outside $local_root and cannot be mapped to the remote OpenCode workspace." >&2
+    exit 1
+    ;;
+esac
+
+if [ -n "${OPENCODE_REAL_BIN:-}" ]; then
+  opencode_bin=$OPENCODE_REAL_BIN
+else
+  opencode_bin=$(command -v opencode || true)
+fi
+
+if [ -z "${opencode_bin:-}" ] || [ ! -x "$opencode_bin" ]; then
+  echo "Unable to find the local OpenCode client. Set OPENCODE_REAL_BIN to its executable path." >&2
+  exit 1
+fi
+
+exec "$opencode_bin" attach "$server" --dir "$remote_dir" "$@"
