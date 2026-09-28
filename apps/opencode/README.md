@@ -183,8 +183,8 @@ kubectl -n opencode exec deploy/opencode -- opencode --version
 
 The first curl must fail with `401`; the authenticated request must report a
 healthy server. OpenCode's development branch is moving toward `/api/health`,
-so re-check the endpoint when changing the pinned OpenCode version. Kubernetes
-uses TCP probes to avoid coupling rollout safety to that versioned HTTP path.
+so re-check the endpoint and the loopback exec probes when changing the pinned
+OpenCode version.
 
 Back up the Unraid share and the Longhorn home claim independently. Treat any
 backup containing provider auth as sensitive, and test restore procedures before

@@ -49,23 +49,44 @@ app-template:
               enabled: true
               custom: true
               spec:
-                tcpSocket:
-                  port: 4097
+                exec:
+                  command:
+                    - curl
+                    - --fail
+                    - --silent
+                    - --show-error
+                    - --output
+                    - /dev/null
+                    - http://127.0.0.1:4097/global/health
                 failureThreshold: 30
                 periodSeconds: 5
             liveness:
               enabled: true
               custom: true
               spec:
-                tcpSocket:
-                  port: 4097
+                exec:
+                  command:
+                    - curl
+                    - --fail
+                    - --silent
+                    - --show-error
+                    - --output
+                    - /dev/null
+                    - http://127.0.0.1:4097/global/health
                 periodSeconds: 15
             readiness:
               enabled: true
               custom: true
               spec:
-                tcpSocket:
-                  port: 4097
+                exec:
+                  command:
+                    - curl
+                    - --fail
+                    - --silent
+                    - --show-error
+                    - --output
+                    - /dev/null
+                    - http://127.0.0.1:4097/global/health
                 periodSeconds: 5
           resources:
             requests:
