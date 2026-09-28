@@ -177,7 +177,7 @@ workspace:
 
 opSecrets:
   vault: z3emsr5qi5xqk33wthv5fpmfqa
-  item: opencode
+  item: 4msntvjd4yesnjuli2ywrkic5i
   secretName: opencode-server-auth
 
 httpRoute:

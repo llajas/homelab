@@ -17,8 +17,8 @@ Verify these values in `values.yaml` before syncing the application:
 | `workspace.nfs.server` | `nas-01.storage.lajas.tech` | Resolves from every K3s node |
 | `workspace.nfs.path` | `/mnt/user/ghq` | Matches the Unraid NFS export |
 | UID/GID | `1000:1000` | Matches the workstation user and NFS ownership |
-| `opSecrets.vault` | Existing homelab vault ID | Contains the OpenCode item |
-| `opSecrets.item` | `opencode` | Unambiguous 1Password item title or ID |
+| `opSecrets.vault` | `z3emsr5qi5xqk33wthv5fpmfqa` | ID of the `homelab` vault |
+| `opSecrets.item` | `4msntvjd4yesnjuli2ywrkic5i` | ID of the `OpenCode Server` item |
 | Image | `registry.lajas.tech/opencode:1.18.32-1` | Built and pushed before Argo sync |
 
 The chart pins the published image digest as well as its human-readable tag.
@@ -34,8 +34,8 @@ Create the 1Password item with these fields:
 
 | Field | Value |
 | --- | --- |
-| `OPENCODE_SERVER_USERNAME` | `opencode` |
-| `OPENCODE_SERVER_PASSWORD` | A strong generated password |
+| `username` | `opencode` |
+| `password` | A strong generated password |
 | `htpasswd` | `opencode:<password hash>` |
 
 The 1Password operator creates the `opencode-server-auth` Secret. Provider
@@ -49,8 +49,8 @@ docker run --rm -it httpd:2.4.65-alpine htpasswd -nB opencode
 ```
 
 The command prompts for the password without placing it in shell history. Copy
-the complete `opencode:<hash>` line into the item. Keep the same plaintext in
-`OPENCODE_SERVER_PASSWORD` for the local client.
+the complete `opencode:<hash>` line into the item. The local client reads the
+same plaintext from the item's `password` field.
 
 ## Image
 
@@ -144,7 +144,7 @@ Keep the local OpenCode binary installed, then add the wrapper to the shell:
 ```bash
 alias opencode="$HOME/ghq/github.com/llajas/homelab/scripts/opencode-remote"
 export OPENCODE_SERVER_USERNAME=opencode
-export OPENCODE_SERVER_PASSWORD="$(op read 'op://<vault>/opencode/OPENCODE_SERVER_PASSWORD')"
+export OPENCODE_SERVER_PASSWORD="$(op read 'op://z3emsr5qi5xqk33wthv5fpmfqa/4msntvjd4yesnjuli2ywrkic5i/password')"
 ```
 
 The wrapper maps `$HOME/ghq` to `/workspace/ghq`, rejects directories outside
