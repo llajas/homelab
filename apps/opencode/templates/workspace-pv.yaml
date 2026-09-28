@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: opencode-ghq
+spec:
+  capacity:
+    storage: {{ .Values.workspace.capacity }}
+  volumeMode: Filesystem
+  accessModes:
+    - {{ .Values.workspace.accessMode }}
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: {{ .Values.workspace.storageClass }}
+  claimRef:
+    namespace: {{ .Release.Namespace }}
+    name: opencode-ghq
+  nfs:
+    server: {{ required "workspace.nfs.server must name the Unraid NFS server" .Values.workspace.nfs.server }}
+    path: {{ required "workspace.nfs.path must name the ghq NFS export" .Values.workspace.nfs.path }}
