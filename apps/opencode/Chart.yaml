@@ -1,0 +1,13 @@
+apiVersion: v2
+name: opencode
+description: Remote OpenCode server with a shared NFS workspace
+type: application
+version: 0.0.0
+appVersion: 1.18.32
+home: https://opencode.ai
+sources:
+  - https://github.com/anomalyco/opencode
+dependencies:
+  - name: app-template
+    version: 4.1.2
+    repository: https://bjw-s-labs.github.io/helm-charts
