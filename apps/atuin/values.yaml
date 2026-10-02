@@ -23,7 +23,7 @@ app-template:
             ATUIN_HOST: 0.0.0.0
             ATUIN_PORT: "8888"
             # Disable after the intended users have registered.
-            ATUIN_OPEN_REGISTRATION: "true"
+            ATUIN_OPEN_REGISTRATION: "false"
             ATUIN_PATH: ""
             TZ: America/Chicago
           probes:
