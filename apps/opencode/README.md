@@ -19,7 +19,7 @@ Verify these values in `values.yaml` before syncing the application:
 | UID/GID | `1000:1000` | Matches the workstation user and NFS ownership |
 | `opSecrets.vault` | `z3emsr5qi5xqk33wthv5fpmfqa` | ID of the `homelab` vault |
 | `opSecrets.item` | `4msntvjd4yesnjuli2ywrkic5i` | ID of the `OpenCode Server` item |
-| Image | `registry.lajas.tech/opencode:1.18.32-1` | Built and pushed before Argo sync |
+| Image | `registry.lajas.tech/opencode:1.18.35-1` | Built and pushed before Argo sync |
 
 The chart pins the published image digest as well as its human-readable tag.
 When rebuilding the tag, update the digest only after verifying the new registry
@@ -27,7 +27,7 @@ manifest.
 
 Confirm the workstation identity with `id -u` and `id -g`; change every
 `1000` security-context value together if either result differs. Upgrade the
-local OpenCode client to the same `1.18.32` release as the server before the
+local OpenCode client to the same `1.18.35` release as the server before the
 first attach test.
 
 Create the 1Password item with these fields:
@@ -56,8 +56,8 @@ the same plaintext from the item's `password` field.
 
 There is no currently documented official general-purpose OpenCode server
 image. The chart consumes the separately built and published
-`registry.lajas.tech/opencode:1.18.32-1` image, which installs the pinned
-official `opencode-ai@1.18.32` package and adds the baseline infrastructure
+`registry.lajas.tech/opencode:1.18.35-1` image, which installs the pinned
+official `opencode-ai@1.18.35` package and adds the baseline infrastructure
 tools. Image source and publishing automation belong in a dedicated repository,
 not in this homelab chart.
 
