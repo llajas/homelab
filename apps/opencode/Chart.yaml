@@ -3,7 +3,7 @@ name: opencode
 description: Remote OpenCode server with a shared NFS workspace
 type: application
 version: 0.0.0
-appVersion: 1.18.32
+appVersion: 1.18.35
 home: https://opencode.ai
 sources:
   - https://github.com/anomalyco/opencode
