@@ -185,6 +185,20 @@ app-template:
           app:
             - path: /etc/opencode-managed
               readOnly: true
+    tmux-ssh:
+      type: secret
+      name: opencode-tmux-ssh
+      defaultMode: 0440
+      items:
+        - key: private-key
+          path: id_ed25519
+        - key: known_hosts
+          path: known_hosts
+      advancedMounts:
+        opencode:
+          app:
+            - path: /etc/opencode-tmux-ssh
+              readOnly: true
     proxy-auth:
       type: secret
       name: opencode-server-auth
@@ -207,13 +221,11 @@ workspace:
 
 opSecrets:
   vault: z3emsr5qi5xqk33wthv5fpmfqa
-  item: 4msntvjd4yesnjuli2ywrkic5i
-  secretName: opencode-server-auth
-
-tmuxSSH:
-  vault: z3emsr5qi5xqk33wthv5fpmfqa
-  item: bym6lkr5cfosbip3gcybrw5e6q
-  secretName: opencode-tmux-ssh
+  secrets:
+    - item: 4msntvjd4yesnjuli2ywrkic5i
+      secretName: opencode-server-auth
+    - item: bym6lkr5cfosbip3gcybrw5e6q
+      secretName: opencode-tmux-ssh
 
 httpRoute:
   host: opencode.lajas.tech
