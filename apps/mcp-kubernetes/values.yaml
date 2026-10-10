@@ -1,0 +1,101 @@
+---
+networkPolicy:
+  enabled: true
+  allowedClients:
+    - namespace: opencode
+      podSelector:
+        app.kubernetes.io/name: opencode
+        app.kubernetes.io/instance: opencode
+
+httpRoute:
+  enabled: false
+  name: mcp-kubernetes
+  host: mcp-kubernetes.lajas.tech
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+
+kubernetes-mcp-server:
+  fullnameOverride: mcp-kubernetes
+
+  serviceAccount:
+    create: true
+    name: mcp-kubernetes
+    automountToken: true
+
+  image:
+    registry: quay.io
+    repository: containers/kubernetes_mcp_server
+    version: v0.0.67@sha256:e47f6ccc5347e1ea6be495d8d9ab55ac8a995fe87800fb984fa770cebe14ad44
+    pullPolicy: IfNotPresent
+
+  ingress:
+    enabled: false
+
+  httpRoute:
+    enabled: false
+
+  service:
+    type: ClusterIP
+    port: 8080
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+
+  rbac:
+    create: true
+    extraClusterRoles:
+      - name: cluster-discovery
+        rules:
+          - apiGroups:
+              - ""
+            resources:
+              - namespaces
+              - nodes
+              - events
+              - pods/log
+            verbs:
+              - get
+              - list
+              - watch
+          - apiGroups:
+              - metrics.k8s.io
+            resources:
+              - nodes
+              - pods
+            verbs:
+              - get
+              - list
+              - watch
+    extraClusterRoleBindings:
+      - name: view
+        roleRef:
+          name: view
+          external: true
+      - name: cluster-discovery
+        roleRef:
+          name: cluster-discovery
+
+  config:
+    port: "{{ .Values.service.port }}"
+    stateless: true
+    read_only: true
+    cluster_provider_strategy: in-cluster
+    cluster_auth_mode: kubeconfig
+    list_output: table
+    toolsets:
+      - core
+    denied_resources:
+      - group: ""
+        version: v1
+        kind: Secret
+    validation_enabled: true
+    server_instructions: |
+      Use this server for read-only Kubernetes cluster inspection in this homelab.
+      Prefer namespace-scoped queries before cluster-wide scans.
+      This deployment uses the pod ServiceAccount for cluster access and does not expose kubeconfig inspection tools.
+      Secrets are intentionally denied.

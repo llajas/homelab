@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: opencode-managed-config
+  namespace: {{ .Release.Namespace }}
+data:
+  opencode.json: |-
+    {
+      "$schema": "https://opencode.ai/config.json",
+      "mcp": {
+        "kubernetes": {
+          "type": "remote",
+          "url": "http://mcp-kubernetes.mcp-kubernetes.svc.cluster.local:8080/mcp",
+          "enabled": true,
+          "oauth": false,
+          "timeout": 30000
+        }
+      }
+    }

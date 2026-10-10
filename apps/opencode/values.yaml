@@ -36,6 +36,7 @@ app-template:
             XDG_CONFIG_HOME: /home/opencode/.config
             XDG_DATA_HOME: /home/opencode/.local/share
             XDG_STATE_HOME: /home/opencode/.local/state
+            OPENCODE_CONFIG: /etc/opencode-managed/opencode.json
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -176,6 +177,14 @@ app-template:
             - path: /etc/nginx/conf.d/default.conf
               readOnly: true
               subPath: default.conf
+    managed-config:
+      type: configMap
+      name: opencode-managed-config
+      advancedMounts:
+        opencode:
+          app:
+            - path: /etc/opencode-managed
+              readOnly: true
     proxy-auth:
       type: secret
       name: opencode-server-auth

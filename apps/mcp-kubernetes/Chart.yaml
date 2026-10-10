@@ -1,0 +1,18 @@
+---
+apiVersion: v2
+name: mcp-kubernetes
+description: In-cluster Kubernetes MCP server
+type: application
+version: 0.0.0
+appVersion: 0.0.67
+keywords:
+  - mcp
+  - kubernetes
+  - ai
+home: https://github.com/containers/kubernetes-mcp-server
+sources:
+  - https://github.com/containers/kubernetes-mcp-server
+dependencies:
+  - name: kubernetes-mcp-server
+    repository: oci://ghcr.io/containers/charts
+    version: 0.1.0
