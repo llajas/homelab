@@ -224,7 +224,7 @@ opSecrets:
   secrets:
     - item: 4msntvjd4yesnjuli2ywrkic5i
       secretName: opencode-server-auth
-    - item: bym6lkr5cfosbip3gcybrw5e6q
+    - item: 4akfuxcnmy4ittsanxbnnyz6xi
       secretName: opencode-tmux-ssh
 
 httpRoute:
