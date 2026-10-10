@@ -17,6 +17,29 @@ app-template:
           fsGroupChangePolicy: OnRootMismatch
           seccompProfile:
             type: RuntimeDefault
+      initContainers:
+        prepare-tmux-ssh:
+          image:
+            repository: busybox
+            tag: "1.37"
+          command:
+            - sh
+            - -c
+            - |
+              set -eu
+              cp /tmux-ssh-source/id_ed25519 /tmux-ssh/id_ed25519
+              cp /tmux-ssh-source/known_hosts /tmux-ssh/known_hosts
+              chown 1000:1000 /tmux-ssh/id_ed25519 /tmux-ssh/known_hosts
+              chmod 0600 /tmux-ssh/id_ed25519
+              chmod 0644 /tmux-ssh/known_hosts
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+              add:
+                - CHOWN
+            runAsUser: 0
       containers:
         app:
           image:
@@ -196,9 +219,17 @@ app-template:
           path: known_hosts
       advancedMounts:
         opencode:
-          app:
-            - path: /etc/opencode-tmux-ssh
+          prepare-tmux-ssh:
+            - path: /tmux-ssh-source
               readOnly: true
+    tmux-ssh-runtime:
+      type: emptyDir
+      advancedMounts:
+        opencode:
+          prepare-tmux-ssh:
+            - path: /tmux-ssh
+          app:
+            - path: /home/opencode/.ssh/tmux-mcp
     proxy-auth:
       type: secret
       name: opencode-server-auth
