@@ -29,9 +29,9 @@ app-template:
               set -eu
               cp /tmux-ssh-source/id_ed25519 /tmux-ssh/id_ed25519
               cp /tmux-ssh-source/known_hosts /tmux-ssh/known_hosts
-              chown 1000:1000 /tmux-ssh/id_ed25519 /tmux-ssh/known_hosts
               chmod 0600 /tmux-ssh/id_ed25519
               chmod 0644 /tmux-ssh/known_hosts
+              chown 1000:1000 /tmux-ssh/id_ed25519 /tmux-ssh/known_hosts
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
