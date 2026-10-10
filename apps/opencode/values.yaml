@@ -44,7 +44,7 @@ app-template:
         app:
           image:
             repository: registry.lajas.tech/opencode
-            tag: "1.18.35-1@sha256:4f3bace903d9bbbaf6a9b5e972c37c00af145ca099c3de6aff61be7da96d1b5d"
+            tag: "sha-74f0c1ae@sha256:5eea4dee9b7b2f00f90ed12e30125e83cf25e25dd087c9f2df6193c345366939"
             pullPolicy: IfNotPresent
           args:
             - serve

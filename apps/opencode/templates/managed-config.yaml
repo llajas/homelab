@@ -14,6 +14,15 @@ data:
           "enabled": true,
           "oauth": false,
           "timeout": 30000
+        },
+        "tmux": {
+          "type": "local",
+          "command": [
+            "/usr/local/bin/tmux-mcp-rs",
+            "--ssh=-o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=/home/opencode/.ssh/tmux-mcp/known_hosts -o GlobalKnownHostsFile=/dev/null -i /home/opencode/.ssh/tmux-mcp/id_ed25519 red@mt-silver.johto.lajas.tech"
+          ],
+          "enabled": true,
+          "timeout": 30000
         }
       }
     }
