@@ -43,7 +43,7 @@ docker-registry:
   #         name: auth
   persistence:
     enabled: true
-    size: 10Gi
+    size: 15Gi
   garbageCollect:
     enabled: true
     deleteUntagged: false
