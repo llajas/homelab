@@ -210,6 +210,11 @@ opSecrets:
   item: 4msntvjd4yesnjuli2ywrkic5i
   secretName: opencode-server-auth
 
+tmuxSSH:
+  vault: z3emsr5qi5xqk33wthv5fpmfqa
+  item: bym6lkr5cfosbip3gcybrw5e6q
+  secretName: opencode-tmux-ssh
+
 httpRoute:
   host: opencode.lajas.tech
   gateway:
