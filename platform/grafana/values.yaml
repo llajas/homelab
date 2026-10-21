@@ -240,7 +240,7 @@ grafana:
                     refId: C
                     type: threshold
               noDataState: Alerting
-              execErrState: KeepLastState
+              execErrState: KeepLast
               for: 5m
               annotations:
                 summary: Garage S3 endpoint is unavailable
