@@ -37,14 +37,27 @@ spec:
           value: "{{ $value }}"
         {{- end }}
         {{- end }}
-        {{- if .Values.persistentVolume.enabled }}
+        {{- if or .Values.persistentVolume.enabled .Values.persistence.media.enabled }}
         volumeMounts:
+        {{- if .Values.persistentVolume.enabled }}
         - name: config
           mountPath: /config
         {{- end }}
-      {{- if .Values.persistentVolume.enabled }}
+        {{- if .Values.persistence.media.enabled }}
+        - name: media
+          mountPath: {{ .Values.persistence.media.mountPath }}
+        {{- end }}
+        {{- end }}
+      {{- if or .Values.persistentVolume.enabled .Values.persistence.media.enabled }}
       volumes:
+      {{- if .Values.persistentVolume.enabled }}
       - name: config
         persistentVolumeClaim:
           claimName: {{ if .Values.persistentVolume.existingClaim }}{{ .Values.persistentVolume.existingClaim }}{{ else }}{{ include "cleanuparr.fullname" . }}-config{{ end }}
+      {{- end }}
+      {{- if .Values.persistence.media.enabled }}
+      - name: media
+        persistentVolumeClaim:
+          claimName: {{ .Values.persistence.media.existingClaim }}
+      {{- end }}
       {{- end }}

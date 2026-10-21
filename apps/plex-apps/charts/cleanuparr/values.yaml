@@ -49,3 +49,9 @@ persistentVolume:
   storageClassName: ""
   annotations: {}
   existingClaim: "" # If set, use this existing PVC instead of creating a new one
+
+persistence:
+  media:
+    enabled: true
+    existingClaim: "plex-apps-cifs-plex-media"
+    mountPath: /plexmedia
