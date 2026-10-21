@@ -12,16 +12,16 @@ dependencies:
     version: 4.5.4
     repository: "file://./charts/prowlarr"
   - name: radarr
-    version: 16.3.3
+    version: 16.3.4
     repository: "file://./charts/radarr"
   - name: rdtclient
-    version: 0.1.2
+    version: 0.1.3
     repository: "file://./charts/rdtclient"
   - name: sabnzbd
-    version: 9.4.4
+    version: 9.4.5
     repository: "file://./charts/sabnzbd"
   - name: sonarr
-    version: 16.3.3
+    version: 16.3.4
     repository: "file://./charts/sonarr"
   - name: tautulli
     version: 1.1.7
