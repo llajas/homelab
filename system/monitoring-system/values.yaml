@@ -42,3 +42,32 @@ kube-prometheus-stack:
         replica: "$(POD_NAME)"
       # Replica external label name for deduplication
       replicaExternalLabelName: replica
+
+prometheus-blackbox-exporter:
+  fullnameOverride: garage-endpoint-prober
+  config:
+    modules:
+      tcp_connect:
+        prober: tcp
+        timeout: 5s
+        tcp:
+          preferred_ip_protocol: ip4
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi
+  serviceMonitor:
+    enabled: true
+    defaults:
+      interval: 30s
+      scrapeTimeout: 10s
+      module: tcp_connect
+    targets:
+      - name: garage-s3
+        url: nas-01.storage.lajas.tech:9000
+        additionalMetricsRelabels:
+          service: garage
+          endpoint: s3
