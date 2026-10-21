@@ -171,3 +171,83 @@ grafana:
               isPaused: false
               notification_settings:
                 receiver: Discord
+            - uid: garage-s3-endpoint-down
+              title: Garage S3 Endpoint Unavailable
+              condition: C
+              data:
+                - refId: A
+                  queryType: instant
+                  relativeTimeRange:
+                    from: 300
+                    to: 0
+                  datasourceUid: prometheus
+                  model:
+                    datasource:
+                      type: prometheus
+                      uid: prometheus
+                    editorMode: code
+                    expr: max(probe_success{target="garage-s3"}) or vector(0)
+                    instant: true
+                    intervalMs: 30000
+                    legendFormat: __auto
+                    maxDataPoints: 43200
+                    range: false
+                    refId: A
+                - refId: B
+                  datasourceUid: __expr__
+                  model:
+                    conditions:
+                      - evaluator:
+                          params: []
+                          type: gt
+                        operator:
+                          type: and
+                        query:
+                          params:
+                            - B
+                        reducer:
+                          params: []
+                          type: last
+                        type: query
+                    datasource:
+                      type: __expr__
+                      uid: __expr__
+                    expression: A
+                    reducer: last
+                    refId: B
+                    type: reduce
+                - refId: C
+                  datasourceUid: __expr__
+                  model:
+                    conditions:
+                      - evaluator:
+                          params:
+                            - 1
+                          type: lt
+                        operator:
+                          type: and
+                        query:
+                          params:
+                            - C
+                        reducer:
+                          params: []
+                          type: last
+                        type: query
+                    datasource:
+                      type: __expr__
+                      uid: __expr__
+                    expression: B
+                    refId: C
+                    type: threshold
+              noDataState: Alerting
+              execErrState: KeepLastState
+              for: 5m
+              annotations:
+                summary: Garage S3 endpoint is unavailable
+                description: The Garage S3 TCP availability probe has failed for five minutes. Check the Garage service and its network path.
+              labels:
+                severity: critical
+                service: garage
+              isPaused: false
+              notification_settings:
+                receiver: Discord
