@@ -33,5 +33,5 @@ dependencies:
     version: 0.1.1
     repository: "file://./charts/byparr"
   - name: cleanuparr
-    version: 0.1.2
+    version: 0.1.3
     repository: "file://./charts/cleanuparr"
