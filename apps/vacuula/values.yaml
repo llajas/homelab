@@ -67,14 +67,31 @@ app-template:
   service:
     vacuula:
       controller: vacuula
-      type: ClusterIP
+      type: LoadBalancer
+      externalTrafficPolicy: Local
+
+      labels:
+        io.cilium/bgp-announce: "true"
+
+      annotations:
+        lbipam.cilium.io/ips: "10.138.0.233"
+
       ports:
         http:
           port: 8050
+          targetPort: 8050
+          protocol: TCP
+
         gen3:
           port: 335
+          targetPort: 335
+          protocol: TCP
+
         gen4:
           port: 3443
+          targetPort: 3443
+          protocol: TCP
+
 
   persistence:
     data:
