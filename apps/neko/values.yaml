@@ -1,8 +1,5 @@
 app-template:
   defaultPodOptions:
-    annotations:
-      operator.1password.io/item-path: "vaults/z3emsr5qi5xqk33wthv5fpmfqa/items/juneskn2alhutvm54mxzevi4lu"
-      operator.1password.io/item-name: "secrets"
     securityContext:
       runAsUser: 0
       runAsGroup: 0
@@ -53,28 +50,29 @@ app-template:
             NEKO_SERVER_BIND: ":8080"
             NEKO_SERVER_PATH_PREFIX: "/"
             NEKO_SERVER_PROXY: "true"
-            NEKO_SERVER_CORS: "*"
 
             # --- session/ui ---
             NEKO_DESKTOP_SCREEN: "1920x1080@30"
             NEKO_SESSION_CONTROL_PROTECTION: "false"
             NEKO_SESSION_IMPLICIT_HOSTING: "false"
-            NEKO_SESSION_COOKIE_ENABLED: "false"
+            NEKO_SESSION_COOKIE_ENABLED: "true"
             NEKO_SESSION_MERCIFUL_RECONNECT: "true"
             NEKO_SESSION_HEARTBEAT_INTERVAL: "10"
             # Persist sessions to disk so reconnects survive pod restarts
             NEKO_SESSION_FILE: "/home/neko/.local/share/neko/sessions.json"
-            NEKO_MEMBER_PROVIDER: "multiuser"
-            NEKO_MEMBER_MULTIUSER_ADMIN_PASSWORD:
+            NEKO_MEMBER_PROVIDER: "oauth"
+            NEKO_MEMBER_OAUTH_ENABLED: "true"
+            NEKO_MEMBER_OAUTH_AUTO_REDIRECT: "true"
+            NEKO_MEMBER_OAUTH_NAME: "Lajas.tech SSO"
+            NEKO_MEMBER_OAUTH_ADMIN_EMAILS: "llajas@auth.lajas.tech"
+            NEKO_MEMBER_OAUTH_CLIENT_ID: "neko"
+            NEKO_MEMBER_OAUTH_CLIENT_SECRET:
               valueFrom:
                 secretKeyRef:
-                  name: secrets
-                  key: member-multiuser-admin-password
-            NEKO_MEMBER_MULTIUSER_USER_PASSWORD:
-              valueFrom:
-                secretKeyRef:
-                  name: secrets
-                  key: member-multiuser-user-password
+                  name: neko-oauth
+                  key: client_secret
+            NEKO_MEMBER_OAUTH_ISSUER_URL: "https://dex.lajas.tech"
+            NEKO_MEMBER_OAUTH_REDIRECT_URL: "https://neko.lajas.tech/api/oauth/callback"
             NEKO_FILE_TRANSFER_ENABLED: "true"
             NEKO_FILE_TRANSFER_PATH: "/home/neko/Downloads"
 
