@@ -75,7 +75,7 @@ app-template:
                 secretKeyRef:
                   name: neko-oauth
                   key: client_secret
-            NEKO_MEMBER_OAUTH_ISSUER_URL: "https://dex.lajas.tech"
+            NEKO_MEMBER_OAUTH_ISSUER_URL: "https://auth.lajas.tech/oauth2/openid/neko"
             NEKO_MEMBER_OAUTH_REDIRECT_URL: "https://neko.lajas.tech/api/oauth/callback"
             NEKO_FILE_TRANSFER_ENABLED: "true"
             NEKO_FILE_TRANSFER_PATH: "/home/neko/Downloads"
