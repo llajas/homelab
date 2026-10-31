@@ -1,0 +1,95 @@
+app-template:
+  defaultPodOptions:
+    automountServiceAccountToken: false
+    hostNetwork: true
+    dnsPolicy: ClusterFirstWithHostNet
+    securityContext:
+      seccompProfile:
+        type: RuntimeDefault
+
+  controllers:
+    vacuula:
+      strategy: Recreate
+      containers:
+        app:
+          image:
+            repository: ghcr.io/vacuula/vacuula
+            tag: 1.1.1-b1
+            pullPolicy: IfNotPresent
+          env:
+            GEN3_PORT: "335"
+            GEN4_PORT: "3443"
+            VACUULA_PORT: "8050"
+            GEN3_ENABLED: "True"
+            GEN4_ENABLED: "True"
+            MDNS_ENABLED: "True"
+            TZ: America/Chicago
+            HOST_IP: 0.0.0.0
+            LOG_LEVEL: info
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+              add:
+                - NET_BIND_SERVICE
+          probes:
+            startup:
+              enabled: true
+              custom: true
+              spec:
+                tcpSocket:
+                  port: 8050
+                failureThreshold: 30
+                periodSeconds: 5
+            liveness:
+              enabled: true
+              custom: true
+              spec:
+                tcpSocket:
+                  port: 8050
+                periodSeconds: 15
+            readiness:
+              enabled: true
+              custom: true
+              spec:
+                tcpSocket:
+                  port: 8050
+                periodSeconds: 5
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+
+  service:
+    vacuula:
+      controller: vacuula
+      type: ClusterIP
+      ports:
+        http:
+          port: 8050
+        gen3:
+          port: 335
+        gen4:
+          port: 3443
+
+  persistence:
+    data:
+      type: persistentVolumeClaim
+      accessMode: ReadWriteOnce
+      size: 2Gi
+      storageClass: longhorn
+      retain: true
+      advancedMounts:
+        vacuula:
+          app:
+            - path: /server/data
+
+httpRoute:
+  host: vacuula.lajas.tech
+  gateway:
+    name: public-gateway
+    namespace: kube-system
