@@ -1,5 +1,9 @@
 app-template:
   defaultPodOptions:
+    annotations:
+      operator.1password.io/item-path: "vaults/z3emsr5qi5xqk33wthv5fpmfqa/items/ks6xswihxos3f46mkdvufwvb3u"
+      operator.1password.io/item-name: "neko-oauth"
+      operator.1password.io/auto-restart: "true"
     securityContext:
       runAsUser: 0
       runAsGroup: 0
