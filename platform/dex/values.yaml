@@ -53,5 +53,11 @@ dex:
   envFrom:
     - secretRef:
         name: dex-secrets
+  envVars:
+    - name: NEKO_CLIENT_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: neko-oauth
+          key: client_secret
   ingress:
     enabled: false  # Migrated to Gateway API HTTPRoute
