@@ -102,8 +102,7 @@ persistence:
   ## persistence.skipuninstall -- Do not delete the pvc upon helm uninstall
   skipuninstall: false
 
-nodeSelector:
-  feature.node.kubernetes.io/bluetooth-ready-node: "true"
+nodeSelector: {}
 
 affinity:
   nodeAffinity:
