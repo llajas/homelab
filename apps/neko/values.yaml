@@ -68,7 +68,7 @@ app-template:
             NEKO_MEMBER_OAUTH_ENABLED: "true"
             NEKO_MEMBER_OAUTH_AUTO_REDIRECT: "true"
             NEKO_MEMBER_OAUTH_NAME: "Lajas.tech SSO"
-            NEKO_MEMBER_OAUTH_ADMIN_EMAILS: "llajas@auth.lajas.tech"
+            NEKO_MEMBER_OAUTH_ADMIN_EMAILS: "lauren@lajas.tech"
             NEKO_MEMBER_OAUTH_CLIENT_ID: "neko"
             NEKO_MEMBER_OAUTH_CLIENT_SECRET:
               valueFrom:
