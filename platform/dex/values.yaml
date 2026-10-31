@@ -59,5 +59,9 @@ dex:
         secretKeyRef:
           name: neko-oauth
           key: client_secret
+  podAnnotations:
+    operator.1password.io/item-path: "vaults/z3emsr5qi5xqk33wthv5fpmfqa/items/ks6xswihxos3f46mkdvufwvb3u"
+    operator.1password.io/item-name: "neko-oauth"
+    operator.1password.io/auto-restart: "true"
   ingress:
     enabled: false  # Migrated to Gateway API HTTPRoute
