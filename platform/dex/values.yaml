@@ -45,6 +45,11 @@ dex:
         redirectURIs:
           - https://planka.lajas.tech/oidc-callback
         secretEnv: PLANKA_CLIENT_SECRET
+      - id: neko
+        name: Neko
+        redirectURIs:
+          - https://neko.lajas.tech/api/oauth/callback
+        secretEnv: NEKO_CLIENT_SECRET
   envFrom:
     - secretRef:
         name: dex-secrets
