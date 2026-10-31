@@ -60,6 +60,25 @@ app-template:
             XDG_DATA_HOME: /home/opencode/.local/share
             XDG_STATE_HOME: /home/opencode/.local/state
             OPENCODE_CONFIG: /etc/opencode-managed/opencode.json
+            OPENCODE_API_KEY:
+              valueFrom:
+                secretKeyRef:
+                  name: opencode-server-auth
+                  key: OPENCODE_API_KEY
+            GITEA_TOKEN:
+              valueFrom:
+                secretKeyRef:
+                  name: opencode-server-auth
+                  key: gitea_token
+            GIT_CONFIG_COUNT: "3"
+            GIT_CONFIG_KEY_0: "url.https://git.lajas.tech/.insteadOf"
+            GIT_CONFIG_VALUE_0: "ssh://git@git.lajas.tech/"
+            GIT_CONFIG_KEY_1: "url.https://git.lajas.tech/.insteadOf"
+            GIT_CONFIG_VALUE_1: "git@git.lajas.tech:"
+            GIT_CONFIG_KEY_2: "credential.https://git.lajas.tech.helper"
+            GIT_CONFIG_VALUE_2: >-
+              !f() { if [ "$1" = get ] && [ -n "$GITEA_TOKEN" ]; then
+              printf 'username=llajas\npassword=%s\n' "$GITEA_TOKEN"; fi; }; f
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
