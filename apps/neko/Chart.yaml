@@ -3,7 +3,7 @@ appVersion: 3.0.8
 dependencies:
 - name: app-template
   repository: https://bjw-s-labs.github.io/helm-charts
-  version: 4.4.0
+  version: 5.3.0
 description: Self-hosted virtual browser powered by Neko
 home: https://neko.m1k1o.dev
 name: neko
