@@ -1,0 +1,98 @@
+app-template:
+  defaultPodOptions:
+    automountServiceAccountToken: false
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 65532
+      runAsGroup: 65532
+      seccompProfile:
+        type: RuntimeDefault
+  controllers:
+    start-game:
+      replicas: 3
+      strategy: RollingUpdate
+      rollingUpdate:
+        maxSurge: 1
+        maxUnavailable: 0
+      annotations:
+        operator.1password.io/auto-restart: "true"
+        operator.1password.io/item-path: "vaults/z3emsr5qi5xqk33wthv5fpmfqa/items/zuq3a6zafyzcxknpfmd6xw6yue"
+        operator.1password.io/item-name: start-game-secrets
+      containers:
+        app:
+          image:
+            repository: registry.lajas.tech/start-game-identity-portal
+            tag: latest
+            pullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          env:
+            GITEA_API_BASE_URL: https://git.lajas.tech/api/v1
+            IDENTITY_OWNER: ops
+            IDENTITY_REPO: homelab-identity
+            IDENTITY_BOT_OWNER: identity-intake-bot
+            IDENTITY_BOT_REPO: homelab-identity
+            LISTEN_ADDR: ":8080"
+            GITEA_API_TOKEN:
+              valueFrom:
+                secretKeyRef:
+                  name: start-game-secrets
+                  key: gitea-api-token
+          probes:
+            startup:
+              enabled: true
+              custom: true
+              spec:
+                httpGet:
+                  path: /healthz
+                  port: 8080
+                failureThreshold: 30
+                periodSeconds: 10
+            readiness:
+              enabled: true
+              custom: true
+              spec:
+                httpGet:
+                  path: /healthz
+                  port: 8080
+                periodSeconds: 10
+            liveness:
+              enabled: true
+              custom: true
+              spec:
+                httpGet:
+                  path: /healthz
+                  port: 8080
+                periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+  service:
+    start-game:
+      controller: start-game
+      type: ClusterIP
+      ports:
+        http:
+          port: 8080
+
+opSecrets:
+  vault: z3emsr5qi5xqk33wthv5fpmfqa
+  secrets:
+    - item: zuq3a6zafyzcxknpfmd6xw6yue
+      secretName: start-game-secrets
+
+httpRoute:
+  host: start-game.lajas.tech
+  backendService: start-game
+  backendPort: 8080
+  gateway:
+    name: public-gateway
+    namespace: kube-system
