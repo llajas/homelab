@@ -41,7 +41,7 @@ app-template:
               valueFrom:
                 secretKeyRef:
                   name: start-game-secrets
-                  key: gitea-api-token
+                  key: Gitea-API-Token
           probes:
             startup:
               enabled: true

@@ -11,8 +11,8 @@ is best-effort abuse throttling, not a global quota. The Gitea API serializes
 same-username branch/file creation across replicas.
 
 The `OnePasswordItem` references the portal token item in the shared homelab
-vault. The operator normalizes the field label `Gitea API token` to the Secret
-key `gitea-api-token`, which the Deployment maps to `GITEA_API_TOKEN`. The token
+vault. The operator exposes the field label `Gitea API Token` as the Secret key
+`Gitea-API-Token`, which the Deployment maps to `GITEA_API_TOKEN`. The token
 value is not stored in this repository or included in the image.
 
 The image is published to `registry.lajas.tech/start-game-identity-portal` by
