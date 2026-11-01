@@ -1,0 +1,10 @@
+apiVersion: v2
+name: start-game
+description: Public identity request portal
+type: application
+version: 0.0.0
+appVersion: "0.0.0"
+dependencies:
+  - name: app-template
+    version: 5.3.0
+    repository: https://bjw-s-labs.github.io/helm-charts
