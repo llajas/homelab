@@ -103,6 +103,7 @@ app-template:
                     - http://127.0.0.1:4097/global/health
                 failureThreshold: 30
                 periodSeconds: 5
+                timeoutSeconds: 5
             liveness:
               enabled: true
               custom: true
@@ -116,7 +117,9 @@ app-template:
                     - --output
                     - /dev/null
                     - http://127.0.0.1:4097/global/health
+                failureThreshold: 6
                 periodSeconds: 15
+                timeoutSeconds: 10
             readiness:
               enabled: true
               custom: true
@@ -131,6 +134,7 @@ app-template:
                     - /dev/null
                     - http://127.0.0.1:4097/global/health
                 periodSeconds: 5
+                timeoutSeconds: 5
           resources:
             requests:
               cpu: 500m
