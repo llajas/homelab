@@ -37,7 +37,7 @@ app-template:
                 secretKeyRef:
                   name: dumpster-fire-api
                   key: api-key
-            AUSTIN_FIRE_ENABLED: "false"
+            AUSTIN_FIRE_ENABLED: "true"
             AUSTIN_FIRE_STATE_PATH: /data/austin_dumpster_fire_state.json
             AUSTIN_FIRE_TIMEOUT_MINUTES: "15"
             PYTHONDONTWRITEBYTECODE: "1"
