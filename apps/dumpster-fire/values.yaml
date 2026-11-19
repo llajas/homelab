@@ -12,7 +12,7 @@ app-template:
 
   controllers:
     dumpster-fire-controller:
-      replicas: 0
+      replicas: 1
       strategy: Recreate
       annotations:
         operator.1password.io/auto-restart: "true"
