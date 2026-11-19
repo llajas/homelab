@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plex-apps-recyclarr
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: recyclarr
+      app.kubernetes.io/instance: plex-apps
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: recyclarr
+        app.kubernetes.io/instance: plex-apps
+      annotations:
+        checksum/config: {{ .Files.Get "recyclarr.yml" | sha256sum | quote }}
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: recyclarr
+          image: "{{ .Values.recyclarr.image.repository }}:{{ .Values.recyclarr.image.tag }}"
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: TZ
+              value: America/Chicago
+            - name: CRON_SCHEDULE
+              value: {{ .Values.recyclarr.schedule | quote }}
+            - name: SONARR_BASE_URL
+              value: {{ .Values.recyclarr.sonarrUrl | quote }}
+            - name: RADARR_BASE_URL
+              value: {{ .Values.recyclarr.radarrUrl | quote }}
+            - name: RECYCLARR_DATA_DIR
+              value: /data
+          envFrom:
+            - secretRef:
+                name: recyclarr-api-keys
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: config-file
+              mountPath: /config/recyclarr.yml
+              subPath: recyclarr.yml
+              readOnly: true
+            - name: data
+              mountPath: /data
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: plex-apps-recyclarr
+        - name: config-file
+          configMap:
+            name: plex-apps-recyclarr-config
+        - name: data
+          emptyDir: {}
