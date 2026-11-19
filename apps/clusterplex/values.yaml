@@ -11,9 +11,8 @@ global:
     # -- Defines when the image should be pulled. Options are Always (default), IfNotPresent, and Never
     imagePullPolicy: IfNotPresent
 
-  # -- The CluterPlex version of docker mod images to pull
-  # @default -- The appVersion for this chart
-  clusterplexVersion: latest
+  # -- The ClusterPlex image tag for the dockermods and orchestrator
+  clusterplexVersion: sha-893dcca2
 
   clusterplexImages:
     pmsDockerMod: registry.lajas.tech/clusterplex-pms-dockermod
