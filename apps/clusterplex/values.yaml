@@ -13,7 +13,11 @@ global:
 
   # -- The CluterPlex version of docker mod images to pull
   # @default -- The appVersion for this chart
-  clusterplexVersion:
+  clusterplexVersion: latest
+
+  clusterplexImages:
+    pmsDockerMod: registry.lajas.tech/clusterplex-pms-dockermod
+    workerDockerMod: registry.lajas.tech/clusterplex-worker-dockermod
 
   # -- The timezone configured for each pod
   timezone: America/Chicago
@@ -335,7 +339,7 @@ orchestrator:
 
   image:
     # -- image repository
-    repository: ghcr.io/pabloromeo/clusterplex_orchestrator
+    repository: registry.lajas.tech/clusterplex-orchestrator
 
     # -- image pull policy
     pullPolicy: IfNotPresent

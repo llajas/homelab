@@ -22,7 +22,7 @@ configMaps:
       PGID: '{{ .Values.global.PGID | default "1000" }}'
       PUID: '{{ .Values.global.PUID | default "1000" }}'
       VERSION: docker
-      DOCKER_MODS: 'ghcr.io/pabloromeo/clusterplex_worker_dockermod:{{ .Values.global.clusterplexVersion | default .Chart.AppVersion }}'
+      DOCKER_MODS: '{{ .Values.global.clusterplexImages.workerDockerMod }}:{{ .Values.global.clusterplexVersion | default .Chart.AppVersion }}'
       ORCHESTRATOR_URL: 'http://{{ .Release.Name }}-orchestrator:{{ .Values.orchestrator.config.port | default "3500" }}'
       LISTENING_PORT: '{{ .Values.worker.config.port | default "3501" }}'
       STAT_CPU_INTERVAL: '{{ .Values.worker.config.cpuStatInterval | default "10000" }}'

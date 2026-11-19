@@ -80,8 +80,6 @@ They can't capture all the project's features, but they are sufficient to get a 
 | Git server powered by [Gitea](https://gitea.io/en-us/)                                      |
 | [![][matrix-demo]][matrix-demo]                                                             |
 | [Matrix](https://matrix.org/) chat server                                                   |
-| [![][tekton-demo]][tekton-demo]                                                             |
-| Continuous integration with [Tekton](https://tekton.dev/)                                   |
 | [![][argocd-demo]][argocd-demo]                                                             |
 | Continuous deployment with [ArgoCD](https://argoproj.github.io/cd/)                         |
 | [![][lens-demo]][lens-demo]                                                                 |
@@ -93,7 +91,6 @@ They can't capture all the project's features, but they are sufficient to get a 
 [grafana-demo]: https://user-images.githubusercontent.com/27996771/149446631-1c5d056b-1fdc-48e6-96ba-e1abe1762be0.png
 [gitea-demo]: https://user-images.githubusercontent.com/27996771/149444871-38889c9d-862f-41ff-8c05-8ece21da3e9c.png
 [matrix-demo]: https://user-images.githubusercontent.com/27996771/149448510-7163310c-2049-4ccd-901d-f11f605bfc32.png
-[tekton-demo]: https://user-images.githubusercontent.com/27996771/149445374-58fd0605-bb9a-46e4-81d6-5e584d2b94a9.png
 [argocd-demo]: https://user-images.githubusercontent.com/27996771/149444716-fc0d7282-4cf7-4ddb-97a4-1a3fb47ff2b8.png
 [lens-demo]: https://user-images.githubusercontent.com/27996771/149448896-9d79947d-468c-45c6-a81d-b43654e8ab6b.png
 
@@ -206,9 +203,9 @@ They can't capture all the project's features, but they are sufficient to get a 
         <td>Automatically update dependencies</td>
     </tr>
     <tr>
-        <td><img width="32" src="https://avatars.githubusercontent.com/u/47602533?s=200&v=4"></td>
-        <td><a href="https://tekton.dev">Tekton</a></td>
-        <td>Cloud native solution for building CI/CD systems</td>
+        <td><img width="32" src="https://avatars.githubusercontent.com/u/84780935?s=200&v=4"></td>
+        <td><a href="https://woodpecker-ci.org">Woodpecker CI</a></td>
+        <td>CI/CD platform</td>
     </tr>
     <tr>
         <td><img width="32" src="https://docs.zerotier.com/img/ZeroTierIcon.png"></td>
