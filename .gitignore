@@ -7,6 +7,8 @@ book/
 *.tgz
 *kubeconfig.yaml
 Chart.lock
+!platform/registry/Chart.lock
+!platform/registry/charts/docker-registry-*.tgz
 
 # OpenCode and Specify tooling
 .opencode/

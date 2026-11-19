@@ -1,4 +1,7 @@
 docker-registry:
+  image:
+    tag: 3.1.2
+  configPath: /etc/distribution
   ingress:
     enabled: false  # Migrated to Gateway API HTTPRoute
     # className: nginx  # Migrated to Gateway API
