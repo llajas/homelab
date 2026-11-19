@@ -12,7 +12,7 @@ global:
     imagePullPolicy: IfNotPresent
 
   # -- The ClusterPlex image tag for the dockermods and orchestrator
-  clusterplexVersion: sha-893dcca2
+  clusterplexVersion: sha-b6521994
 
   clusterplexImages:
     pmsDockerMod: registry.lajas.tech/clusterplex-pms-dockermod
