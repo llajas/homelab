@@ -1,0 +1,19 @@
+# yaml-language-server: $schema=https://schemas.recyclarr.dev/v8/config-schema.json
+
+sonarr:
+  series:
+    base_url: !env_var SONARR_BASE_URL
+    api_key: !env_var SONARR_API_KEY
+    quality_definition:
+      type: series
+    quality_profiles:
+      - trash_id: 72dae194fc92bf828f32cde7744e51a1 # WEB-1080p
+
+radarr:
+  movies:
+    base_url: !env_var RADARR_BASE_URL
+    api_key: !env_var RADARR_API_KEY
+    quality_definition:
+      type: movie
+    quality_profiles:
+      - trash_id: d1d67249d3890e49bc12e275d989a7e9 # HD Bluray + WEB
