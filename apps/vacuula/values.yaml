@@ -65,6 +65,13 @@ app-template:
               memory: 1Gi
 
   service:
+    web:
+      controller: vacuula
+      ports:
+        http:
+          port: 8050
+          targetPort: 8050
+
     vacuula:
       controller: vacuula
       type: LoadBalancer

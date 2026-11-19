@@ -22,6 +22,6 @@ spec:
       backendRefs:
         - group: ""
           kind: Service
-          name: vacuula
+          name: vacuula-web
           port: 8050
           weight: 1
