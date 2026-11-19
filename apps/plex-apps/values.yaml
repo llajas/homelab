@@ -16,6 +16,17 @@ byparr: {}
 
 cleanuparr: {}
 
+recyclarr:
+  image:
+    repository: ghcr.io/recyclarr/recyclarr
+    tag: 8.8.1
+  schedule: "@daily"
+  sonarrUrl: http://plex-apps-sonarr.plex-apps.svc.cluster.local:8989
+  radarrUrl: http://plex-apps-radarr.plex-apps.svc.cluster.local:7878
+  opSecret:
+    vault: z3emsr5qi5xqk33wthv5fpmfqa
+    item: cuh3tjmos7sdcvjtqylhjehkmq
+
 volumes:
   media:
     volumeName: cifs-plex-media
