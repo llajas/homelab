@@ -1,0 +1,15 @@
+{{- if and .Values.austinDumpsterFire.enabled .Values.austinDumpsterFire.statusEnabled -}}
+{{- fail "austinDumpsterFire.enabled and statusEnabled cannot both be true; cut over the legacy controller first" -}}
+{{- end -}}
+{{- if .Values.austinDumpsterFire.statusEnabled -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: austin-dumpster-fire-status
+  namespace: {{ include "home-assistant.namespace" . }}
+  labels:
+    {{- include "home-assistant.labels" . | nindent 4 }}
+data:
+  austin_dumpster_fire_status.yaml: |
+{{ .Files.Get "files/austin_dumpster_fire_status.yaml" | indent 4 }}
+{{- end -}}

@@ -188,6 +188,17 @@ configuration:
       cp /config-austin-dumpster-fire/austin_dumpster_fire.yaml /config/packages/austin_dumpster_fire.yaml
       cp /config-austin-dumpster-fire/austin_dumpster_fire_poll.py /config/austin_dumpster_fire_poll.py
       chmod +x /config/austin_dumpster_fire_poll.py
+    else
+      # The old package is copied to the persistent /config volume. Removing
+      # its ConfigMap alone does not stop the legacy automations or poller.
+      rm -f /config/packages/austin_dumpster_fire.yaml /config/austin_dumpster_fire_poll.py
+    fi
+
+    if [ -d /config-austin-dumpster-fire-status ]; then
+      mkdir -p /config/packages
+      cp /config-austin-dumpster-fire-status/austin_dumpster_fire_status.yaml /config/packages/austin_dumpster_fire_status.yaml
+    else
+      rm -f /config/packages/austin_dumpster_fire_status.yaml
     fi
   initContainer:
     name: setup-config
@@ -307,3 +318,4 @@ deploymentStrategy: Recreate
 
 austinDumpsterFire:
   enabled: true
+  statusEnabled: false

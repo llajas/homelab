@@ -1,0 +1,76 @@
+---
+rest:
+  - resource: http://dumpster-fire.dumpster-fire.svc.cluster.local:8080/status
+    scan_interval: 60
+    timeout: 5
+    sensor:
+      - name: Austin Dumpster Fire Controller
+        unique_id: austin_dumpster_fire_controller_status
+        value_template: "{{ value_json.new_run_id }}"
+        json_attributes:
+          - poll_ok
+          - error
+          - initialized
+          - new_incident_count
+          - new_ids
+          - current_count
+          - seen_count
+          - last_poll
+          - last_incident_id
+          - last_issue_reported
+          - last_address
+          - last_published_date
+          - last_status
+          - activity_deadline
+          - enabled
+          - timeout_minutes
+
+template:
+  - sensor:
+      - name: Austin Dumpster Fire Last Poll
+        unique_id: austin_dumpster_fire_last_poll
+        state: "{{ state_attr('sensor.austin_dumpster_fire_controller', 'last_poll') }}"
+        device_class: timestamp
+        availability: >
+          {{ state_attr('sensor.austin_dumpster_fire_controller', 'last_poll') not in
+             [none, 'None', ''] }}
+
+      - name: Austin Dumpster Fire Last Incident
+        unique_id: austin_dumpster_fire_last_incident
+        state: "{{ state_attr('sensor.austin_dumpster_fire_controller', 'last_incident_id') }}"
+        attributes:
+          issue_reported: >
+            {{ state_attr('sensor.austin_dumpster_fire_controller', 'last_issue_reported') }}
+          address: >
+            {{ state_attr('sensor.austin_dumpster_fire_controller', 'last_address') }}
+          published_date: >
+            {{ state_attr('sensor.austin_dumpster_fire_controller', 'last_published_date') }}
+          status: >
+            {{ state_attr('sensor.austin_dumpster_fire_controller', 'last_status') }}
+        availability: >
+          {{ state_attr('sensor.austin_dumpster_fire_controller', 'last_incident_id') not in
+             [none, 'None', ''] }}
+
+      - name: Austin Dumpster Fire Recent Count
+        unique_id: austin_dumpster_fire_recent_count
+        state: "{{ state_attr('sensor.austin_dumpster_fire_controller', 'seen_count') | int(0) }}"
+        unit_of_measurement: incidents
+        availability: >
+          {{ states('sensor.austin_dumpster_fire_controller') not in
+             ['unknown', 'unavailable'] }}
+
+      - name: Austin Dumpster Fire Poll OK
+        unique_id: austin_dumpster_fire_poll_ok
+        state: >
+          {{ state_attr('sensor.austin_dumpster_fire_controller', 'poll_ok') | string | lower }}
+        availability: >
+          {{ states('sensor.austin_dumpster_fire_controller') not in
+             ['unknown', 'unavailable'] }}
+
+      - name: Austin Dumpster Fire Activity Deadline
+        unique_id: austin_dumpster_fire_activity_deadline
+        state: "{{ state_attr('sensor.austin_dumpster_fire_controller', 'activity_deadline') }}"
+        device_class: timestamp
+        availability: >
+          {{ state_attr('sensor.austin_dumpster_fire_controller', 'activity_deadline') not in
+             [none, 'None', ''] }}
