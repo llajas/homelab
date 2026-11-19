@@ -104,7 +104,7 @@ volumeClaimTemplates:
 probes:
   {{ if .Values.worker.healthProbes.startup }}
   startup:
-    enabled: false
+    enabled: true
     custom: true
     spec:
       httpGet:
