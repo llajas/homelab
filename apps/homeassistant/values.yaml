@@ -317,5 +317,5 @@ deploymentAnnotations: {}
 deploymentStrategy: Recreate
 
 austinDumpsterFire:
-  enabled: true
-  statusEnabled: false
+  enabled: false
+  statusEnabled: true
