@@ -14,7 +14,7 @@ app-template:
         app:
           image:
             repository: ghcr.io/vacuula/vacuula
-            tag: 1.1.1-b1
+            tag: 1.1.1
             pullPolicy: IfNotPresent
           env:
             GEN3_PORT: "335"

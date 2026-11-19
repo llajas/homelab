@@ -3,7 +3,7 @@ name: vacuula
 description: Self-hosted server for Neato robot vacuum cleaners
 type: application
 version: 0.0.0
-appVersion: "1.1.1-b1"
+appVersion: "1.1.1"
 home: https://github.com/vacuula/vacuula
 sources:
   - https://github.com/vacuula/vacuula
