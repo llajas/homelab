@@ -75,6 +75,102 @@ app-template:
             limits:
               cpu: 500m
               memory: 512Mi
+    portal-admin:
+      replicas: 1
+      strategy: Recreate
+      pod:
+        securityContext:
+          fsGroup: 65532
+          fsGroupChangePolicy: OnRootMismatch
+      containers:
+        app:
+          image:
+            repository: registry.lajas.tech/start-game-identity-portal
+            tag: sha-SET_AFTER_TRUSTED_BUILD
+            pullPolicy: IfNotPresent
+          command:
+            - /app/portal-admin
+          env:
+            ADMIN_LISTEN_ADDR: ":8081"
+            ADMIN_PUBLIC_ORIGIN: https://portal-admin.lajas.tech
+            ADMIN_OIDC_ISSUER: https://auth.lajas.tech/oauth2/openid/identity-portal-admin
+            ADMIN_OIDC_CLIENT_ID: identity-portal-admin
+            ADMIN_OIDC_REDIRECT_URL: https://portal-admin.lajas.tech/auth/callback
+            ADMIN_TOKEN_STORE_PATH: /var/lib/portal-admin/onboarding-tokens.enc
+            ADMIN_OIDC_CLIENT_SECRET:
+              valueFrom:
+                secretKeyRef:
+                  name: portal-admin-secrets
+                  key: OIDC-Client-Secret
+            ADMIN_OIDC_ADMIN_SUBJECT:
+              valueFrom:
+                secretKeyRef:
+                  name: portal-admin-secrets
+                  key: OIDC-Admin-Subject
+            ADMIN_COOKIE_KEY:
+              valueFrom:
+                secretKeyRef:
+                  name: portal-admin-secrets
+                  key: Cookie-Key
+            ADMIN_RECOVERY_PASSWORD_BCRYPT:
+              valueFrom:
+                secretKeyRef:
+                  name: portal-admin-recovery-password
+                  key: Recovery-Password-Bcrypt
+            ADMIN_RECOVERY_TOTP_SECRET:
+              valueFrom:
+                secretKeyRef:
+                  name: portal-admin-recovery-totp
+                  key: Recovery-TOTP-Secret
+            ADMIN_HANDOFF_TOKEN:
+              valueFrom:
+                secretKeyRef:
+                  name: portal-admin-secrets
+                  key: Handoff-Token
+            ADMIN_TOKEN_STORE_KEY:
+              valueFrom:
+                secretKeyRef:
+                  name: portal-admin-secrets
+                  key: Token-Store-Key
+          probes:
+            startup:
+              enabled: true
+              custom: true
+              spec:
+                httpGet:
+                  path: /healthz
+                  port: 8081
+                failureThreshold: 30
+                periodSeconds: 10
+            readiness:
+              enabled: true
+              custom: true
+              spec:
+                httpGet:
+                  path: /healthz
+                  port: 8081
+                periodSeconds: 10
+            liveness:
+              enabled: true
+              custom: true
+              spec:
+                httpGet:
+                  path: /healthz
+                  port: 8081
+                periodSeconds: 20
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 25m
+              memory: 48Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi
   service:
     start-game:
       controller: start-game
@@ -82,17 +178,49 @@ app-template:
       ports:
         http:
           port: 8080
+    portal-admin:
+      controller: portal-admin
+      type: ClusterIP
+      ports:
+        http:
+          port: 8081
+
+  persistence:
+    portal-admin-tokens:
+      type: persistentVolumeClaim
+      forceRename: start-game-portal-admin-tokens
+      accessMode: ReadWriteOnce
+      size: 1Gi
+      retain: true
+      advancedMounts:
+        portal-admin:
+          app:
+            - path: /var/lib/portal-admin
 
 opSecrets:
   vault: z3emsr5qi5xqk33wthv5fpmfqa
   secrets:
     - item: zuq3a6zafyzcxknpfmd6xw6yue
       secretName: start-game-secrets
+    - item: lcfgmcgg4vn5qavtxi6lm3g3fq
+      secretName: portal-admin-secrets
+    - item: 3arx7h5go22dp42ybvw4goofbi
+      secretName: portal-admin-recovery-password
+    - item: ngmqzyogl2z4ix4bfdyozit53y
+      secretName: portal-admin-recovery-totp
 
 httpRoute:
   host: start-game.lajas.tech
   backendService: start-game
   backendPort: 8080
+  gateway:
+    name: public-gateway
+    namespace: kube-system
+
+httpRouteAdmin:
+  host: portal-admin.lajas.tech
+  backendService: start-game-portal-admin
+  backendPort: 8081
   gateway:
     name: public-gateway
     namespace: kube-system
