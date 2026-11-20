@@ -86,7 +86,7 @@ app-template:
         app:
           image:
             repository: registry.lajas.tech/start-game-identity-portal
-            tag: sha-SET_AFTER_TRUSTED_BUILD
+            tag: sha-222c9a89
             pullPolicy: IfNotPresent
           command:
             - /app/portal-admin
