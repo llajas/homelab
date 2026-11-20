@@ -58,6 +58,7 @@ spec:
                     key: client_secret
               {{authPrefix}}__AUTH__OIDCUSERIDENTIFIER: lauren@lajas.tech
               {{authPrefix}}__AUTH__OIDCSCOPES: openid profile email
+              {{authPrefix}}__SERVER__TRUSTEDNETWORKS: 10.42.0.0/16
             httpRoute:
               enabled: true
               name: '{{name}}'
