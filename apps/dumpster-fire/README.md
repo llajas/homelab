@@ -5,6 +5,10 @@ This Argo CD-discovered app deploys the standalone controller and its internal
 `AUSTIN_FIRE_ENABLED=false`; it cannot take control until an explicit cutover.
 It uses `Recreate` and one retained Longhorn claim because the controller owns
 one durable state file and must remain a single writer.
+Prometheus scrapes the internal `/metrics` endpoint through a ServiceMonitor;
+Grafana provisions the Dumpster Fire Controller dashboard from the monitoring
+chart. Metrics contain aggregate lifecycle state only, not incident addresses
+or IDs.
 
 The 1Password operator syncs item `m6xfspsmb26pvptji2mem7bivu` as the
 `dumpster-fire-api` Secret. The item needs these exact text fields:
