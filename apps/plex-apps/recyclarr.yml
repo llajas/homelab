@@ -38,6 +38,7 @@ sonarr:
             qualities:
               - WEBDL-720p
               - WEBRip-720p
+      - trash_id: d1498e7d189fbe6c7110ceaabb7473e6 # WEB-2160p
 
 radarr:
   movies:
@@ -72,3 +73,4 @@ radarr:
           preferred: 87.9
     quality_profiles:
       - trash_id: d1d67249d3890e49bc12e275d989a7e9 # HD Bluray + WEB
+      - trash_id: 64fb5f9858489bdac2af690e27c8f42f # UHD Bluray + WEB
