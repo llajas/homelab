@@ -9,16 +9,22 @@ spec:
         elements:
           - name: radarr-4k
             appName: Radarr 4K
+            authPrefix: RADARR
             chartPath: apps/plex-apps/charts/radarr
             hostname: radarr-4k.lajas.tech
             imageTag: version-7.0.3.10918
             mediaDirectory: movies-4k
+            oidcClientId: radarr-4k
+            onePasswordItemId: 2qx754nab2beai7nipfthcg45e
           - name: sonarr-4k
             appName: Sonarr 4K
+            authPrefix: SONARR
             chartPath: apps/plex-apps/charts/sonarr
             hostname: sonarr-4k.lajas.tech
             imageTag: develop-version-5.0.0.2997
             mediaDirectory: tv-4k
+            oidcClientId: sonarr-4k
+            onePasswordItemId: ttk5tyhsex6ljeh4xswepe4nba
   template:
     metadata:
       name: '{{name}}'
@@ -34,6 +40,24 @@ spec:
         helm:
           releaseName: '{{name}}'
           values: |
+            controller:
+              annotations:
+                operator.1password.io/item-path: "vaults/z3emsr5qi5xqk33wthv5fpmfqa/items/{{onePasswordItemId}}"
+                operator.1password.io/item-name: '{{name}}-oauth'
+                operator.1password.io/auto-restart: "true"
+            env:
+              {{authPrefix}}__APP__INSTANCENAME: '{{appName}}'
+              {{authPrefix}}__AUTH__METHOD: Oidc
+              {{authPrefix}}__AUTH__REQUIRED: Enabled
+              {{authPrefix}}__AUTH__OIDCAUTHORITY: 'https://auth.lajas.tech/oauth2/openid/{{oidcClientId}}'
+              {{authPrefix}}__AUTH__OIDCCLIENTID: '{{oidcClientId}}'
+              {{authPrefix}}__AUTH__OIDCCLIENTSECRET:
+                valueFrom:
+                  secretKeyRef:
+                    name: '{{name}}-oauth'
+                    key: client_secret
+              {{authPrefix}}__AUTH__OIDCUSERIDENTIFIER: lauren@lajas.tech
+              {{authPrefix}}__AUTH__OIDCSCOPES: openid profile email
             httpRoute:
               enabled: false
               name: '{{name}}'
