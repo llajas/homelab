@@ -6,6 +6,25 @@ sonarr:
     api_key: !env_var SONARR_API_KEY
     quality_definition:
       type: series
+      qualities:
+        - name: HDTV-720p
+          max: 50
+          preferred: 30
+        - name: WEBRip-720p
+          max: 50
+          preferred: 30
+        - name: WEBDL-720p
+          max: 50
+          preferred: 30
+        - name: HDTV-1080p
+          max: 50
+          preferred: 32.5
+        - name: WEBRip-1080p
+          max: 50
+          preferred: 32.5
+        - name: WEBDL-1080p
+          max: 50
+          preferred: 32.5
     quality_profiles:
       - trash_id: 72dae194fc92bf828f32cde7744e51a1 # WEB-1080p
 
@@ -15,5 +34,30 @@ radarr:
     api_key: !env_var RADARR_API_KEY
     quality_definition:
       type: movie
+      qualities:
+        - name: HDTV-720p
+          max: 75
+          preferred: 46.05
+        - name: WEBRip-720p
+          max: 75
+          preferred: 43.75
+        - name: WEBDL-720p
+          max: 75
+          preferred: 43.75
+        - name: Bluray-720p
+          max: 75
+          preferred: 50.35
+        - name: HDTV-1080p
+          max: 125
+          preferred: 79.4
+        - name: WEBRip-1080p
+          max: 125
+          preferred: 68.75
+        - name: WEBDL-1080p
+          max: 125
+          preferred: 68.75
+        - name: Bluray-1080p
+          max: 125
+          preferred: 87.9
     quality_profiles:
       - trash_id: d1d67249d3890e49bc12e275d989a7e9 # HD Bluray + WEB
