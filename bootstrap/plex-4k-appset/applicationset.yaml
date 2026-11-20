@@ -1,0 +1,65 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: plex-4k
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - name: radarr-4k
+            appName: Radarr 4K
+            chartPath: apps/plex-apps/charts/radarr
+            hostname: radarr-4k.lajas.tech
+            mediaDirectory: movies-4k
+          - name: sonarr-4k
+            appName: Sonarr 4K
+            chartPath: apps/plex-apps/charts/sonarr
+            hostname: sonarr-4k.lajas.tech
+            mediaDirectory: tv-4k
+  template:
+    metadata:
+      name: '{{name}}'
+    spec:
+      destination:
+        name: in-cluster
+        namespace: plex-apps
+      project: default
+      source:
+        repoURL: http://gitea-http.gitea:3000/ops/homelab
+        targetRevision: master
+        path: '{{chartPath}}'
+        helm:
+          releaseName: '{{name}}'
+          values: |
+            httpRoute:
+              enabled: false
+              name: '{{name}}'
+              appName: '{{appName}}'
+              hostname: '{{hostname}}'
+            initContainers:
+              create-media-root:
+                image: docker.io/library/busybox:1.37.0
+                command:
+                  - /bin/sh
+                  - -c
+                  - mkdir -p -- "/plexmedia/{{mediaDirectory}}"
+                volumeMounts:
+                  - name: media
+                    mountPath: /plexmedia
+            persistence:
+              config:
+                retain: true
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        retry:
+          limit: 10
+          backoff:
+            duration: 1m
+            factor: 2
+            maxDuration: 16m
+        syncOptions:
+          - ApplyOutOfSyncOnly=true
+          - ServerSideApply=true
