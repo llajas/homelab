@@ -24,7 +24,7 @@ app-template:
         app:
           image:
             repository: registry.lajas.tech/dumpster-fire-controller
-            tag: latest
+            tag: sha-66ea1d3c
             pullPolicy: Always
           env:
             AUSTIN_FIRE_HOST:
