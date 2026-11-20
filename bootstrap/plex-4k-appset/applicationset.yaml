@@ -59,7 +59,7 @@ spec:
               {{authPrefix}}__AUTH__OIDCUSERIDENTIFIER: lauren@lajas.tech
               {{authPrefix}}__AUTH__OIDCSCOPES: openid profile email
             httpRoute:
-              enabled: false
+              enabled: true
               name: '{{name}}'
               appName: '{{appName}}'
               hostname: '{{hostname}}'
