@@ -66,6 +66,12 @@ ingress:
         hosts:
           - *host
 
+httpRoute:
+  enabled: true
+  name: sonarr
+  appName: Sonarr
+  hostname: sonarr.lajas.tech
+
 # -- Configures the probes for the main Pod.
 # @default -- See values.yaml
 probes:
@@ -96,7 +102,7 @@ persistence:
   config:
     enabled: true
     existingClaim: ""
-    storageClassName: "longhorn"
+    storageClass: "longhorn"
     accessMode: ReadWriteOnce
     size: "10Gi"
   media:
@@ -117,18 +123,7 @@ metrics:
   prometheusRule:
     enabled: true
     labels: {}
-    # -- Configure additionial rules for the chart under this key.
-    # @default -- See prometheusrules.yaml
-    rules:
-      - alert: SonarrDown
-        annotations:
-          description: Sonarr service is down.
-          summary: Sonarr is down.
-        expr: |
-          sonarr_system_status == 0
-        for: 5m
-        labels:
-          severity: critical
+    rules: []
   exporter:
     image:
       # -- image repository
