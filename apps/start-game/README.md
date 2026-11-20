@@ -1,7 +1,7 @@
-# Start Game portal
+# Register portal
 
 This chart deploys the stateless identity request portal behind the public
-Gateway API route `https://start-game.lajas.tech`. Argo CD discovers the chart
+Gateway API route `https://register.lajas.tech`. Argo CD discovers the chart
 from `apps/start-game/` and creates the matching `start-game` namespace.
 
 The Deployment runs three replicas behind a `ClusterIP` Service. Requests do not

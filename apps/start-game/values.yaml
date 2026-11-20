@@ -210,7 +210,7 @@ opSecrets:
       secretName: portal-admin-recovery-totp
 
 httpRoute:
-  host: start-game.lajas.tech
+  host: register.lajas.tech
   backendService: start-game
   backendPort: 8080
   gateway:
