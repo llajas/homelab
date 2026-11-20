@@ -7,8 +7,6 @@ descheduler:
             args:
               nodeAffinityType:
                 - requiredDuringSchedulingIgnoredDuringExecution
-          - name: RemovePodsViolatingNodeTaints
-            args: {}
           - name: RemovePodsViolatingInterPodAntiAffinity
             args: {}
           - name: LowNodeUtilization
@@ -27,7 +25,6 @@ descheduler:
         plugins:
           deschedule:
             enabled:
-              - RemovePodsViolatingNodeTaints
               - RemovePodsViolatingNodeAffinity
               - RemovePodsViolatingInterPodAntiAffinity
           balance:
