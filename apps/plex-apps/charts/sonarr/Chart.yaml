@@ -1,6 +1,6 @@
 ---
 apiVersion: v2
-appVersion: version-4.0.20.3014
+appVersion: develop-version-5.0.0.2997
 description: Smart PVR for newsgroup and bittorrent users
 name: sonarr
 version: 16.3.4
