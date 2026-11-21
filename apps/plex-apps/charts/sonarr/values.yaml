@@ -10,6 +10,10 @@ controller:
   type: deployment
   labels:
     smb-dependent: "true"
+  annotations:
+    operator.1password.io/item-path: "vaults/z3emsr5qi5xqk33wthv5fpmfqa/items/sonarr-oauth"
+    operator.1password.io/item-name: sonarr-oauth
+    operator.1password.io/auto-restart: "true"
 
 image:
   # -- image repository
@@ -26,6 +30,18 @@ env:
   TZ: America/Chicago
   PUID: "1000"
   PGID: "1000"
+  SONARR__AUTH__METHOD: Oidc
+  SONARR__AUTH__REQUIRED: Enabled
+  SONARR__AUTH__OIDCAUTHORITY: https://auth.lajas.tech/oauth2/openid/sonarr
+  SONARR__AUTH__OIDCCLIENTID: sonarr
+  SONARR__AUTH__OIDCCLIENTSECRET:
+    valueFrom:
+      secretKeyRef:
+        name: sonarr-oauth
+        key: client_secret
+  SONARR__AUTH__OIDCUSERIDENTIFIER: lauren@lajas.tech
+  SONARR__AUTH__OIDCSCOPES: openid profile email
+  SONARR__SERVER__TRUSTEDNETWORKS: 10.42.0.0/16
 
 podSecurityContext:
   runAsUser: 1000

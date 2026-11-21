@@ -10,6 +10,10 @@ controller:
   type: deployment
   labels:
     smb-dependent: "true"
+  annotations:
+    operator.1password.io/item-path: "vaults/z3emsr5qi5xqk33wthv5fpmfqa/items/radarr-oauth"
+    operator.1password.io/item-name: radarr-oauth
+    operator.1password.io/auto-restart: "true"
 
 image:
   # -- image repository
@@ -26,6 +30,18 @@ env:
   TZ: America/Chicago
   PUID: "1000"
   PGID: "1000"
+  RADARR__AUTH__METHOD: Oidc
+  RADARR__AUTH__REQUIRED: Enabled
+  RADARR__AUTH__OIDCAUTHORITY: https://auth.lajas.tech/oauth2/openid/radarr
+  RADARR__AUTH__OIDCCLIENTID: radarr
+  RADARR__AUTH__OIDCCLIENTSECRET:
+    valueFrom:
+      secretKeyRef:
+        name: radarr-oauth
+        key: client_secret
+  RADARR__AUTH__OIDCUSERIDENTIFIER: lauren@lajas.tech
+  RADARR__AUTH__OIDCSCOPES: openid profile email
+  RADARR__SERVER__TRUSTEDNETWORKS: 10.42.0.0/16
 
 podSecurityContext:
   runAsUser: 1000
