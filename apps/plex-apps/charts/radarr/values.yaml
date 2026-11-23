@@ -11,7 +11,7 @@ controller:
   labels:
     smb-dependent: "true"
   annotations:
-    operator.1password.io/item-path: "vaults/z3emsr5qi5xqk33wthv5fpmfqa/items/radarr-oauth"
+    operator.1password.io/item-path: "vaults/z3emsr5qi5xqk33wthv5fpmfqa/items/homelab-kanidm-radarr-oidc-client-secret"
     operator.1password.io/item-name: radarr-oauth
     operator.1password.io/auto-restart: "true"
 
@@ -38,7 +38,7 @@ env:
     valueFrom:
       secretKeyRef:
         name: radarr-oauth
-        key: client_secret
+        key: password
   RADARR__AUTH__OIDCUSERIDENTIFIER: lauren@lajas.tech
   RADARR__AUTH__OIDCSCOPES: openid profile email
   RADARR__SERVER__TRUSTEDNETWORKS: 10.42.0.0/16
