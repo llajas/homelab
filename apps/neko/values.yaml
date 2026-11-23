@@ -1,7 +1,7 @@
 app-template:
   defaultPodOptions:
     annotations:
-      operator.1password.io/item-path: "vaults/z3emsr5qi5xqk33wthv5fpmfqa/items/ks6xswihxos3f46mkdvufwvb3u"
+      operator.1password.io/item-path: "vaults/z3emsr5qi5xqk33wthv5fpmfqa/items/bae2spdv2ppnx3mc3yrlqd7fta"
       operator.1password.io/item-name: "neko-oauth"
       operator.1password.io/auto-restart: "true"
     securityContext:
@@ -74,7 +74,7 @@ app-template:
               valueFrom:
                 secretKeyRef:
                   name: neko-oauth
-                  key: client_secret
+                  key: password
             NEKO_MEMBER_OAUTH_ISSUER_URL: "https://auth.lajas.tech/oauth2/openid/neko"
             NEKO_MEMBER_OAUTH_REDIRECT_URL: "https://neko.lajas.tech/api/oauth/callback"
             NEKO_FILE_TRANSFER_ENABLED: "true"

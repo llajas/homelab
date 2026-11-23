@@ -15,7 +15,7 @@ spec:
             imageTag: version-7.0.3.10918
             mediaDirectory: movies-4k
             oidcClientId: radarr-4k
-            onePasswordItemId: 2qx754nab2beai7nipfthcg45e
+            onePasswordItemId: rs2giyoizmf4lznoylgvpk2nt4
           - name: sonarr-4k
             appName: Sonarr 4K
             authPrefix: SONARR
@@ -24,7 +24,7 @@ spec:
             imageTag: develop-version-5.0.0.2997
             mediaDirectory: tv-4k
             oidcClientId: sonarr-4k
-            onePasswordItemId: ttk5tyhsex6ljeh4xswepe4nba
+            onePasswordItemId: 7gnbh36fyeo5c7z4ibhut7jlli
   template:
     metadata:
       name: '{{name}}'
@@ -55,7 +55,7 @@ spec:
                 valueFrom:
                   secretKeyRef:
                     name: '{{name}}-oauth'
-                    key: client_secret
+                    key: password
               {{authPrefix}}__AUTH__OIDCUSERIDENTIFIER: lauren@lajas.tech
               {{authPrefix}}__AUTH__OIDCSCOPES: openid profile email
               {{authPrefix}}__SERVER__TRUSTEDNETWORKS: 10.42.0.0/16
