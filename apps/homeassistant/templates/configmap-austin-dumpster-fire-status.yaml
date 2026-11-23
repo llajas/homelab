@@ -1,6 +1,3 @@
-{{- if and .Values.austinDumpsterFire.enabled .Values.austinDumpsterFire.statusEnabled -}}
-{{- fail "austinDumpsterFire.enabled and statusEnabled cannot both be true; cut over the legacy controller first" -}}
-{{- end -}}
 {{- if .Values.austinDumpsterFire.statusEnabled -}}
 apiVersion: v1
 kind: ConfigMap
