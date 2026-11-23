@@ -74,3 +74,26 @@ template:
         availability: >
           {{ state_attr('sensor.austin_dumpster_fire_controller', 'activity_deadline') not in
              [none, 'None', ''] }}
+
+  - light:
+      - name: Office Dumpster Fire
+        default_entity_id: light.office_dumpster_fire
+        unique_id: office_dumpster_fire_light
+        icon: mdi:fire
+        availability: >
+          {{ states('binary_sensor.office_dumpster_fire_flame_state') in ['on', 'off'] }}
+        state: "{{ is_state('binary_sensor.office_dumpster_fire_flame_state', 'on') }}"
+        turn_on:
+          - condition: state
+            entity_id: binary_sensor.office_dumpster_fire_flame_state
+            state: "off"
+          - action: button.press
+            target:
+              entity_id: button.dumpster_fire_trigger
+        turn_off:
+          - condition: state
+            entity_id: binary_sensor.office_dumpster_fire_flame_state
+            state: "on"
+          - action: button.press
+            target:
+              entity_id: button.dumpster_fire_trigger
