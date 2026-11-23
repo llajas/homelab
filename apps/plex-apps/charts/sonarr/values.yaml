@@ -10,6 +10,10 @@ controller:
   type: deployment
   labels:
     smb-dependent: "true"
+  annotations:
+    operator.1password.io/item-path: "vaults/z3emsr5qi5xqk33wthv5fpmfqa/items/homelab-kanidm-sonarr-oidc-client-secret"
+    operator.1password.io/item-name: sonarr-oauth
+    operator.1password.io/auto-restart: "true"
 
 image:
   # -- image repository
