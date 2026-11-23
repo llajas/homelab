@@ -42,13 +42,15 @@ Before syncing this chart:
 
    | 1Password item | Required fields |
    | --- | --- |
-   | `portal-admin-secrets` | `OIDC-Client-Secret`, `OIDC-Admin-Subject`, `Cookie-Key`, `Handoff-Token`, `Token-Store-Key` |
+   | `portal-admin-secrets` | `OIDC-Admin-Subject`, `Cookie-Key`, `Handoff-Token`, `Token-Store-Key` |
    | `portal-admin-recovery-password` | `Recovery-Password-Bcrypt` |
    | `portal-admin-recovery-totp` | `Recovery-TOTP-Secret` |
+   | `identity-portal-admin-client-secret` | `password` (created by identity Terraform) |
 
-2. Copy the sensitive `identity_portal_admin_client_secret` Terraform output to
-   `OIDC-Client-Secret`; set `OIDC-Admin-Subject` to the immutable Kanidm `sub`
-   for `llajas` and ensure that account requires MFA.
+2. Confirm the Terraform-managed `identity-portal-admin-client-secret` item
+   exists in 1Password. The chart syncs it as a separate Kubernetes Secret and
+   reads its `password` key for the OIDC client secret. Set `OIDC-Admin-Subject`
+   to the immutable Kanidm `sub` for `llajas` and ensure that account requires MFA.
 3. Generate independent random values for the cookie key, encrypted-store key,
    and handoff key. The handoff key must be the same base64url-encoded 32-byte
    value in `Handoff-Token` and Woodpecker's `admin_handoff_token` secret, whose
