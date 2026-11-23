@@ -100,8 +100,8 @@ app-template:
             ADMIN_OIDC_CLIENT_SECRET:
               valueFrom:
                 secretKeyRef:
-                  name: portal-admin-secrets
-                  key: OIDC-Client-Secret
+                  name: identity-portal-admin-client-secret
+                  key: password
             ADMIN_OIDC_ADMIN_SUBJECT:
               valueFrom:
                 secretKeyRef:
@@ -204,6 +204,8 @@ opSecrets:
       secretName: start-game-secrets
     - item: lcfgmcgg4vn5qavtxi6lm3g3fq
       secretName: portal-admin-secrets
+    - item: 5maulcb5dmfsazunisisq2y6ae
+      secretName: identity-portal-admin-client-secret
     - item: 3arx7h5go22dp42ybvw4goofbi
       secretName: portal-admin-recovery-password
     - item: ngmqzyogl2z4ix4bfdyozit53y
