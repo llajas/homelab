@@ -11,7 +11,7 @@ controller:
   labels:
     smb-dependent: "true"
   annotations:
-    operator.1password.io/item-path: "vaults/z3emsr5qi5xqk33wthv5fpmfqa/items/homelab-kanidm-radarr-oidc-client-secret"
+    operator.1password.io/item-path: "vaults/z3emsr5qi5xqk33wthv5fpmfqa/items/2ikviusgcjcehiedlkwt2hs7nq"
     operator.1password.io/item-name: radarr-oauth
     operator.1password.io/auto-restart: "true"
 
