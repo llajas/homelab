@@ -23,6 +23,7 @@ grafana:
   envFromSecrets:
     - name: grafana-secrets
     - name: grafana-onepassword
+    - name: grafana-kanidm-oidc
   admin:
     existingSecret: grafana-onepassword
     userKey: username
@@ -33,13 +34,15 @@ grafana:
     auth.generic_oauth:
       enabled: true
       allow_sign_up: true
-      name: Dex
-      client_id: grafana-sso
-      client_secret: $__env{GRAFANA_SSO_CLIENT_SECRET}
+      name: Kanidm
+      client_id: grafana
+      client_secret: $__env{password}
       scopes: openid profile email groups
-      auth_url: https://dex.lajas.tech/auth
-      token_url: https://dex.lajas.tech/token
-      api_url: https://dex.lajas.tech/userinfo
+      auth_url: https://auth.lajas.tech/ui/oauth2
+      token_url: https://auth.lajas.tech/oauth2/token
+      api_url: https://auth.lajas.tech/oauth2/openid/grafana/userinfo
+      use_pkce: true
+      use_refresh_token: true
       role_attribute_path: contains(groups[*], 'grafana_admins@auth.lajas.tech') && 'Admin' || contains(groups[*], 'grafana_editors@auth.lajas.tech') && 'Editor' || 'Viewer'
       allow_assign_grafana_admin: true
   persistence:
