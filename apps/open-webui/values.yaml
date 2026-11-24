@@ -261,10 +261,10 @@ sso:
     enabled: true
     clientId: "open-webui"
     clientSecret: ""
-    clientExistingSecret: *oauthSecret
-    clientExistingSecretKey: "client_secret"
-    providerUrl: "https://dex.lajas.tech/.well-known/openid-configuration"
-    providerName: "Lajas.tech SSO"
+    clientExistingSecret: "open-webui-kanidm-oidc"
+    clientExistingSecretKey: "password"
+    providerUrl: "https://auth.lajas.tech/oauth2/openid/open-webui/.well-known/openid-configuration"
+    providerName: "Kanidm"
     scopes: "openid email profile"
 
   roleManagement:
@@ -308,6 +308,13 @@ extraResources:
               name: open-webui
               port: 80
               weight: 1
+  - apiVersion: onepassword.com/v1
+    kind: OnePasswordItem
+    metadata:
+      name: open-webui-kanidm-oidc
+      namespace: open-webui
+    spec:
+      itemPath: "vaults/z3emsr5qi5xqk33wthv5fpmfqa/items/homelab-kanidm-open-webui-oidc-client-secret"
   - apiVersion: gateway.networking.k8s.io/v1
     kind: HTTPRoute
     metadata:
