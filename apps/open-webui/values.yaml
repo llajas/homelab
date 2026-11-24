@@ -335,6 +335,13 @@ extraResources:
               name: open-webui-ollama
               port: 11434
               weight: 1
+  - apiVersion: onepassword.com/v1
+    kind: OnePasswordItem
+    metadata:
+      name: open-webui-kanidm-oidc
+      namespace: open-webui
+    spec:
+      itemPath: "vaults/z3emsr5qi5xqk33wthv5fpmfqa/items/homelab-kanidm-open-webui-oidc-client-secret"
 
 databaseUrl: ""
 
