@@ -173,26 +173,18 @@ oidc:
   ## @param oidc.clientId A string unique to the provider that identifies your app.
   ## @param oidc.clientSecret A secret string that the provider uses to confirm ownership of a client ID.
   ##
-  ## NOTE: Either specify inline `clientId` and `clientSecret` or refer to them via `existingSecret`
+  ## NOTE: Use `clientSecretExistingSecret` when the client secret is managed separately from the app's existing secret.
   ##
-  clientId: ""
+  clientId: planka
   clientSecret: ""
 
-  ## @param oidc.existingSecret Name of an existing secret containing OIDC credentials
-  ## NOTE: Must contain key `clientId` and `clientSecret`
-  ## NOTE: When it's set, the `clientId` and `clientSecret` parameters are ignored
+  ## @param oidc.existingSecret Name of an existing Secret containing both `clientId` and `clientSecret`.
   ##
-  existingSecret: *adminSecret
-
-  ## @param oidc.issuerUrl The OpenID connect metadata document endpoint
-  ##
-  issuerUrl: "https://dex.lajas.tech"
-
-  ## @param oidc.scopes A list of scopes required for OIDC client.
-  ## If empty will default to `openid`, `profile` and `email`
-  ## NOTE: PLANKA needs the email and name claims
-  ##
-  scopes: ["openid", "profile", "email", "groups"]
+  existingSecret: ""
+  clientSecretExistingSecret: planka-kanidm-oidc
+  clientSecretExistingSecretKey: password
+  issuerUrl: "https://auth.lajas.tech/oauth2/openid/planka"
+  scopes: [openid, profile, email, groups]
 
   ## Admin permissions configuration
   admin:
