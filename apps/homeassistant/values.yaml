@@ -182,17 +182,8 @@ configuration:
       touch /config/scenes.yaml
     fi
 
-    if [ -d /config-austin-dumpster-fire ]; then
-      echo "Syncing Austin Dumpster Fire package files from ConfigMap"
-      mkdir -p /config/packages
-      cp /config-austin-dumpster-fire/austin_dumpster_fire.yaml /config/packages/austin_dumpster_fire.yaml
-      cp /config-austin-dumpster-fire/austin_dumpster_fire_poll.py /config/austin_dumpster_fire_poll.py
-      chmod +x /config/austin_dumpster_fire_poll.py
-    else
-      # The old package is copied to the persistent /config volume. Removing
-      # its ConfigMap alone does not stop the legacy automations or poller.
-      rm -f /config/packages/austin_dumpster_fire.yaml /config/austin_dumpster_fire_poll.py
-    fi
+    # /config persists across chart releases, so clear the retired package copies.
+    rm -f /config/packages/austin_dumpster_fire.yaml /config/austin_dumpster_fire_poll.py
 
     if [ -d /config-austin-dumpster-fire-status ]; then
       mkdir -p /config/packages
@@ -317,5 +308,4 @@ deploymentAnnotations: {}
 deploymentStrategy: Recreate
 
 austinDumpsterFire:
-  enabled: false
   statusEnabled: true

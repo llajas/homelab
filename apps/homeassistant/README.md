@@ -51,6 +51,19 @@ writes or merges the managed config into the existing `/config` volume.
 `configuration.forceInit: true` is enabled in the current values so each start merges the existing live file with the
 Helm-managed template, creating timestamped backups and keeping only the 10 most recent backups.
 
+### Dumpster Fire device
+
+The status package keeps Home Assistant's ESPHome integration and exposes
+`light.office_dumpster_fire` from the measured Flame State sensor. Manual
+on/off actions press the physical Trigger only when the measured state differs
+from the request; they do not restore the legacy incident automations. Because
+the physical input is a toggle and the standalone controller acts independently,
+simultaneous manual and controller actions can still race.
+
+The chart no longer packages the retired HA poller or incident automations. Their
+source remains in the Dumpster Fire repository for rollback; restoring that path
+requires restoring the chart support from version control.
+
 ### Gateway API / reverse proxy handling
 
 When `httpRoute.enabled: true`, the managed `configuration.yaml` includes:
