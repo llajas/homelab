@@ -29,9 +29,6 @@ spec:
         checksum/init-script: {{ include (print $.Template.BasePath "/configmap-init-script.yaml") . | sha256sum }}
         checksum/hass-configuration: {{ include (print $.Template.BasePath "/configmap-hass-config.yaml") . | sha256sum }}
         {{- end }}
-        {{- if .Values.austinDumpsterFire.enabled }}
-        checksum/austin-dumpster-fire: {{ include (print $.Template.BasePath "/configmap-austin-dumpster-fire.yaml") . | sha256sum }}
-        {{- end }}
         {{- if .Values.austinDumpsterFire.statusEnabled }}
         checksum/austin-dumpster-fire-status: {{ include (print $.Template.BasePath "/configmap-austin-dumpster-fire-status.yaml") . | sha256sum }}
         {{- end }}
@@ -148,10 +145,6 @@ spec:
               subPath: {{ .subPath }}
               {{- end }}
             {{- end }}
-            {{- if .Values.austinDumpsterFire.enabled }}
-            - name: austin-dumpster-fire-volume
-              mountPath: /config-austin-dumpster-fire
-            {{- end }}
             {{- if .Values.austinDumpsterFire.statusEnabled }}
             - name: austin-dumpster-fire-status-volume
               mountPath: /config-austin-dumpster-fire-status
@@ -183,11 +176,6 @@ spec:
         - name: config-volume
           configMap:
             name: hass-configuration
-        {{- end }}
-        {{- if .Values.austinDumpsterFire.enabled }}
-        - name: austin-dumpster-fire-volume
-          configMap:
-            name: austin-dumpster-fire-files
         {{- end }}
         {{- if .Values.austinDumpsterFire.statusEnabled }}
         - name: austin-dumpster-fire-status-volume
