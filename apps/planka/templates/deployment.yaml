@@ -155,15 +155,31 @@ spec:
           {{- if .Values.oidc.enabled }}
           {{- $secretName := default (printf "%s-oidc" (include "planka.fullname" .)) .Values.oidc.existingSecret }}
             - name: OIDC_CLIENT_ID
+            {{- if .Values.oidc.existingSecret }}
               valueFrom:
                 secretKeyRef:
                   key:  clientId
                   name: {{ $secretName }}
+            {{- else }}
+              value: {{ .Values.oidc.clientId | quote }}
+            {{- end }}
             - name: OIDC_CLIENT_SECRET
+            {{- if .Values.oidc.clientSecretExistingSecret }}
+              valueFrom:
+                secretKeyRef:
+                  key: {{ .Values.oidc.clientSecretExistingSecretKey | default "password" }}
+                  name: {{ .Values.oidc.clientSecretExistingSecret }}
+            {{- else if .Values.oidc.existingSecret }}
+              valueFrom:
+                secretKeyRef:
+                  key: clientSecret
+                  name: {{ $secretName }}
+            {{- else }}
               valueFrom:
                 secretKeyRef:
                   key:  clientSecret
                   name: {{ $secretName }}
+            {{- end }}
             - name: OIDC_ISSUER
               value: {{ required "issuerUrl is required when configuring OIDC" .Values.oidc.issuerUrl | quote }}
             - name: OIDC_SCOPES
