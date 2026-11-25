@@ -238,3 +238,5 @@ opSecrets:
     - name: *adminSecret
       item: "turevh2buhm3mpcntfccwbsjja"
       secretName: *adminSecret
+    - item: "homelab-kanidm-planka-oidc-client-secret"
+      secretName: planka-kanidm-oidc

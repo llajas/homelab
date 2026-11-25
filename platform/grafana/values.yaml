@@ -3,6 +3,7 @@ onepassword:
   vault: "z3emsr5qi5xqk33wthv5fpmfqa"
   item: "bvx3vprorl3xvoqn6urhiuh6ou"
   secretName: "grafana-onepassword"
+  oidcItemTitle: "homelab-kanidm-grafana-oidc-client-secret"
 
 grafana:
   deploymentStrategy:
