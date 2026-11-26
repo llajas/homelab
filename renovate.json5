@@ -5,6 +5,23 @@
   ],
   "packageRules": [
     {
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchPackageNames": [
+        "registry.lajas.tech/foodtrack",
+        "registry.lajas.tech/geyser",
+        "registry.lajas.tech/soleless-app",
+        "registry.lajas.tech/clusterplex-orchestrator",
+        "registry.lajas.tech/clusterplex-pms-dockermod",
+        "registry.lajas.tech/clusterplex-worker-dockermod",
+        "registry.lajas.tech/start-game-identity-portal",
+        "registry.lajas.tech/nas-dependency-operator",
+        "registry.lajas.tech/nas-agent"
+      ],
+      "versioning": "semver"
+    },
+    {
       "matchPackagePatterns": [
         "*"
       ],
@@ -14,6 +31,63 @@
       ],
       "groupName": "all non-major dependencies",
       "groupSlug": "all-minor-patch"
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/(^|/)apps/(foodtracker|soleless|start-game)/values\\.yaml$/",
+        "/(^|/)platform/nas-dependency-operator/values\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?<repoIndent>[ \\t]*)repository:[ \\t]*(?<depName>registry\\.lajas\\.tech/[^\\s]+)[ \\t]*\\r?\\n(?<tagIndent>[ \\t]*)tag:[ \\t]*['\\\"]?(?<legacyTag>latest|sha-[A-Za-z0-9._-]+)['\\\"]?"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "semver",
+      "currentValueTemplate": "0.0.0",
+      "autoReplaceStringTemplate": "{{{repoIndent}}}repository: {{{depName}}}\n{{{tagIndent}}}tag: \"{{{newValue}}}\""
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/(^|/)platform/nas-dependency-operator/values\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?<tagIndent>[ \\t]*)tag:[ \\t]*['\\\"]?(?<legacyTag>latest|sha-[A-Za-z0-9._-]+)['\\\"]?"
+      ],
+      "depNameTemplate": "registry.lajas.tech/nas-dependency-operator",
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "semver",
+      "currentValueTemplate": "0.0.0",
+      "autoReplaceStringTemplate": "{{{tagIndent}}}tag: \"{{{newValue}}}\""
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/(^|/)apps/(minecraft|grindcraft)/values\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?<imageIndent>[ \\t]*)image:[ \\t]*['\\\"](?<depName>registry\\.lajas\\.tech/geyser):(?<legacyTag>latest|sha-[A-Za-z0-9._-]+)['\\\"]"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "semver",
+      "currentValueTemplate": "0.0.0",
+      "autoReplaceStringTemplate": "{{{imageIndent}}}image: \"{{{depName}}}:{{{newValue}}}\""
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/(^|/)apps/clusterplex/values\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?<versionIndent>[ \\t]*)clusterplexVersion:[ \\t]*(?:(?<legacyTag>sha-[A-Za-z0-9._-]+)|(?<currentValue>v?\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?))"
+      ],
+      "depNameTemplate": "registry.lajas.tech/clusterplex-orchestrator",
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "semver",
+      "currentValueTemplate": "{{#if legacyTag}}0.0.0{{else}}{{{currentValue}}}{{/if}}",
+      "autoReplaceStringTemplate": "{{{versionIndent}}}clusterplexVersion: {{{newValue}}}"
     }
   ]
 }
