@@ -4,6 +4,11 @@ hermes-agent:
     model:
       provider: openai-codex
       default: gpt-5.6-terra
+    dashboard:
+      oauth:
+        self_hosted:
+          issuer: https://auth.lajas.tech/oauth2/openid/hermes-agent
+          client_id: hermes-agent
   auth:
     deviceFlow:
       enabled: true
@@ -24,3 +29,45 @@ hermes-agent:
         itemPath: vaults/z3emsr5qi5xqk33wthv5fpmfqa/items/gy7zr4o7r3ziuibzqktblqnooa
   networkPolicy:
     enabled: true
+    extraIngress:
+      - from:
+          - ipBlock:
+              cidr: 10.137.0.0/24
+        ports:
+          - protocol: TCP
+            port: 9119
+    extraEgress:
+      - to:
+          - ipBlock:
+              cidr: 10.138.0.226/32
+        ports:
+          - protocol: TCP
+            port: 443
+  dashboard:
+    enabled: true
+    publicUrl: https://hermes-agent.lajas.tech
+    auth:
+      provider: oidc
+    trustedProxies:
+      - 10.137.0.0/24
+  service:
+    enabled: true
+  httpRoute:
+    enabled: true
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+    parentRefs:
+      - name: public-gateway
+        group: gateway.networking.k8s.io
+        kind: Gateway
+        namespace: kube-system
+        sectionName: https
+    hostnames:
+      - hermes-agent.lajas.tech
+    rules:
+      - matches:
+          - path:
+              type: PathPrefix
+              value: /
+        backendRefs:
+          - port: 9119

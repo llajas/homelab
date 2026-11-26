@@ -1,11 +1,15 @@
 # Hermes Agent
 
 Argo CD discovers this chart through the repository's `apps/*` ApplicationSet.
-It runs the upstream Hermes Agent gateway with its dashboard and inbound
-listeners disabled; commands execute inside the agent pod, so treat access to
-the bot as shell access to that pod. The upstream chart's egress NetworkPolicy
-blocks private networks and cloud metadata while allowing DNS and public
-egress.
+It runs the Hermes Agent gateway and management dashboard at
+`https://hermes-agent.lajas.tech`. The dashboard uses the homelab identity
+provider's OIDC authorization-code flow with PKCE; restrict this OIDC client to
+the intended users in the identity provider because Hermes' dashboard has no
+user allowlist. Dashboard access grants shell-like control over the agent, so
+treat the OIDC client as privileged. The chart's NetworkPolicy allows the
+Cilium Gateway nodes to reach the dashboard and permits the agent to reach the
+Gateway VIP for identity-provider requests while blocking other private-network
+and metadata access.
 
 The `OnePasswordItem` syncs the item UUID in `values.yaml` into the
 `hermes-agent-secrets` Kubernetes Secret. For static API-key providers, add the
@@ -29,6 +33,24 @@ the plan, so confirm available models and quota after signing in. Change
 `hermes-agent.config.model` to select another model supported by that account.
 `notify: logs` avoids requiring a Discord or Telegram bot just to complete
 login.
+
+The private `homelab-identity` repository is the desired-state owner for
+Kanidm OAuth clients and groups; this repository cannot register the client
+itself. Add a **public** OIDC client named `hermes-agent` there, using
+authorization code + PKCE (S256), and restrict it to a dedicated group using
+the client-specific policy pattern used for Neko. Add authorized users to that
+group in `homelab-identity/users/<username>.json`, then apply the identity
+repository's Terraform change before syncing this app. Register this exact
+redirect URI:
+
+```text
+https://hermes-agent.lajas.tech/auth/callback
+```
+
+The issuer and client ID configured in `values.yaml` are
+`https://auth.lajas.tech/oauth2/openid/hermes-agent`. No client secret belongs
+in 1Password; Hermes uses the public client. The dashboard route is TLS-only on
+the cluster's `public-gateway`.
 
 The OpenCode pay-as-you-go Console can also be used directly by Hermes, but it
 uses an OpenCode Console API key, not the OpenCode browser session. Add
