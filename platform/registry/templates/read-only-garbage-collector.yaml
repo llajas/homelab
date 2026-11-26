@@ -1,0 +1,196 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: registry-gc-coordinator
+  namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: registry-gc-coordinator
+  namespace: {{ .Release.Namespace }}
+rules:
+  - apiGroups: [apps]
+    resources: [deployments]
+    resourceNames: [registry-docker-registry]
+    verbs: [get, patch, watch]
+  - apiGroups: [""]
+    resources: [pods]
+    verbs: [get, list, watch]
+  - apiGroups: [batch]
+    resources: [jobs]
+    verbs: [create, delete, get, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: registry-gc-coordinator
+  namespace: {{ .Release.Namespace }}
+subjects:
+  - kind: ServiceAccount
+    name: registry-gc-coordinator
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: registry-gc-coordinator
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: registry-gc-coordinator
+  namespace: {{ .Release.Namespace }}
+data:
+  coordinator.sh: |
+    set -eu
+    worker=registry-docker-registry-gc-worker
+    umask 077
+    mkdir -p /tmp/kube
+    cat > /tmp/kube/config <<EOF
+    apiVersion: v1
+    clusters:
+    - cluster:
+        certificate-authority: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        server: https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}
+      name: in-cluster
+    contexts:
+    - context:
+        cluster: in-cluster
+        namespace: {{ .Release.Namespace }}
+        user: in-cluster
+      name: in-cluster
+    current-context: in-cluster
+    users:
+    - name: in-cluster
+      user:
+        token: $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+    EOF
+    export KUBECONFIG=/tmp/kube/config
+    restore() {
+      result=$?
+      trap - EXIT HUP INT TERM
+      if kubectl -n {{ .Release.Namespace }} delete job "$worker" --cascade=foreground --ignore-not-found --wait=true; then
+        if kubectl -n {{ .Release.Namespace }} set env deployment/registry-docker-registry REGISTRY_MAINTENANCE_READONLY_ENABLED-; then
+          kubectl -n {{ .Release.Namespace }} rollout status deployment/registry-docker-registry --timeout=15m || result=1
+        else
+          result=1
+        fi
+      else
+        result=1
+      fi
+      exit "$result"
+    }
+    trap restore EXIT
+    trap 'exit 1' HUP INT TERM
+    kubectl -n {{ .Release.Namespace }} set env deployment/registry-docker-registry REGISTRY_MAINTENANCE_READONLY_ENABLED=true
+    kubectl -n {{ .Release.Namespace }} rollout status deployment/registry-docker-registry --timeout=15m
+    if ! kubectl -n {{ .Release.Namespace }} get job "$worker" >/dev/null 2>&1; then
+      kubectl create -f /scripts/worker-job.yaml
+    fi
+    while true; do
+      succeeded=$(kubectl -n {{ .Release.Namespace }} get job "$worker" -o jsonpath='{.status.succeeded}')
+      failed=$(kubectl -n {{ .Release.Namespace }} get job "$worker" -o jsonpath='{.status.failed}')
+      if [ "${succeeded:-0}" -gt 0 ]; then
+        break
+      fi
+      if [ "${failed:-0}" -gt 0 ]; then
+        exit 1
+      fi
+      sleep 10
+    done
+  worker-job.yaml: |
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      name: registry-docker-registry-gc-worker
+      namespace: {{ .Release.Namespace }}
+    spec:
+      backoffLimit: 0
+      template:
+        spec:
+          restartPolicy: Never
+          securityContext:
+            fsGroup: 1000
+            runAsUser: 1000
+          containers:
+            - name: garbage-collector
+              image: registry:{{ index .Values "docker-registry" "image" "tag" }}
+              imagePullPolicy: IfNotPresent
+              command:
+                - /bin/registry
+                - garbage-collect
+                - --delete-untagged={{ index .Values "docker-registry" "garbageCollect" "deleteUntagged" }}
+                - /etc/distribution/config.yml
+              env:
+                - name: REGISTRY_HTTP_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: registry-docker-registry-secret
+                      key: haSharedSecret
+                - name: REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY
+                  value: /var/lib/registry
+                - name: REGISTRY_STORAGE_DELETE_ENABLED
+                  value: "true"
+              resources:
+{{ toYaml (index .Values "docker-registry" "garbageCollect" "resources") | indent 16 }}
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: [ALL]
+                privileged: false
+                readOnlyRootFilesystem: true
+                runAsGroup: 1000
+                runAsNonRoot: true
+                runAsUser: 1000
+                seccompProfile:
+                  type: RuntimeDefault
+              volumeMounts:
+                - name: config
+                  mountPath: /etc/distribution
+                - name: data
+                  mountPath: /var/lib/registry/
+                - name: auth
+                  mountPath: /auth
+          volumes:
+            - name: config
+              configMap:
+                name: registry-docker-registry-config
+            - name: data
+              persistentVolumeClaim:
+                claimName: registry-docker-registry-rwx
+            - name: auth
+              emptyDir: {}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: registry-docker-registry-readonly-gc
+  namespace: {{ .Release.Namespace }}
+spec:
+  schedule: {{ index .Values "docker-registry" "garbageCollect" "schedule" | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 6
+      # shortcut: abort sweeps after 48h; raise this if a full registry scan needs longer.
+      activeDeadlineSeconds: 172800
+      template:
+        spec:
+          serviceAccountName: registry-gc-coordinator
+          restartPolicy: OnFailure
+          terminationGracePeriodSeconds: 300
+          containers:
+            - name: coordinator
+              # shortcut: pinned legacy shell-capable kubectl; replace when a maintained 1.32 image is available.
+              image: bitnamilegacy/kubectl:1.32.2
+              imagePullPolicy: IfNotPresent
+              command: [/bin/sh, /scripts/coordinator.sh]
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+          volumes:
+            - name: scripts
+              configMap:
+                name: registry-gc-coordinator
