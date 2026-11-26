@@ -1,0 +1,24 @@
+# values-deepinfra.yaml
+#
+# Hermes Agent using DeepInfra's built-in OpenAI-compatible provider.
+# Dummy key: override at install time. Use a model currently listed by
+# DeepInfra's /v1/openai/models endpoint for config.model.default.
+#
+#   helm upgrade --install hermes-agent ./charts/hermes-agent \
+#     --namespace hermes-agent --create-namespace \
+#     -f charts/hermes-agent/values-deepinfra.yaml \
+#     --set-string env.DEEPINFRA_API_KEY='<real>' --wait
+
+config:
+  model:
+    provider: deepinfra
+    default: deepseek-ai/DeepSeek-V4-Flash
+  terminal:
+    backend: local
+
+env:
+  DEEPINFRA_API_KEY: "DUMMY_replace_me_0000000000000000000000"
+  # Optional endpoint override (upstream default: https://api.deepinfra.com/v1/openai).
+  # DEEPINFRA_BASE_URL: "https://api.deepinfra.com/v1/openai"
+  # Unused by the deepinfra provider; overrides the chart's OpenAI placeholder.
+  OPENAI_API_KEY: "unused"

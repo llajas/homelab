@@ -1,0 +1,49 @@
+# values-bitwarden.yaml
+#
+# Hermes Agent with Bitwarden Secrets Manager as the source of provider keys.
+# The Kubernetes Secret contains only the Bitwarden machine-account token;
+# provider keys (OPENAI_API_KEY, ANTHROPIC_API_KEY, Discord bot tokens, etc.)
+# stay in the selected Bitwarden project and Hermes fetches them at startup.
+#
+# 1. Create a Bitwarden Secrets Manager machine account with read access to a
+#    project whose secret names are the environment variables Hermes expects.
+# 2. Create the bootstrap-token Secret (do not commit the token):
+#      kubectl create secret generic bitwarden-bootstrap \
+#        --namespace hermes-agent \
+#        --from-literal=BWS_ACCESS_TOKEN='0.<machine-account-token>'
+# 3. Install this overlay:
+#      helm upgrade --install hermes-agent ./charts/hermes-agent \
+#        --namespace hermes-agent --create-namespace \
+#        -f charts/hermes-agent/values-bitwarden.yaml --wait
+#
+# On first startup Hermes downloads its checksum-verified `bws` CLI into the
+# persistent HERMES_HOME volume. The pod therefore needs egress to Bitwarden
+# and GitHub Releases; subsequent starts reuse the binary.
+
+config:
+  model:
+    provider: openai-api
+    default: gpt-4o-mini
+  secrets:
+    bitwarden:
+      enabled: true
+      # Bitwarden Secrets Manager project UUID containing provider keys.
+      project_id: "REPLACE_ME_BITWARDEN_PROJECT_UUID"
+      # Optional endpoint override (upstream default: US Cloud).
+      # server_url: "https://vault.bitwarden.com"
+      cache_ttl_seconds: 300
+      # Bitwarden is the source of truth for the provider keys it supplies.
+      override_existing: true
+  terminal:
+    backend: local
+
+env:
+  # Bitwarden replaces this chart placeholder with OPENAI_API_KEY from its
+  # project. Keep it only to override the chart's default OpenAI placeholder.
+  OPENAI_API_KEY: "unused"
+
+# The bootstrap token is an externally managed Kubernetes Secret, not a Helm
+# value. Hermes protects BWS_ACCESS_TOKEN from replacement by Bitwarden.
+extraEnvFrom:
+  - secretRef:
+      name: bitwarden-bootstrap

@@ -1,0 +1,17 @@
+{{- if .Values.auth.deviceFlow.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "hermes-agent.fullname" . }}-login
+  labels:
+    {{- include "hermes-agent.labels" . | nindent 4 }}
+  {{- with .Values.configMapAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+data:
+  # Interactive provider login script mounted into the auth init container.
+  # OpenAI Codex persistence is delegated to the pinned Hermes image.
+  device_login.py: |
+    {{- .Files.Get "files/device_login.py" | nindent 4 }}
+{{- end }}

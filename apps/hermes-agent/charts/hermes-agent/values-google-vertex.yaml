@@ -1,0 +1,76 @@
+# values-google-vertex.yaml
+#
+# Hermes Agent using Google Vertex AI as the model provider (Gemini models via
+# Vertex's OpenAI-compatible endpoint). Requires hermes-agent >= v2026.7.1.
+#
+# Vertex has NO static API key: every request needs a short-lived OAuth2 access
+# token, which Hermes mints and auto-refreshes from a service-account JSON (or
+# Application Default Credentials). So unlike the other provider examples, the
+# credential here is a FILE mounted into the pod, not an env var:
+#
+# 1. Create a GCP service account with the "Vertex AI User" role and download
+#    its JSON key.
+# 2. Put the JSON into a Kubernetes Secret:
+#      kubectl create secret generic vertex-sa \
+#        --namespace hermes-agent \
+#        --from-file=sa.json=/path/to/key.json
+# 3. Install:
+#      helm upgrade --install hermes-agent ./charts/hermes-agent \
+#        --namespace hermes-agent --create-namespace \
+#        -f charts/hermes-agent/values-google-vertex.yaml \
+#        --set-string config.vertex.project_id='<your-gcp-project>' --wait
+
+config:
+  model:
+    provider: vertex
+    # Gemini 2.5 Flash has retired on Vertex. Check availability for your endpoint.
+    default: google/gemini-3.8-flash
+  # Non-secret Vertex settings live in config.yaml; only the credential file
+  # path goes through the environment (VERTEX_CREDENTIALS_PATH below).
+  vertex:
+    project_id: "REPLACE_ME_GCP_PROJECT"
+    # "global" uses the global endpoint. Before selecting a region, check that
+    # the model and your consumption option are supported there.
+    region: "global"
+  terminal:
+    backend: local
+
+env:
+  # No Vertex API key exists: tokens are minted from the mounted SA JSON.
+  # This only overrides the chart's OpenAI placeholder.
+  OPENAI_API_KEY: "unused"
+
+extraEnv:
+  # Path (inside the container) to the service-account JSON mounted below.
+  # Omit it to fall back to ADC (GOOGLE_APPLICATION_CREDENTIALS / metadata
+  # server, e.g. GKE Workload Identity).
+  - name: VERTEX_CREDENTIALS_PATH
+    value: /var/run/secrets/vertex/sa.json
+  # The vertex provider needs `google-auth`, which upstream ships as an opt-in
+  # extra handled by its lazy-install mechanism: it is NOT baked into the
+  # image, and the image disables lazy installs by default. Re-enable them so
+  # the first Vertex call can install it into HERMES_LAZY_INSTALL_TARGET on
+  # the persistent volume (one-time, needs network egress; survives restarts).
+  - name: HERMES_DISABLE_LAZY_INSTALLS
+    value: "0"
+
+# Mount the service-account Secret created in step 2.
+extraVolumes:
+  - name: vertex-sa
+    secret:
+      secretName: vertex-sa
+extraVolumeMounts:
+  - name: vertex-sa
+    mountPath: /var/run/secrets/vertex
+    readOnly: true
+
+# NOTE: as of a recent Hermes security hardening, VERTEX_CREDENTIALS_PATH and
+# GOOGLE_APPLICATION_CREDENTIALS are stripped from the environment of
+# subprocesses the agent spawns (terminal, execute_code, browser,
+# computer_use): they still work for the model's own API calls above. If a
+# tool call in your session needs Vertex credentials too (e.g. shelling out to
+# `gcloud`), re-allow it explicitly:
+#
+# config:
+#   tools:
+#     env_passthrough: ["VERTEX_CREDENTIALS_PATH"]

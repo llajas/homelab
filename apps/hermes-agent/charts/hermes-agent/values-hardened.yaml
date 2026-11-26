@@ -1,0 +1,103 @@
+# values-hardened.yaml
+#
+# Pod Security Standards `restricted`-compliant overlay. CI-verified against
+# the pinned image (see the "investigation" section of the issue that added
+# this file): non-root and a read-only rootfs both start cleanly once /run
+# and /tmp are writable+executable tmpfs mounts - s6-overlay's own init
+# binary lives under /run and needs to exec from there.
+#
+#   kubectl create namespace hermes-agent
+#   kubectl label namespace hermes-agent \
+#     pod-security.kubernetes.io/enforce=restricted \
+#     pod-security.kubernetes.io/enforce-version=latest
+#
+#   helm upgrade --install hermes-agent ./charts/hermes-agent \
+#     --namespace hermes-agent \
+#     -f charts/hermes-agent/values-hardened.yaml \
+#     --set-string env.OPENAI_API_KEY='sk-...' --wait
+#
+# Caveat: some CNI/container-runtime combinations mount tmpfs volumes
+# `noexec` by default, which breaks s6-overlay's own init the same way a
+# read-only rootfs without an execable /run does. Kubernetes' own `emptyDir`
+# does not set `noexec` unless the node/runtime does something unusual - if
+# this overlay fails to start, check that first.
+#
+# Do NOT stack this file with another example that also sets `extraVolumes`/
+# `extraVolumeMounts` (e.g. values-google-vertex.yaml, values-shared-knowledge.yaml)
+# via `-f values-hardened.yaml -f values-other.yaml`: Helm replaces array
+# values wholesale rather than merging them, so whichever file is listed last
+# silently wins and the other's mounts vanish - here, that means losing the
+# /run and /tmp tmpfs mounts with no error, and the pod fails to boot under a
+# read-only rootfs exactly like the unmounted case this file's own
+# investigation documented. Copy this file's `extraVolumes`/`extraVolumeMounts`
+# entries into the other values file (merging the lists yourself) instead.
+
+config:
+  model:
+    provider: openai-api
+    default: gpt-4o-mini
+  terminal:
+    backend: local
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10000
+  runAsGroup: 10000
+  fsGroup: 10000
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: [ALL]
+
+# The rootfs itself is read-only; s6-overlay needs /run writable+executable
+# to boot, and the agent's own tooling needs a writable /tmp. HERMES_HOME
+# (persistence.mountPath) is already a separate PVC, not rootfs, so it
+# doesn't need to be listed here.
+# sizeLimit bounds these - a medium:Memory emptyDir is RAM-backed and
+# uncapped by default, which would otherwise leave a hardening profile with
+# an unbounded memory-exhaustion vector.
+extraVolumes:
+  - name: run-tmpfs
+    emptyDir:
+      medium: Memory
+      sizeLimit: 16Mi
+  - name: tmp-tmpfs
+    emptyDir:
+      medium: Memory
+      sizeLimit: 64Mi
+
+extraVolumeMounts:
+  - name: run-tmpfs
+    mountPath: /run
+  - name: tmp-tmpfs
+    mountPath: /tmp
+
+team:
+  sharedVolume:
+    permissions:
+      # The ownership-preparation init container needs root (chown across
+      # arbitrary storage backends) - incompatible with `restricted`. Leave
+      # disabled and rely on `podSecurityContext.fsGroup` above instead, when
+      # the storage backend honours fsGroup.
+      enabled: false
+
+# auth.deviceFlow's login init container can also run non-root under
+# `restricted`, but only once its target uid already owns (or matches
+# tokenOwner, making the internal chown a same-uid no-op) the destination
+# path - left disabled here since it needs a real interactive login, which
+# CI cannot perform. To harden it too, set the same restricted-required
+# fields as the main securityContext above, not just runAsUser/runAsGroup:
+#
+# auth:
+#   deviceFlow:
+#     enabled: true
+#     securityContext:
+#       runAsUser: 10000
+#       runAsGroup: 10000
+#       allowPrivilegeEscalation: false
+#       capabilities:
+#         drop: [ALL]

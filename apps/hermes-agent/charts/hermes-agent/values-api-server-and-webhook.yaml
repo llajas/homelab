@@ -1,0 +1,45 @@
+# values-api-server-and-webhook.yaml
+#
+# Runs Hermes' OpenAI-compatible API server and generic webhook receiver behind
+# explicit ClusterIP Service ports. The external Secret below must contain
+# OPENAI_API_KEY, API_SERVER_KEY, and WEBHOOK_SECRET. Do not commit real keys.
+#
+#   kubectl create secret generic hermes-agent-listener-secrets \
+#     --namespace hermes-agent \
+#     --from-literal=OPENAI_API_KEY='sk-<real>' \
+#     --from-literal=API_SERVER_KEY='<long-random-token>' \
+#     --from-literal=WEBHOOK_SECRET='<long-random-secret>'
+#
+#   helm upgrade --install hermes-agent ./charts/hermes-agent \
+#     --namespace hermes-agent --create-namespace \
+#     -f charts/hermes-agent/values-api-server-and-webhook.yaml --wait
+
+config:
+  model:
+    provider: openai-api
+    default: gpt-4o-mini
+  terminal:
+    backend: local
+
+extraEnvFrom:
+  - secretRef:
+      name: hermes-agent-listener-secrets
+
+apiServer:
+  enabled: true
+  host: 0.0.0.0
+  port: 8642
+  corsOrigins: "https://chat.example.com"
+
+webhook:
+  enabled: true
+  port: 8644
+
+service:
+  enabled: true
+  type: ClusterIP
+  ports:
+    - name: api-server
+      port: 8642
+    - name: webhook
+      port: 8644

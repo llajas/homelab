@@ -1,0 +1,87 @@
+# values-ingress-oidc.yaml
+#
+# Exposes the Hermes management dashboard through an Ingress and signs users in
+# against your own OpenID Connect identity provider (Keycloak, Authentik, Auth0,
+# Okta, Google, ...). No Nous Portal is involved. Upstream recommends an
+# OAuth/OIDC provider for a dashboard reachable over the public internet; the
+# bundled username/password provider (values-ingress.yaml) is meant for a
+# trusted network or a VPN.
+#
+# In your identity provider, register a PUBLIC client (no client secret) that
+# uses the authorization-code flow with PKCE (S256), and allow the redirect URI
+#   https://hermes-agent.example.com/auth/callback
+# Then set the issuer and client id below. The issuer must be HTTPS (loopback
+# http is accepted only for local development) and serve
+# `<issuer>/.well-known/openid-configuration`. Neither value is a secret. The
+# template fails at render time when either is missing; use
+# `dashboard.auth.provider: external` when they come from `extraEnvFrom` or an
+# ExternalSecret instead.
+#
+#   helm upgrade --install hermes-agent ./charts/hermes-agent \
+#     --namespace hermes-agent --create-namespace \
+#     -f charts/hermes-agent/values-ingress-oidc.yaml \
+#     --set-string env.OPENAI_API_KEY='sk-<real>' --wait
+#
+# ACCESS CONTROL IS YOURS TO SET. The dashboard has no allowlist of its own:
+# every identity your provider issues a token to for this client can sign in,
+# and the dashboard shows API keys to whoever is signed in. Restrict the
+# application or client at the identity provider (a group or policy binding)
+# to the people who should reach the dashboard.
+#
+# Troubleshooting, as observed behind ingress-nginx:
+#   - A wrong issuer makes GET /auth/login answer 503. The dashboard's own body
+#     names the reason ("Provider unreachable: OIDC discovery returned 404 for
+#     ..."), but a proxy with custom error pages can replace it with a generic
+#     503, so query the Service directly or read the response body to see it.
+#     A trailing-slash difference in the issuer is tolerated.
+#   - A redirect URI that is not registered fails at the identity provider (for
+#     example "Unregistered redirect_uri"), not on the dashboard.
+#
+# The external origin must match the registered redirect URI exactly. It is
+# derived from the first Ingress host (https once `ingress.tls` is set); set
+# `dashboard.publicUrl` explicitly when it differs. Dummy values below: replace
+# them, and never commit real credentials.
+
+config:
+  model:
+    provider: openai-api
+    default: gpt-4o-mini
+  terminal:
+    backend: local
+  dashboard:
+    oauth:
+      self_hosted:
+        issuer: "https://auth.example.com/application/o/hermes/"
+        client_id: "hermes-dashboard"
+        # scopes: "openid profile email"
+
+dashboard:
+  enabled: true
+  # Only listed peers may supply X-Forwarded-Proto / X-Forwarded-For. Put your
+  # ingress controller's pod CIDR (or its exact pod IP) here; without it the
+  # session cookies are not marked Secure behind a TLS-terminating Ingress.
+  trustedProxies:
+    - "10.244.0.0/16"
+  auth:
+    provider: oidc
+
+env:
+  OPENAI_API_KEY: "sk-DUMMY_replace_me_000000000000000000000000"
+
+service:
+  enabled: true
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations: {}
+  #  cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: hermes-agent.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: hermes-agent-tls
+      hosts:
+        - hermes-agent.example.com

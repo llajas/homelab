@@ -1,0 +1,38 @@
+# values-litellm.yaml
+#
+# Hermes Agent talking to a LiteLLM proxy reachable over the network (outside
+# the cluster, or via an Ingress/LoadBalancer): one key, many upstream models.
+# For a proxy running inside the same cluster, see values-litellm-k8s.yaml.
+#
+# Dummy key: override at install time.
+#
+#   helm upgrade --install hermes-agent ./charts/hermes-agent \
+#     --namespace hermes-agent --create-namespace \
+#     -f charts/hermes-agent/values-litellm.yaml \
+#     --set-string env.OPENAI_API_KEY='sk-<your-litellm-proxy-key>' --wait
+
+config:
+  # Register the proxy as a custom OpenAI-compatible provider. The key
+  # ("litellm") is the provider id referenced by model.provider below.
+  providers:
+    litellm:
+      base_url: https://litellm.example.com/v1
+      key_env: OPENAI_API_KEY      # env var that holds the proxy key
+      discover_models: true        # populate the model picker from /v1/models
+      # Optional: extra HTTP headers on every request to this provider: for
+      # a WAF/Cloudflare Access-gated proxy, a corporate gateway needing a
+      # second auth header, or request tracing. Values may hold secrets
+      # (e.g. CF-Access-Client-Secret); prefer ${ENV_VAR} substitution over
+      # a literal here so nothing sensitive lands in the ConfigMap.
+      # extra_headers:
+      #   CF-Access-Client-Id: "xxxx.access"
+      #   CF-Access-Client-Secret: "${CF_ACCESS_SECRET}"
+  model:
+    provider: litellm
+    # Must match a model name exposed by the proxy (see /v1/models).
+    default: openai/gpt-oss-120b
+  terminal:
+    backend: local
+
+env:
+  OPENAI_API_KEY: "sk-DUMMY_replace_me_000000000000000000000000"

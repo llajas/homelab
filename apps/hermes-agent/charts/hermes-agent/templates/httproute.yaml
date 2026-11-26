@@ -1,0 +1,45 @@
+{{- if .Values.httpRoute.enabled }}
+{{- range .Values.httpRoute.rules }}
+{{- range .backendRefs }}
+{{- if and (not .name) (not $.Values.service.enabled) }}
+{{- fail "HTTPRoute backendRef falls back to the chart Service, but service.enabled is false; set service.enabled=true or backendRefs[].name to an external Service" }}
+{{- end }}
+{{- end }}
+{{- end }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ include "hermes-agent.fullname" . }}
+  labels:
+    {{- include "hermes-agent.labels" . | nindent 4 }}
+  {{- with .Values.httpRoute.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- with .Values.httpRoute.parentRefs }}
+  parentRefs:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.httpRoute.hostnames }}
+  hostnames:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.httpRoute.rules }}
+  rules:
+    {{- range . }}
+    - {{- with .matches }}
+      matches:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      backendRefs:
+        {{- range .backendRefs }}
+        - name: {{ .name | default (include "hermes-agent.fullname" $) }}
+          port: {{ .port }}
+        {{- with .weight }}
+          weight: {{ . }}
+        {{- end }}
+        {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}

@@ -1,0 +1,110 @@
+# values-multi-agent-collab.yaml
+#
+# One half of a COLLABORATING PAIR of Hermes agents that hand the conversation
+# to each other by @mention in a shared Discord channel. This file is the
+# "planner" role; copy it to a "builder" (swap the role text and the partner's
+# user ID) and deploy both as separate releases into the same channel.
+#
+# Full walkthrough: handoff protocol, the loop brake, mixed backends, and an
+# ApplicationSet that templates a whole roster: is in docs/advanced/teams/collaboration.md.
+#
+# Two instances collaborate when:
+#   1. they share ONE channel (same DISCORD_HOME_CHANNEL + DISCORD_ALLOWED_USERS),
+#   2. each is told its partner's Discord user ID via config.agent.environment_hint,
+#   3. the four loop-brake env vars below are set so a partner fires ONLY on an
+#      explicit <@id> in the message body (Hermes has no bot-to-bot turn limiter).
+#
+# All secrets below are DUMMY placeholders. Do NOT commit real keys: override at
+# install time (--set-string) or inject via a SealedSecret + extraEnvFrom (see
+# examples/argocd/hermes-collab-pair.yaml).
+#
+#   helm upgrade --install hermes-planner ./charts/hermes-agent \
+#     --namespace hermes-team --create-namespace \
+#     -f charts/hermes-agent/values-multi-agent-collab.yaml \
+#     --set-string env.DISCORD_BOT_TOKEN='<planner-bot-token>' --wait
+
+fullnameOverride: hermes-planner
+
+config:
+  # This pair uses the shared LiteLLM proxy for the planner; the builder could
+  # just as well use Copilot device-flow (see docs/advanced/teams/collaboration.md → mixed
+  # backends). Collaboration does NOT require a shared backend.
+  providers:
+    litellm:
+      base_url: https://litellm.example.com/v1
+      key_env: OPENAI_API_KEY      # env var that holds the proxy key
+      discover_models: true
+  model:
+    provider: litellm
+    default: openai/gpt-oss-120b    # must match a model the proxy exposes
+  terminal:
+    backend: local
+  # A collaboration thread contains messages from the human and both bots.
+  # Use one transcript for all senders and backfill visible thread messages
+  # that arrived while this bot was not mentioned.
+  group_sessions_per_user: false
+  discord:
+    require_mention: true
+    thread_require_mention: true
+    history_backfill: true
+    history_backfill_limit: 50
+  agent:
+    # The handoff protocol. Names the PARTNER's Discord user ID and tells this
+    # agent how to hand over (explicit <@id> in the BODY) and: critically - how
+    # to STOP (address the human, drop the mention) when a topic is done. The
+    # closing sentences are the prompt half of the loop brake; without them the
+    # two bots ping-pong forever.
+    environment_hint: |
+      You are "planner", one of two collaborating Hermes agents in this Discord
+      channel. Your job is to scope and plan the work. Your partner is "builder",
+      Discord user ID <BUILDER_BOT_USER_ID>. To hand the conversation to builder,
+      put an explicit <@BUILDER_BOT_USER_ID> mention in the BODY of your message.
+      Only mention builder when you have something substantive to say or genuinely
+      need their input. When a topic reaches a natural conclusion, do NOT mention
+      builder - address the human instead and end your turn, so the exchange
+      stops. Never send a filler or "let me know if you need anything" message
+      that mentions builder; that only restarts the loop.
+
+env:
+  # Real proxy key comes from --set-string or a SealedSecret. Setting
+  # DISCORD_BOT_TOKEN is enough to auto-enable Discord (one bot per agent).
+  OPENAI_API_KEY: "set-via-extraEnvFrom-or-set-string"
+  DISCORD_BOT_TOKEN: "MTA0DUMMYtoken000000000000.DUMMY.replace_me_with_a_real_token"
+
+# Non-secret Discord knobs. The first two are SHARED by every agent in the team
+# (same channel, same allowed users); the four loop-brake knobs are also shared
+# and MUST be set on every collaborating agent. See docs/advanced/teams/collaboration.md for the
+# full rationale of each loop-brake var.
+extraEnv:
+  - name: DISCORD_HOME_CHANNEL              # the ONE shared channel (context bus)
+    value: "000000000000000000"             # DUMMY - your channel id (18 digits)
+  - name: DISCORD_ALLOWED_USERS             # shared - who may talk to the team
+    value: "111111111111111111"             # DUMMY - comma-separated user ids
+  # --- loop brake: a partner fires ONLY on an explicit <@id> in the body -------
+  - name: DISCORD_ALLOW_BOTS                 # respond to a bot only when it @mentions us
+    value: "mentions"
+  - name: DISCORD_THREAD_REQUIRE_MENTION     # in shared threads, fire only when mentioned
+    value: "true"
+  - name: DISCORD_REPLY_TO_MODE              # don't attach a reply-reference (auto-ping)
+    value: "off"
+  - name: DISCORD_ALLOW_MENTION_REPLIED_USER # never treat an auto reply-ping as a mention
+    value: "false"
+
+# Persistence: empty storageClass = cluster default. On a Raspberry Pi cluster
+# that is typically local-path (k3s) or microk8s-hostpath: both ReadWriteOnce,
+# which is exactly what this single-writer workload wants.
+persistence:
+  enabled: true
+  storageClass: ""
+  accessModes:
+    - ReadWriteOnce
+  size: 5Gi
+
+# Defaults are already tuned for small arm64 nodes; shown here for visibility.
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: "1"
+    memory: 1Gi

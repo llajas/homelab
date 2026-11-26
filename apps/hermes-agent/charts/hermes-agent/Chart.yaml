@@ -1,0 +1,38 @@
+annotations:
+  artifacthub.io/category: ai-machine-learning
+  artifacthub.io/changes: |
+    - kind: "fixed"
+      description: "Documentation(a2a): Push callback URL checks Explain private-address and redirect restrictions for outbound A2A callbacks."
+    - kind: "fixed"
+      description: "Documentation(auth): Basic sign-in after upgrading to Hermes v0.23.2 Explain when Dashboard and Webapp users should sign in again with their existing credent..."
+    - kind: "added"
+      description: "Dependency(image): Update the default Hermes Agent image Update the default Hermes Agent image to v0.23.4."
+    - kind: "fixed"
+      description: "Documentation(docs): say how the Vertex example is checked Add a Verification section to the Google Vertex AI guide and a line to the README's end-to-end bul..."
+    - kind: "fixed"
+      description: "Fix(vertex): Replace the retired Gemini 2.5 Flash example model Use Gemini 3.8 Flash in the Vertex example and document how to select a supported region and..."
+  artifacthub.io/license: MIT
+apiVersion: v2
+appVersion: v0.23.4
+description: "\U0001F469\U0001F3FB\U0001F4BB Hermes Agent on Kubernetes - sign in
+  with Codex/Copilot, run agent teams, stay lightweight.  Run [Hermes Agent](https://github.com/NousResearch/hermes-agent)
+  - a multi-provider LLM agent framework - on Kubernetes. Configure any provider Hermes
+  supports (OpenAI, Anthropic, Gemini, OpenRouter, NVIDIA, or any OpenAI-compatible
+  proxy such as LiteLLM/vLLM) entirely via values.yaml, with a built-in helm test
+  health check. "
+home: https://github.com/jyje/hermes-agent-helm
+icon: https://hermes-agent.nousresearch.com/docs/img/logo.png
+keywords:
+- hermes
+- agent
+- llm
+- openai-compatible
+maintainers:
+- email: jyjeon@outlook.com
+  name: jyje
+name: hermes-agent
+sources:
+- https://github.com/jyje/hermes-agent-helm
+- https://github.com/NousResearch/hermes-agent
+type: application
+version: 1.28.0

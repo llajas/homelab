@@ -1,0 +1,21 @@
+# values-gemini.yaml
+#
+# Hermes Agent using Google Gemini as the model provider.
+# Dummy key: override at install time.
+#
+#   helm upgrade --install hermes-agent ./charts/hermes-agent \
+#     --namespace hermes-agent --create-namespace \
+#     -f charts/hermes-agent/values-gemini.yaml \
+#     --set-string env.GOOGLE_API_KEY='<real>' --wait
+
+config:
+  model:
+    provider: gemini
+    default: gemini-2.5-flash
+  terminal:
+    backend: local
+
+env:
+  GOOGLE_API_KEY: "DUMMY_replace_me_0000000000000000000000"
+  # Unused by the gemini provider; overrides the chart's OpenAI placeholder.
+  OPENAI_API_KEY: "unused"

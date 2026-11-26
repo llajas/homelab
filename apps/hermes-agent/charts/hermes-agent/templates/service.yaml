@@ -1,0 +1,37 @@
+{{- if eq .Values.controller.type "statefulset" }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "hermes-agent.headlessServiceName" . }}
+  labels:
+    {{- include "hermes-agent.labels" . | nindent 4 }}
+spec:
+  # Headless Service for StatefulSet DNS/governance. The gateway is outbound and
+  # exposes no inbound port, so this Service carries no ports.
+  type: ClusterIP
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    {{- include "hermes-agent.selectorLabels" . | nindent 4 }}
+{{- end }}
+{{- if .Values.service.enabled }}
+{{- if eq .Values.controller.type "statefulset" }}
+---
+{{- end }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "hermes-agent.fullname" . }}
+  labels:
+    {{- include "hermes-agent.labels" . | nindent 4 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    {{- include "hermes-agent.selectorLabels" . | nindent 4 }}
+  ports:
+{{ include "hermes-agent.servicePorts" . | indent 4 }}
+{{- end }}

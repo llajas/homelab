@@ -1,0 +1,35 @@
+{{- if .Values.bootstrap.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "hermes-agent.fullname" . }}-config
+  labels:
+    {{- include "hermes-agent.labels" . | nindent 4 }}
+  {{- with .Values.configMapAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+data:
+  # Partial config.yaml: only keys that override Hermes' built-in defaults.
+  config.yaml: |
+    {{- include "hermes-agent.effectiveConfig" . | nindent 4 }}
+  migrate-config.py: |
+    {{- .Files.Get "files/config_migrate.py" | nindent 4 }}
+  {{- if .Values.readyNotify.enabled }}
+  {{- /* Fail fast on an unusable channel instead of silently never posting. */ -}}
+  {{- $_ := include "hermes-agent.readyNotify.channel" . }}
+  # gateway:startup hook that posts a one-line ready message (readyNotify).
+  ready-notify-HOOK.yaml: |
+    name: ready-notify
+    description: Post a one-line message when the gateway has started
+    events:
+      - gateway:startup
+  ready-notify-handler.py: |
+    {{- .Files.Get "files/hooks/ready_notify.py" | nindent 4 }}
+  {{- end }}
+  {{- with .Values.soul.text }}
+  # Persistent Hermes identity. The chart omits this file when text is empty.
+  SOUL.md: |
+    {{- . | nindent 4 }}
+  {{- end }}
+{{- end }}

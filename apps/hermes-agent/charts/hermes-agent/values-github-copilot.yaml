@@ -1,0 +1,90 @@
+# values-github-copilot.yaml
+#
+# Hermes Agent backed by GitHub Copilot, authenticated at startup via the OAuth
+# 2.0 Device Authorization Grant (RFC 8628): no API key to paste. The
+# "auth-device-login" init container surfaces a verification link + code to your
+# Discord home channel (or Telegram: set `auth.deviceFlow.notify: telegram` and
+# pass TELEGRAM_BOT_TOKEN, TELEGRAM_HOME_CHANNEL and TELEGRAM_ALLOWED_USERS
+# instead of the Discord values), waits for you to approve it on github.com (phone is
+# fine), then persists the resulting token to HERMES_HOME/.env where Hermes
+# reads it natively. The token lives on the persistent volume, so restarts are
+# fast; re-login only happens when it is missing or revoked.
+#
+# Copilot's token API rejects PATs: a device-flow `gho_`/`ghu_` token is
+# required, which is exactly what this flow produces.
+#
+# All secrets below are DUMMY placeholders. Do NOT commit real keys: override
+# them at install time (--set-string) or inject via a SealedSecret + extraEnvFrom
+# (see examples/argocd/).
+#
+#   helm upgrade --install hermes-agent ./charts/hermes-agent \
+#     --namespace hermes-agent --create-namespace \
+#     -f charts/hermes-agent/values-github-copilot.yaml \
+#     --set-string env.DISCORD_BOT_TOKEN='<real-bot-token>' --wait
+#
+#   # then watch the login init container for the verification prompt:
+#   kubectl logs deploy/hermes-agent -n hermes-agent -c auth-device-login -f
+
+config:
+  model:
+    # GitHub Copilot provider. Hermes v0.23.0 auto-installs its Labs plugin.
+    provider: copilot
+    # Any model your Copilot subscription can reach. Examples: gpt-4o, gpt-4.1,
+    # claude-sonnet-4.5, gemini-2.5-pro, gpt-5.
+    default: gpt-4o
+  terminal:
+    backend: local
+
+# Authenticate the Copilot credential via the OAuth device flow at startup.
+auth:
+  deviceFlow:
+    enabled: true
+    provider: github-copilot
+    # Deliver the verification link + code to the agent's Discord home channel
+    # (reuses DISCORD_BOT_TOKEN + DISCORD_HOME_CHANNEL). It is always also
+    # printed to the init container logs as a fallback.
+    notify: discord
+
+env:
+  # The chart's default placeholder is for OpenAI; this deployment doesn't use
+  # it (the Copilot token is fetched at runtime via device flow). Set to a clear
+  # sentinel so no real OpenAI key is implied.
+  OPENAI_API_KEY: "unused"
+
+  # --- Discord bot (secret bits) ------------------------------------------
+  # Setting the token is enough to auto-enable Discord: no config.yaml change.
+  # The login init container reuses this same bot to post the verification link.
+  # Create the bot at https://discord.com/developers/applications, enable the
+  # "Message Content Intent", and invite it to your server.
+  DISCORD_BOT_TOKEN: "MTA0DUMMYtoken000000000000.DUMMY.replace_me_with_a_real_token"
+
+# Non-secret Discord knobs go here (plain env, not the Secret). The login init
+# container also reads DISCORD_HOME_CHANNEL from here to know where to post.
+extraEnv:
+  - name: DISCORD_HOME_CHANNEL        # channel id for cron / notification / login delivery
+    value: "000000000000000000"       # DUMMY - your channel id (18 digits)
+  - name: DISCORD_ALLOWED_USERS       # comma-separated user ids allowed to talk
+    value: "111111111111111111"       # DUMMY - your Discord user id
+  - name: DISCORD_ALLOW_ALL_USERS     # true only for throwaway/dev bots
+    value: "false"
+
+# Persistence is required for device-flow login: the token is written here so it
+# survives restarts (otherwise you would re-approve on every restart). Empty
+# storageClass = cluster default; on a Raspberry Pi cluster that is typically
+# local-path (k3s) or microk8s-hostpath: both ReadWriteOnce, which is exactly
+# what this single-writer workload wants.
+persistence:
+  enabled: true
+  storageClass: ""
+  accessModes:
+    - ReadWriteOnce
+  size: 5Gi
+
+# Defaults are already tuned for small arm64 nodes; shown here for visibility.
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: "1"
+    memory: 1Gi

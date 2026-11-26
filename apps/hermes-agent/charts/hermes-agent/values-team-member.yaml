@@ -1,0 +1,107 @@
+# values-team-member.yaml
+#
+# One MEMBER of the chart-native Discord team. Deploy one release per member,
+# set `team.identity` to the matching roster entry, and reference the shared
+# skill ConfigMap and claim created by the leader release. Both are mounted
+# read-only.
+
+fullnameOverride: hermes-may
+
+config:
+  model:
+    provider: nvidia
+    default: z-ai/glm-5.2
+  terminal:
+    backend: local
+  display:
+    tool_progress: "off"
+  agent:
+    # Keep skills enabled: team.enabled injects the role-specific roster skill.
+    disabled_toolsets:
+      - browser
+      - clarify
+      - code_execution
+      - cronjob
+      - delegation
+      - discord
+      - discord_admin
+      - messaging
+      - session_search
+      - terminal
+      - todo
+      - web
+
+team:
+  enabled: true
+  name: hermes-team
+  role: member
+  identity: may
+  leader:
+    name: august
+    mentionEnv: AUGUST_BOT_USER_ID
+  members:
+    - name: may
+      role: Research and evidence gathering
+      mentionEnv: MAY_BOT_USER_ID
+      capabilities: [research, source-review]
+    - name: march
+      role: Implementation and verification
+      mentionEnv: MARCH_BOT_USER_ID
+      capabilities: [implementation, testing]
+  protocol:
+    maxHandoffs: 6
+  skill:
+    enabled: true
+    create: false
+    name: hermes-team-roster
+    configMapName: hermes-team-skill
+    extraInstructions: ""
+  sharedVolume:
+    enabled: true
+    create: false
+    claimName: hermes-team-knowledge
+    mountPath: /opt/data/team-knowledge
+    storageClass: ""
+    accessModes: [ReadWriteMany]
+    size: 10Gi
+    retain: true
+    permissions:
+      enabled: false
+      image: busybox:1.38
+      uid: 10000
+      gid: 10000
+
+env:
+  NVIDIA_API_KEY: "nvapi-DUMMY_replace_me_0000000000000000000000"
+  OPENAI_API_KEY: "unused"
+  DISCORD_BOT_TOKEN: "MTA0DUMMYtoken000000000000.DUMMY.replace_me_with_a_real_token"
+
+extraEnv:
+  - name: DISCORD_HOME_CHANNEL
+    value: "000000000000000000"
+  - name: DISCORD_ALLOWED_USERS
+    value: "111111111111111111"
+  - name: AUGUST_BOT_USER_ID
+    value: "000000000000000000"
+
+extraInitContainers:
+  - name: init-private-home
+    image: busybox:1.38
+    command: ["sh", "-c", "chown -R 10000:10000 /home"]
+    volumeMounts:
+      - name: data
+        mountPath: /home
+
+persistence:
+  enabled: true
+  storageClass: ""
+  accessModes: [ReadWriteOnce]
+  size: 5Gi
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: "1"
+    memory: 1Gi

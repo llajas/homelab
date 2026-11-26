@@ -1,0 +1,89 @@
+# values-openai-codex.yaml
+#
+# Hermes Agent backed by the account-authenticated OpenAI Codex provider. The
+# auth init container sends a verification URL + one-time code to Discord (or
+# to Telegram: set `auth.deviceFlow.notify: telegram` and pass
+# TELEGRAM_BOT_TOKEN, TELEGRAM_HOME_CHANNEL and TELEGRAM_ALLOWED_USERS instead
+# of the Discord values), waits for approval, and stores the refreshable
+# credential in
+# HERMES_HOME/auth.json through Hermes' native auth-store helper.
+#
+# This is distinct from the `openai-api` provider and does not use an OpenAI API
+# key. Your ChatGPT plan and the live Codex catalog determine model access.
+#
+# All secrets below are DUMMY placeholders. Do not commit real tokens.
+#
+#   helm upgrade --install hermes-codex ./charts/hermes-agent \
+#     --namespace hermes-codex --create-namespace \
+#     -f charts/hermes-agent/values-openai-codex.yaml \
+#     --set-string env.DISCORD_BOT_TOKEN='<real-bot-token>' --wait
+#
+#   kubectl logs deploy/hermes-codex-hermes-agent -n hermes-codex \
+#     -c auth-device-login -f
+
+config:
+  model:
+    provider: openai-codex
+    # Listed in the pinned Hermes Codex catalog. Your plan decides whether the
+    # account can use it.
+    # Use /model in Discord to select another model available to your account.
+    default: gpt-5.6-terra
+    # Optional larger context window. The Codex route advertises 272K for these
+    # models. Hermes can use about 900K when you opt in with a `-900k` suffix,
+    # for example:
+    #   default: gpt-6-luna-900k
+    # Notes (checked against Hermes v2026.9.24, the chart's pinned image):
+    #   - `-900k` is a Hermes alias, not an OpenAI model name. It is removed
+    #     from the model id sent to OpenAI, and Hermes caps the window at the
+    #     account catalog's maximum. Hermes verified the larger window live; it
+    #     is not an OpenAI-published guarantee, so drop the suffix if a request
+    #     is rejected.
+    #   - Only some models qualify (the gpt-5.6 and gpt-6 families, among
+    #     others). The suffix on any other model is not a valid alias. This
+    #     chart's live check used gpt-6-luna-900k; other models are untested.
+    #   - It is opt-in because a large context uses your subscription quota
+    #     faster.
+    #   - The behavior is still evolving upstream (several fixes landed between
+    #     2026-09-19 and 2026-10-01), so re-check it after an image bump.
+  terminal:
+    backend: local
+  # Compaction fires at the lower of the ratio trigger and this absolute cap.
+  # The default cap is 256000, so a 900K window would still compact at 256K.
+  # Raise it (or set it to null for the ratio only) when you use `-900k`.
+  # compression:
+  #   threshold_tokens: 700000
+
+auth:
+  deviceFlow:
+    enabled: true
+    provider: openai-codex
+    notify: discord
+
+env:
+  # Unused by openai-codex; overrides the chart's OpenAI placeholder.
+  OPENAI_API_KEY: "unused"
+  DISCORD_BOT_TOKEN: "MTA0DUMMYtoken000000000000.DUMMY.replace_me_with_a_real_token"
+
+extraEnv:
+  - name: DISCORD_HOME_CHANNEL
+    value: "000000000000000000" # DUMMY - channel id for login delivery
+  - name: DISCORD_ALLOWED_USERS
+    value: "111111111111111111" # DUMMY - allowed Discord user id
+  - name: DISCORD_ALLOW_ALL_USERS
+    value: "false"
+
+# Required so auth.json and its refresh token survive Pod replacement.
+persistence:
+  enabled: true
+  storageClass: ""
+  accessModes:
+    - ReadWriteOnce
+  size: 5Gi
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: "1"
+    memory: 1Gi

@@ -1,0 +1,59 @@
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "hermes-agent.fullname" . }}
+  labels:
+    {{- include "hermes-agent.labels" . | nindent 4 }}
+  {{- with .Values.networkPolicy.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "hermes-agent.selectorLabels" . | nindent 6 }}
+  # Fixed at both directions so isolation can never silently drift from the
+  # rendered rule sets below - not exposed as a value on purpose.
+  policyTypes: [Ingress, Egress]
+  egress:
+    {{- if .Values.networkPolicy.allowDns }}
+    - to:
+        - namespaceSelector:
+            {{- toYaml .Values.networkPolicy.dns.namespaceSelector | nindent 12 }}
+          podSelector:
+            {{- toYaml .Values.networkPolicy.dns.podSelector | nindent 12 }}
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    {{- end }}
+    {{- if .Values.networkPolicy.blockPrivateEgress }}
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except: [10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 169.254.0.0/16]
+        - ipBlock:
+            # Preserve public IPv6 while blocking ULA and link-local ranges.
+            # AWS's IPv6 IMDS address is within fd00::/8 (and therefore fc00::/7).
+            cidr: ::/0
+            except: [fc00::/7, fe80::/10]
+    {{- else }}
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+        - ipBlock:
+            cidr: ::/0
+    {{- end }}
+    {{- with .Values.networkPolicy.extraEgress }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  # An empty ingress list denies all inbound traffic - the intended default,
+  # not an oversight. Use extraIngress when a listener (dashboard, apiServer,
+  # webhook, a2a, ...) is exposed and needs to accept traffic.
+  ingress:
+    {{- with .Values.networkPolicy.extraIngress }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+{{- end }}

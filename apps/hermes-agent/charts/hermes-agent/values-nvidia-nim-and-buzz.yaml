@@ -1,0 +1,50 @@
+# values-nvidia-nim-and-buzz.yaml
+#
+# Hermes Agent using NVIDIA NIM as the model provider AND running as a Buzz
+# bot: both wired in one file. Buzz is Block's open-source human+agent
+# collaboration platform built on Nostr; the adapter ships bundled with the
+# image (same category as Telegram/Discord/WhatsApp), so setting the two
+# required env vars below is enough to enable it: no config.yaml change.
+#
+# All secrets below are DUMMY placeholders. Do NOT commit real keys: override
+# them at install time (--set-string) or inject via a SealedSecret + extraEnvFrom
+# (see examples/argocd/).
+#
+#   helm upgrade --install hermes-agent ./charts/hermes-agent \
+#     --namespace hermes-agent --create-namespace \
+#     -f charts/hermes-agent/values-nvidia-nim-and-buzz.yaml \
+#     --set-string env.NVIDIA_API_KEY='nvapi-<real>' \
+#     --set-string env.BUZZ_PRIVATE_KEY='<real-nostr-nsec-or-hex>' --wait
+
+config:
+  model:
+    # Built-in provider key for NVIDIA NIM (build.nvidia.com).
+    provider: nvidia
+    # NIM model id: pick one your account can reach from build.nvidia.com.
+    default: nvidia/nemotron-3-nano-omni-30b-a3b-reasoning
+  terminal:
+    backend: local
+
+env:
+  # --- Model provider (NVIDIA NIM) ----------------------------------------
+  NVIDIA_API_KEY: "nvapi-DUMMY_replace_me_0000000000000000000000"
+  # The chart's default placeholder is for OpenAI; this deployment doesn't use
+  # it. Set to a clear sentinel so no real OpenAI key is implied.
+  OPENAI_API_KEY: "unused"
+
+  # --- Buzz bot (secret bits) ----------------------------------------------
+  # The Nostr private key (nsec or hex) for the agent's Buzz identity: the
+  # only Buzz secret. Create a dedicated identity for the bot; do not reuse a
+  # personal Nostr key.
+  BUZZ_PRIVATE_KEY: "DUMMY_replace_me_with_a_real_nsec_or_hex_key"
+
+# Non-secret Buzz knobs go here (plain env, not the Secret).
+extraEnv:
+  - name: BUZZ_RELAY_URL              # required - base URL of your Buzz community relay
+    value: "https://DUMMY.communities.buzz.xyz"
+  - name: BUZZ_HOME_CHANNEL           # channel UUID for cron / notification delivery
+    value: ""                         # DUMMY - empty defaults to the first watched channel
+  - name: BUZZ_ALLOWED_USERS          # comma-separated npubs or hex pubkeys allowed to talk
+    value: ""                         # DUMMY - your Nostr pubkey
+  - name: BUZZ_ALLOW_ALL_USERS        # true only for throwaway/dev bots
+    value: "false"

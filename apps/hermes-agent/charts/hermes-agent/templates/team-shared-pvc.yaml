@@ -1,0 +1,26 @@
+{{- if and .Values.team.enabled .Values.team.sharedVolume.enabled .Values.team.sharedVolume.create }}
+{{- include "hermes-agent.team.validate" . }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "hermes-agent.team.sharedClaimName" . }}
+  {{- $annotations := deepCopy (.Values.team.sharedVolume.annotations | default dict) }}
+  {{- if .Values.team.sharedVolume.retain }}
+  {{- $_ := set $annotations "helm.sh/resource-policy" "keep" }}
+  {{- end }}
+  {{- with $annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  labels:
+    {{- include "hermes-agent.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    {{- toYaml .Values.team.sharedVolume.accessModes | nindent 4 }}
+  {{- if .Values.team.sharedVolume.storageClass }}
+  storageClassName: {{ .Values.team.sharedVolume.storageClass | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.team.sharedVolume.size | quote }}
+{{- end }}

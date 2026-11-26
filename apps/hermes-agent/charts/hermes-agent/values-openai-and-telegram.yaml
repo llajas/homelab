@@ -1,0 +1,39 @@
+# values-openai-and-telegram.yaml
+#
+# Hermes Agent using OpenAI (api.openai.com) as the model provider AND running
+# as a Telegram bot: both wired in one file.
+#
+# All secrets below are DUMMY placeholders. Do NOT commit real keys: override
+# them at install time (--set-string) or inject via a SealedSecret + extraEnvFrom
+# (see examples/argocd/).
+#
+#   helm upgrade --install hermes-agent ./charts/hermes-agent \
+#     --namespace hermes-agent --create-namespace \
+#     -f charts/hermes-agent/values-openai-and-telegram.yaml \
+#     --set-string env.OPENAI_API_KEY='sk-<real>' \
+#     --set-string env.TELEGRAM_BOT_TOKEN='<real-bot-token>' --wait
+
+config:
+  model:
+    # NOTE: the built-in key is `openai-api` (api.openai.com).
+    # `openai` is NOT valid here: it aliases to OpenRouter.
+    provider: openai-api
+    default: gpt-4o-mini
+  terminal:
+    backend: local
+
+env:
+  # --- Model provider (OpenAI) --------------------------------------------
+  OPENAI_API_KEY: "sk-DUMMY_replace_me_000000000000000000000000"
+
+  # --- Telegram bot (secret bits) -----------------------------------------
+  # Setting the token is enough to auto-enable Telegram: no config.yaml change.
+  # Create the bot via https://t.me/BotFather.
+  TELEGRAM_BOT_TOKEN: "0000000000:DUMMY-replace_me_with_a_real_token"
+
+# Non-secret Telegram knobs go here (plain env, not the Secret).
+extraEnv:
+  - name: TELEGRAM_HOME_CHANNEL       # chat id for cron / notification delivery
+    value: "000000000"                # DUMMY - your chat id
+  - name: TELEGRAM_ALLOWED_USERS      # comma-separated user ids allowed to talk
+    value: "111111111"                # DUMMY - your Telegram user id

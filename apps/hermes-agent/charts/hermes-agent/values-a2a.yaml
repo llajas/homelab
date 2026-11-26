@@ -1,0 +1,64 @@
+# values-a2a.yaml
+#
+# Runs Hermes' A2A (Agent-to-Agent) inbound listener behind an explicit
+# ClusterIP Service port, so another A2A-compatible agent (another Hermes,
+# LangChain, CrewAI, Google ADK, or anything on the official a2a-sdk) can
+# discover and drive this one.
+#
+# Unlike the API server and webhook receiver, A2A has no dedicated chart
+# values or env var toggle: upstream's only on-switch is the
+# `gateway.platforms.a2a` block in config.yaml, so this overlay sets it
+# directly through the chart's existing free-form `config:` passthrough
+# (see the "A2A (Agent-to-Agent) listener" section in README.md).
+#
+# The external Secret below must contain OPENAI_API_KEY and A2A_PEER_TOKENS.
+# Each entry is peer-name:token. Use the same names in A2A_TRUSTED_PEERS.
+# Clients send only their token as the Bearer credential. Do not commit real keys.
+# When upgrading the old shared-token example, update the existing Secret and
+# the calling clients too. Set A2A_PUSH_SECRET separately for signed callbacks.
+#
+#   kubectl create secret generic hermes-agent-a2a-secrets \
+#     --namespace hermes-agent \
+#     --from-literal=OPENAI_API_KEY='sk-<real>' \
+#     --from-literal=A2A_PEER_TOKENS='agent-a:<long-random-token>'
+#
+#   helm upgrade --install hermes-agent ./charts/hermes-agent \
+#     --namespace hermes-agent --create-namespace \
+#     -f charts/hermes-agent/values-a2a.yaml --wait
+
+config:
+  model:
+    provider: openai-api
+    default: gpt-4o-mini
+  terminal:
+    backend: local
+  gateway:
+    platforms:
+      a2a:
+        enabled: true
+        extra:
+          port: 9900
+
+extraEnv:
+  # Upstream defaults A2A_HOST to 127.0.0.1; a Kubernetes Service needs a
+  # non-loopback address. Upstream itself only widens the bind once an auth
+  # token (A2A_BEARER_TOKEN or A2A_PEER_TOKENS) is configured - set below.
+  - name: A2A_HOST
+    value: "0.0.0.0"
+  - name: A2A_PORT
+    value: "9900"
+  # Authentication and dispatch are separate. A valid token without an
+  # allowlisted peer is not enough to send work to a non-loopback listener.
+  - name: A2A_TRUSTED_PEERS
+    value: "agent-a"
+
+extraEnvFrom:
+  - secretRef:
+      name: hermes-agent-a2a-secrets
+
+service:
+  enabled: true
+  type: ClusterIP
+  ports:
+    - name: a2a
+      port: 9900

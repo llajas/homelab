@@ -1,0 +1,13 @@
+apiVersion: v2
+name: hermes-agent
+description: Personal Hermes Agent gateway
+type: application
+version: 0.0.0
+appVersion: v0.23.4
+home: https://github.com/jyje/hermes-agent-helm
+sources:
+  - https://github.com/jyje/hermes-agent-helm
+dependencies:
+  - name: hermes-agent
+    version: 1.28.0
+    repository: file://charts/hermes-agent

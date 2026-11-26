@@ -1,0 +1,100 @@
+# values-networkpolicy-dashboard.yaml
+#
+# The dashboard behind an Ingress while the chart's NetworkPolicy is on.
+#
+# The NetworkPolicy denies all inbound traffic by default, so turning it on
+# silently cuts the Ingress off from the dashboard: the pod stays Ready (the
+# kubelet probe is not affected) but the controller cannot reach it. This
+# overlay adds the one rule that is needed, for the dashboard port only.
+#
+# What to allow depends on how the controller reaches the pod. Measured on
+# MicroK8s with Calico (VXLAN) and a host-network ingress-nginx, one controller
+# per node (the dashboard pod on one of them):
+#
+#   rule                                          controller on     controller on
+#                                                 the same node     another node
+#   no rule                                       allowed           BLOCKED
+#   podSelector/namespaceSelector of the ingress  allowed           BLOCKED
+#   ipBlock: the node network only                allowed           BLOCKED
+#   ipBlock: the node network + the pod network   allowed           allowed
+#
+# A host-network controller is not a pod as far as the policy is concerned, so a
+# selector never matches it. Traffic from another node reaches the dashboard from
+# that node's tunnel address, which is inside the pod network. Allow BOTH
+# networks, and set the same two CIDRs in `dashboard.trustedProxies`, or the
+# session cookies lose `Secure` depending on which node the request enters.
+#
+# Replace the two CIDRs below with your own:
+#   node network:  the addresses of the nodes running the controller, for
+#                  example `kubectl get nodes -o wide`
+#   pod network:   `kubectl get ippools.crd.projectcalico.org` (Calico) or
+#                  `kubectl get nodes -o jsonpath='{.items[*].spec.podCIDR}'`
+# A bounded CIDR is preferred over a pod IP, which changes when the controller
+# pod is recreated. A controller that runs as an ordinary pod (not host-network)
+# can be matched with a namespaceSelector and podSelector instead, which is
+# narrower; that variant was not measured here.
+#
+# Dummy values: override at install time. Never commit real credentials.
+#
+#   helm upgrade --install hermes-agent ./charts/hermes-agent \
+#     --namespace hermes-agent --create-namespace \
+#     -f charts/hermes-agent/values-networkpolicy-dashboard.yaml \
+#     --set-string env.OPENAI_API_KEY='sk-<real>' \
+#     --set-string env.HERMES_DASHBOARD_BASIC_AUTH_PASSWORD='<strong password>' \
+#     --set-string env.HERMES_DASHBOARD_BASIC_AUTH_SECRET="$(openssl rand -base64 32)" \
+#     --wait
+#
+# Changing `dashboard.*` or the hosts later needs `--set bootstrap.overwrite=true`
+# for that upgrade (see the README, "Expose the dashboard").
+
+config:
+  model:
+    provider: openai-api
+    default: gpt-4o-mini
+  terminal:
+    backend: local
+
+dashboard:
+  enabled: true
+  # Same two networks as the NetworkPolicy rule below.
+  trustedProxies:
+    - "10.0.4.0/24"
+    - "10.1.0.0/16"
+  auth:
+    provider: basic
+
+env:
+  OPENAI_API_KEY: "sk-DUMMY_replace_me_000000000000000000000000"
+  HERMES_DASHBOARD_BASIC_AUTH_USERNAME: "admin"
+  HERMES_DASHBOARD_BASIC_AUTH_PASSWORD: "DUMMY_replace_me"
+  HERMES_DASHBOARD_BASIC_AUTH_SECRET: "DUMMY_replace_me_with_openssl_rand_base64_32"
+
+service:
+  enabled: true
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations: {}
+  #  cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: hermes-agent.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: hermes-agent-tls
+      hosts:
+        - hermes-agent.example.com
+
+networkPolicy:
+  enabled: true
+  extraIngress:
+    - from:
+        - ipBlock:
+            cidr: "10.0.4.0/24"
+        - ipBlock:
+            cidr: "10.1.0.0/16"
+      ports:
+        - protocol: TCP
+          port: 9119

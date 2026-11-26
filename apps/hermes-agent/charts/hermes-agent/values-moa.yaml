@@ -1,0 +1,45 @@
+# values-moa.yaml
+#
+# Hermes Agent using Mixture-of-Agents (MoA): reference models run in
+# parallel and an aggregator model synthesizes their output, instead of a
+# single model answering directly. MoA is a virtual provider (image
+# v2026.7.1+): `config.model.provider: moa` + `config.model.default: <preset
+# name>` selects a named preset defined under `config.moa.presets`.
+#
+# The example preset below fans out to two OpenRouter reference models and
+# aggregates with a third: swap provider/model ids for whichever you use,
+# and supply each provider's own API key under `env` (a preset can mix
+# providers freely).
+#
+#   helm upgrade --install hermes-agent ./charts/hermes-agent \
+#     --namespace hermes-agent --create-namespace \
+#     -f charts/hermes-agent/values-moa.yaml \
+#     --set-string env.OPENROUTER_API_KEY='sk-or-<real>' --wait
+
+config:
+  model:
+    provider: moa
+    default: default # preset name under config.moa.presets
+  moa:
+    presets:
+      default:
+        reference_models:
+          - provider: openrouter
+            model: deepseek/deepseek-v4-pro
+          - provider: openrouter
+            model: qwen/qwen3-max
+        aggregator:
+          provider: openrouter
+          model: anthropic/claude-opus-4.8
+        enabled: true
+    # Persist full turn traces (each reference's input/output + the
+    # aggregator's input/output) to HERMES_HOME/moa-traces/<session_id>.jsonl.
+    # Off by default; turn on to audit/improve preset behavior.
+    save_traces: false
+  terminal:
+    backend: local
+
+env:
+  OPENROUTER_API_KEY: "sk-or-DUMMY_replace_me_0000000000000000000000"
+  # Unused by the moa provider; overrides the chart's OpenAI placeholder.
+  OPENAI_API_KEY: "unused"

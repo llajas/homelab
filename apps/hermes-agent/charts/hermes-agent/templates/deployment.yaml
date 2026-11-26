@@ -1,0 +1,25 @@
+{{- if eq .Values.controller.type "deployment" }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "hermes-agent.fullname" . }}
+  labels:
+    {{- include "hermes-agent.labels" . | nindent 4 }}
+  {{- with .Values.deploymentAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  {{- if .Values.persistence.enabled }}
+  # Recreate avoids the new Pod getting stuck Pending while the old Pod still
+  # holds the ReadWriteOnce PVC during a rollout.
+  strategy:
+    type: Recreate
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "hermes-agent.selectorLabels" . | nindent 6 }}
+  template:
+    {{- include "hermes-agent.podTemplate" . | nindent 4 }}
+{{- end }}

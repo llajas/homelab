@@ -1,0 +1,46 @@
+# values-networkpolicy-litellm.yaml
+#
+# Egress-locked install talking to an in-cluster LiteLLM proxy (see
+# values-litellm-k8s.yaml). blockPrivateEgress denies the rest of RFC1918 and
+# the cloud metadata endpoint while still permitting the LiteLLM Service
+# specifically, via extraEgress - a precise allowlist instead of opening all
+# of RFC1918 just to reach one in-cluster Service.
+#
+# Adjust the namespaceSelector/podSelector below to match your LiteLLM
+# install; the labels here match the upstream berriai/litellm-helm chart's
+# defaults (Service "litellm" in namespace "litellm", port 4000).
+#
+#   helm upgrade --install hermes-agent ./charts/hermes-agent \
+#     --namespace hermes-agent --create-namespace \
+#     -f charts/hermes-agent/values-networkpolicy-litellm.yaml \
+#     --set-string env.OPENAI_API_KEY='sk-<your-litellm-proxy-key>' --wait
+
+config:
+  providers:
+    litellm:
+      base_url: http://litellm.litellm.svc.cluster.local:4000/v1
+      key_env: OPENAI_API_KEY
+      discover_models: true
+  model:
+    provider: litellm
+    default: openai/gpt-oss-120b
+  terminal:
+    backend: local
+
+env:
+  OPENAI_API_KEY: "sk-DUMMY_replace_me_000000000000000000000000"
+
+networkPolicy:
+  enabled: true
+  blockPrivateEgress: true
+  extraEgress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: litellm
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: litellm
+      ports:
+        - protocol: TCP
+          port: 4000

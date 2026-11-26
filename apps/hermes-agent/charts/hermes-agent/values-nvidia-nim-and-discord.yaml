@@ -1,0 +1,64 @@
+# values-nvidia-nim-and-discord.yaml
+#
+# Hermes Agent on a Raspberry Pi cluster (arm64), talking to NVIDIA NIM for the
+# model AND running as a Discord bot: both wired in one file.
+#
+# All secrets below are DUMMY placeholders. Do NOT commit real keys: override
+# them at install time (--set-string) or inject via a SealedSecret + extraEnvFrom
+# (see examples/argocd/).
+#
+#   helm upgrade --install hermes-agent ./charts/hermes-agent \
+#     --namespace hermes-agent --create-namespace \
+#     -f charts/hermes-agent/values-nvidia-nim-and-discord.yaml \
+#     --set-string env.NVIDIA_API_KEY='nvapi-<real>' \
+#     --set-string env.DISCORD_BOT_TOKEN='<real-bot-token>' --wait
+
+config:
+  model:
+    # Built-in provider key for NVIDIA NIM (build.nvidia.com).
+    provider: nvidia
+    # NIM model id: pick one your account can reach from build.nvidia.com.
+    default: nvidia/nemotron-3-nano-omni-30b-a3b-reasoning
+  terminal:
+    backend: local
+
+env:
+  # --- Model provider (NVIDIA NIM) ----------------------------------------
+  NVIDIA_API_KEY: "nvapi-DUMMY_replace_me_0000000000000000000000"
+  # The chart's default placeholder is for OpenAI; this deployment doesn't use
+  # it. Set to a clear sentinel so no real OpenAI key is implied.
+  OPENAI_API_KEY: "unused"
+
+  # --- Discord bot (secret bits) ------------------------------------------
+  # Setting the token is enough to auto-enable Discord: no config.yaml change.
+  # Create the bot at https://discord.com/developers/applications, enable the
+  # "Message Content Intent", and invite it to your server.
+  DISCORD_BOT_TOKEN: "MTA0DUMMYtoken000000000000.DUMMY.replace_me_with_a_real_token"
+
+# Non-secret Discord knobs go here (plain env, not the Secret).
+extraEnv:
+  - name: DISCORD_HOME_CHANNEL        # channel id for cron / notification delivery
+    value: "000000000000000000"       # DUMMY - your channel id (18 digits)
+  - name: DISCORD_ALLOWED_USERS       # comma-separated user ids allowed to talk
+    value: "111111111111111111"       # DUMMY - your Discord user id
+  - name: DISCORD_ALLOW_ALL_USERS     # true only for throwaway/dev bots
+    value: "false"
+
+# Persistence: empty storageClass = cluster default. On a Raspberry Pi cluster
+# that is typically local-path (k3s) or microk8s-hostpath: both ReadWriteOnce,
+# which is exactly what this single-writer workload wants.
+persistence:
+  enabled: true
+  storageClass: ""
+  accessModes:
+    - ReadWriteOnce
+  size: 5Gi
+
+# Defaults are already tuned for small arm64 nodes; shown here for visibility.
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: "1"
+    memory: 1Gi

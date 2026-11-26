@@ -1,0 +1,27 @@
+# Hermes Webapp on a private ClusterIP with password sign-in (Hermes v0.23.0).
+# Before installation, create an external Secret named
+# hermes-agent-webapp-secrets in the release namespace with:
+#   OPENAI_API_KEY
+#   HERMES_DASHBOARD_BASIC_AUTH_USERNAME
+#   HERMES_DASHBOARD_BASIC_AUTH_PASSWORD
+#   HERMES_DASHBOARD_BASIC_AUTH_SECRET
+# Use a strong password and a separate random session signing secret.
+# Open it using kubectl port-forward bound to localhost on your machine.
+
+config:
+  webapp:
+    enabled: true
+    host: "0.0.0.0"
+    port: 9120
+
+extraEnvFrom:
+  - secretRef:
+      name: hermes-agent-webapp-secrets
+
+service:
+  enabled: true
+  type: ClusterIP
+  ports:
+    - name: webapp
+      port: 9120
+      targetPort: 9120

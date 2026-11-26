@@ -1,0 +1,62 @@
+# values-httproute.yaml
+#
+# Routes Hermes' API server and generic webhook receiver through a Gateway API
+# HTTPRoute. The cluster must already have the Gateway API CRD and a Gateway
+# named hermes-gateway. Create hermes-agent-listener-secrets with
+# OPENAI_API_KEY, API_SERVER_KEY, and WEBHOOK_SECRET before installing. Do not
+# commit real credentials.
+#
+#   helm upgrade --install hermes-agent ./charts/hermes-agent \
+#     --namespace hermes-agent --create-namespace \
+#     -f charts/hermes-agent/values-httproute.yaml --wait
+
+config:
+  model:
+    provider: openai-api
+    default: gpt-4o-mini
+  terminal:
+    backend: local
+
+extraEnvFrom:
+  - secretRef:
+      name: hermes-agent-listener-secrets
+
+apiServer:
+  enabled: true
+  host: 0.0.0.0
+  port: 8642
+  corsOrigins: "https://chat.example.com"
+
+webhook:
+  enabled: true
+  port: 8644
+
+service:
+  enabled: true
+  ports:
+    - name: api-server
+      port: 8642
+    - name: webhook
+      port: 8644
+
+httpRoute:
+  enabled: true
+  parentRefs:
+    - name: hermes-gateway
+      sectionName: https
+  hostnames:
+    - api.example.com
+    - webhooks.example.com
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /v1
+      backendRefs:
+        - port: 8642
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - port: 8644

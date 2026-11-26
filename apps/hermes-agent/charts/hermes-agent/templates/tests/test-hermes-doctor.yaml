@@ -1,0 +1,362 @@
+{{- if .Values.tests.enabled }}
+{{- $isolated := .Values.tests.isolateDoctor }}
+{{- if $isolated }}
+{{- if .Values.tests.doctorStrict }}
+{{- fail "tests.isolateDoctor requires tests.doctorStrict=false" }}
+{{- end }}
+{{- if not (semverCompare ">=1.33.0-0" .Capabilities.KubeVersion.Version) }}
+{{- fail "tests.isolateDoctor requires Kubernetes 1.33 or later" }}
+{{- end }}
+{{- if le (int .Values.tests.doctorTimeout) 0 }}
+{{- fail "tests.isolateDoctor requires a positive tests.doctorTimeout" }}
+{{- end }}
+{{- end }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "hermes-agent.fullname" . }}-test
+  labels:
+    {{- include "hermes-agent.labels" . | nindent 4 }}
+    app.kubernetes.io/component: test
+  annotations:
+    {{- /* The hook annotations below are fixed: skip any user key that repeats one. */}}
+    {{- $hookKeys := list "helm.sh/hook" "helm.sh/hook-weight" "helm.sh/hook-delete-policy" "argocd.argoproj.io/hook" "argocd.argoproj.io/hook-delete-policy" }}
+    {{- range $key, $value := .Values.tests.annotations }}
+    {{- if not (has $key $hookKeys) }}
+    {{ $key | quote }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+    # Helm test hook: created/run by `helm test <release>`, after install.
+    "helm.sh/hook": test
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": before-hook-creation
+    # ArgoCD PostSync hook: also run automatically after every ArgoCD sync.
+    "argocd.argoproj.io/hook": PostSync
+    "argocd.argoproj.io/hook-delete-policy": BeforeHookCreation
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        {{- include "hermes-agent.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: test
+    spec:
+      restartPolicy: Never
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if or .Values.bootstrap.enabled $isolated }}
+      initContainers:
+        {{- if .Values.bootstrap.enabled }}
+        # Seed the same chart-managed files into a private HERMES_HOME so
+        # `hermes doctor` evaluates what the workload runs with.
+        - name: seed-config
+          image: "{{ include "hermes-agent.image" . }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          command:
+            - sh
+            - -c
+            - |
+              set -eu
+              cp /seed/config.yaml {{ .Values.persistence.mountPath }}/config.yaml
+              if [ -f /seed/SOUL.md ]; then
+                cp /seed/SOUL.md {{ .Values.persistence.mountPath }}/SOUL.md
+              fi
+              {{- if .Values.readyNotify.enabled }}
+              mkdir -p "{{ .Values.persistence.mountPath }}/hooks/ready-notify"
+              cp /seed/ready-notify-HOOK.yaml "{{ .Values.persistence.mountPath }}/hooks/ready-notify/HOOK.yaml"
+              cp /seed/ready-notify-handler.py "{{ .Values.persistence.mountPath }}/hooks/ready-notify/handler.py"
+              {{- end }}
+              {{- include "hermes-agent.migrateConfig" . | nindent 14 }}
+          env:
+            - name: HERMES_HOME
+              value: {{ .Values.persistence.mountPath | quote }}
+            - name: HERMES_MIGRATION_UID
+              value: {{ include "hermes-agent.migrationUID" . | quote }}
+            - name: HERMES_MIGRATION_GID
+              value: {{ include "hermes-agent.migrationGID" . | quote }}
+          volumeMounts:
+            - name: config
+              mountPath: /seed
+              readOnly: true
+            - name: data
+              mountPath: {{ .Values.persistence.mountPath }}
+        {{- end }}
+        {{- if $isolated }}
+        - name: hermes-doctor-diagnostics
+          restartPolicy: Always
+          image: "{{ include "hermes-agent.testImage" . }}"
+          imagePullPolicy: {{ .Values.tests.image.pullPolicy | default .Values.image.pullPolicy }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            - name: HERMES_HOME
+              value: {{ printf "%s/doctor-diagnostics" .Values.persistence.mountPath | quote }}
+          envFrom:
+            - secretRef:
+                name: {{ include "hermes-agent.envSecretName" . }}
+            {{- with .Values.extraEnvFrom }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          command:
+            - sh
+            - -c
+            - |
+              set -eu
+              # The main container requests diagnostics after the required
+              # startup checks. A restarted sidecar must not retry a killed
+              # doctor or overwrite a result it already published.
+              while [ ! -f /doctor-status/run ]; do sleep 1; done
+              if [ ! -f /doctor-status/result ]; then
+                if [ -f /doctor-status/started ]; then
+                  result="doctor was interrupted (non-fatal)"
+                else
+                  touch /doctor-status/started
+                  status=0
+                  (
+                    mkdir -p "$HERMES_HOME" || exit 1
+                    for file in config.yaml SOUL.md; do
+                      if [ -f "$HERMES_HOME/../$file" ]; then
+                        cp "$HERMES_HOME/../$file" "$HERMES_HOME/$file" || exit 1
+                      fi
+                    done
+                    timeout -k 10 {{ .Values.tests.doctorTimeout }} hermes doctor
+                  ) || status=$?
+                  result="doctor exited with status $status (non-fatal)"
+                fi
+                printf '%s\n' "$result" > /doctor-status/result.tmp
+                mv /doctor-status/result.tmp /doctor-status/result
+              fi
+              exec sleep infinity
+          resources:
+            {{- toYaml .Values.tests.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: {{ .Values.persistence.mountPath }}
+            - name: doctor-status
+              mountPath: /doctor-status
+            {{- if .Values.securityContext.readOnlyRootFilesystem }}
+            - name: tmp
+              mountPath: /tmp
+            {{- end }}
+        {{- end }}
+      {{- end }}
+      containers:
+        - name: hermes-doctor
+          image: "{{ include "hermes-agent.testImage" . }}"
+          imagePullPolicy: {{ .Values.tests.image.pullPolicy | default .Values.image.pullPolicy }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            - name: HERMES_HOME
+              value: {{ .Values.persistence.mountPath | quote }}
+          envFrom:
+            - secretRef:
+                name: {{ include "hermes-agent.envSecretName" . }}
+            {{- with .Values.extraEnvFrom }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          command:
+            - sh
+            - -c
+            - |
+              set -eu
+              echo "===================================================="
+              echo " hermes-agent install test (doctor-style)"
+              echo "===================================================="
+
+              echo "[1/4] hermes CLI version"
+              hermes --version
+
+              echo "[2/4] seeded config.yaml present in HERMES_HOME"
+              if [ -f "$HERMES_HOME/config.yaml" ]; then
+                echo "  OK: $HERMES_HOME/config.yaml"
+              else
+                echo "  FAIL: $HERMES_HOME/config.yaml missing"; exit 1
+              fi
+
+              {{- with .Values.soul.text }}
+              echo "[2a/4] configured SOUL.md present and unchanged"
+              if [ -f "$HERMES_HOME/SOUL.md" ] && cmp -s "$HERMES_HOME/SOUL.md" /seed/SOUL.md; then
+                echo "  OK: $HERMES_HOME/SOUL.md"
+              else
+                echo "  FAIL: configured SOUL.md missing or changed"; exit 1
+              fi
+              {{- end }}
+
+              {{- $df := .Values.auth.deviceFlow }}
+              {{- if and $df.enabled (eq (index $df.providers $df.provider).flow "openai-codex") }}
+              echo "[2b/4] OpenAI Codex login helpers exist in this Hermes image"
+              python3 /login/device_login.py --check-native || exit 1
+
+              {{- end }}
+              {{- if and .Values.readyNotify.enabled .Values.bootstrap.enabled }}
+              echo "[2c/4] ready-notify hook loads and fires in this Hermes image"
+              python3 - <<'PY' || exit 1
+              import asyncio, io, logging, os, sys
+              from gateway.hooks import HookRegistry
+
+              # An unknown channel makes the handler log a warning and return without
+              # a request. Setting it here also overrides any READY_NOTIFY that the
+              # chart Secret or extraEnvFrom may carry, so this never posts a message.
+              os.environ["READY_NOTIFY"] = "ci-check"
+              stream = io.StringIO()
+              log = logging.getLogger("hooks.ready-notify")
+              log.addHandler(logging.StreamHandler(stream))
+
+              registry = HookRegistry()
+              registry.discover_and_load()
+              names = [h.get("name") for h in registry.loaded_hooks]
+              if "ready-notify" not in names:
+                  print(f"FAIL: the ready-notify hook was not loaded (loaded: {names})")
+                  sys.exit(1)
+              # emit() swallows handler errors and returns when nothing is registered,
+              # so a clean return proves nothing: require the handler's own log line.
+              asyncio.run(registry.emit("gateway:startup", {"platforms": ["test"]}))
+              if "unknown READY_NOTIFY channel" not in stream.getvalue():
+                  print("FAIL: Hermes loaded the hook but did not run its handler on gateway:startup")
+                  sys.exit(1)
+              print("OK: the gateway:startup hook was discovered and its handler ran.")
+              PY
+
+              {{- end }}
+              echo "[3/4] docker availability (local backend -> informational)"
+              if command -v docker >/dev/null 2>&1; then
+                docker version 2>/dev/null && echo "  docker daemon reachable" \
+                  || echo "  docker CLI present, no daemon (expected: local backend)"
+              else
+                echo "  docker not installed (expected: terminal.backend=local)"
+              fi
+
+              echo "[4/{{ if .Values.tests.chat.enabled }}5{{ else }}4{{ end }}] hermes doctor (timeout {{ .Values.tests.doctorTimeout }}s)"
+              {{- if $isolated }}
+              if touch /doctor-status/run; then
+                remaining={{ add (int .Values.tests.doctorTimeout) 20 }}
+                while [ "$remaining" -gt 0 ] && [ ! -f /doctor-status/result ]; do
+                  sleep 1
+                  remaining=$((remaining - 1))
+                done
+                if [ -f /doctor-status/result ]; then
+                  cat /doctor-status/result
+                else
+                  echo "  doctor did not finish within the wait budget (non-fatal)"
+                fi
+              else
+                echo "  could not request doctor diagnostics (non-fatal)"
+              fi
+              echo "  see hermes-doctor-diagnostics container logs for details"
+              {{- else }}
+              if [ "{{ .Values.tests.doctorStrict }}" = "true" ]; then
+                timeout -k 10 {{ .Values.tests.doctorTimeout }} hermes doctor
+              else
+                timeout -k 10 {{ .Values.tests.doctorTimeout }} hermes doctor \
+                  || echo "  doctor reported issues (non-fatal: tests.doctorStrict=false)"
+              fi
+              {{- end }}
+
+              {{- if .Values.tests.chat.enabled }}
+              echo "[5/5] hermes chat round-trip"
+              echo "--- prompt ---"
+              echo {{ .Values.tests.chat.prompt | quote }}
+
+              chat_ok=false
+              {{- if .Values.tests.chat.models }}
+              for model in {{ .Values.tests.chat.models | join " " }}; do
+                echo "--- model: $model (timeout {{ .Values.tests.chat.timeout }}s) ---"
+                set +e
+                timeout -k 10 {{ .Values.tests.chat.timeout }} hermes chat \
+                  -m "$model" --provider {{ .Values.config.model.provider | quote }} \
+                  -q {{ .Values.tests.chat.prompt | quote }} \
+                  --max-turns {{ .Values.tests.chat.maxTurns }} | tee /tmp/chat-response.txt
+                chat_status=$?
+                set -e
+                if [ $chat_status -eq 0 ] && [ -s /tmp/chat-response.txt ]; then
+                  chat_ok=true
+                  echo "--- model $model succeeded ---"
+                  break
+                fi
+                echo "--- model $model failed, trying next ---"
+              done
+              {{- else }}
+              echo "--- model: (config default) (timeout {{ .Values.tests.chat.timeout }}s) ---"
+              set +e
+              timeout -k 10 {{ .Values.tests.chat.timeout }} hermes chat \
+                -q {{ .Values.tests.chat.prompt | quote }} \
+                --max-turns {{ .Values.tests.chat.maxTurns }} | tee /tmp/chat-response.txt
+              chat_status=$?
+              set -e
+              [ $chat_status -eq 0 ] && [ -s /tmp/chat-response.txt ] && chat_ok=true
+              {{- end }}
+              echo "--- end response ---"
+              if [ "{{ .Values.tests.chat.failOnError }}" = "true" ] && [ "$chat_ok" != "true" ]; then
+                echo "  FAIL: hermes chat round-trip failed or returned no output"; exit 1
+              fi
+              {{- end }}
+
+              echo "===================================================="
+              echo " ALL REQUIRED CHECKS PASSED"
+              echo "===================================================="
+          resources:
+            {{- toYaml .Values.tests.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: {{ .Values.persistence.mountPath }}
+            {{- if $isolated }}
+            - name: doctor-status
+              mountPath: /doctor-status
+            {{- end }}
+            {{- with .Values.soul.text }}
+            - name: config
+              mountPath: /seed
+              readOnly: true
+            {{- end }}
+            {{- if and .Values.auth.deviceFlow.enabled (eq (index .Values.auth.deviceFlow.providers .Values.auth.deviceFlow.provider).flow "openai-codex") }}
+            - name: login-script
+              mountPath: /login
+              readOnly: true
+            {{- end }}
+            {{- if .Values.securityContext.readOnlyRootFilesystem }}
+            # `hermes chat`/`hermes doctor` write transient files (e.g. this
+            # Job's own chat-response capture) to /tmp; a read-only rootfs
+            # needs it mounted explicitly, unlike the main workload's
+            # `extraVolumeMounts` (which this Job doesn't use).
+            - name: tmp
+              mountPath: /tmp
+            {{- end }}
+      volumes:
+        {{- if .Values.bootstrap.enabled }}
+        - name: config
+          configMap:
+            name: {{ include "hermes-agent.fullname" . }}-config
+        {{- end }}
+        - name: data
+          emptyDir: {}
+        {{- if $isolated }}
+        - name: doctor-status
+          emptyDir: {}
+        {{- end }}
+        {{- if and .Values.auth.deviceFlow.enabled (eq (index .Values.auth.deviceFlow.providers .Values.auth.deviceFlow.provider).flow "openai-codex") }}
+        - name: login-script
+          configMap:
+            name: {{ include "hermes-agent.fullname" . }}-login
+            defaultMode: 0555
+        {{- end }}
+        {{- if .Values.securityContext.readOnlyRootFilesystem }}
+        - name: tmp
+          emptyDir:
+            medium: Memory
+        {{- end }}
+{{- end }}

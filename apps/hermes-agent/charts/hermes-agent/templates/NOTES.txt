@@ -1,0 +1,47 @@
+Hermes Agent ({{ .Chart.AppVersion }}) deployed as a {{ if eq .Values.controller.type "deployment" }}Deployment{{ else }}StatefulSet{{ end }}.
+
+Release:   {{ .Release.Name }}
+Namespace: {{ .Release.Namespace }}
+Model:     {{ .Values.config.model.default }}
+Provider:  {{ .Values.config.model.provider }}{{ with .Values.config.model.base_url }} ({{ . }}){{ end }}
+Backend:   terminal.backend={{ .Values.config.terminal.backend }} (commands run in-pod)
+
+1. Watch rollout:
+   kubectl rollout status {{ .Values.controller.type }}/{{ include "hermes-agent.fullname" . }} -n {{ .Release.Namespace }}
+
+{{- if .Values.auth.deviceFlow.enabled }}
+2. Complete the interactive provider login.
+
+   Device-flow login is ENABLED (provider: {{ .Values.auth.deviceFlow.provider }}).
+   On first start the "auth-device-login" init container performs the selected
+   provider's interactive login and waits (up to {{ .Values.auth.deviceFlow.timeoutSeconds }}s) for approval.
+   {{- if eq .Values.auth.deviceFlow.notify "discord" }}
+   Check the agent's Discord home channel for the verification link + code.
+   {{- else }}
+   Check the init container logs for the verification link + code.
+   {{- end }}
+   Follow along with:
+   kubectl logs {{ if eq .Values.controller.type "deployment" }}deploy{{ else }}sts{{ end }}/{{ include "hermes-agent.fullname" . }} -n {{ .Release.Namespace }} -c auth-device-login -f
+{{- else }}
+2. Set the provider API key if you used the placeholder:
+   helm upgrade {{ .Release.Name }} . -n {{ .Release.Namespace }} \
+     --set-string env.OPENAI_API_KEY='sk-...'
+{{- end }}
+{{- if .Values.tests.enabled }}
+
+3. Run the install test (doctor-style Job):
+   helm test {{ .Release.Name }} -n {{ .Release.Namespace }}
+{{- end }}
+{{- $cfgDash := default (dict) (get (default (dict) .Values.config) "dashboard") }}
+{{- $dashURL := include "hermes-agent.dashboard.publicUrl" . | default (get $cfgDash "public_url") }}
+{{- if and .Values.dashboard.enabled (hasPrefix "https://" (toString $dashURL)) (not .Values.dashboard.trustedProxies) (not (get $cfgDash "trusted_proxies")) }}
+
+WARNING: the dashboard is served at {{ $dashURL }} but no trusted proxy is set.
+Behind a TLS-terminating proxy, upstream ignores X-Forwarded-Proto from peers it
+does not trust, so sign-in still works but the session cookies are NOT marked
+Secure. Set dashboard.trustedProxies to your ingress controller's pod CIDR or
+exact pod IP (upstream rejects 0.0.0.0/0).
+{{- end }}
+
+Logs:
+   kubectl logs {{ .Values.controller.type }}/{{ include "hermes-agent.fullname" . }} -n {{ .Release.Namespace }} -f

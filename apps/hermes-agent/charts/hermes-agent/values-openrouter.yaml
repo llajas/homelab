@@ -1,0 +1,22 @@
+# values-openrouter.yaml
+#
+# Hermes Agent using OpenRouter (one key, many upstream models).
+# Dummy key: override at install time.
+#
+#   helm upgrade --install hermes-agent ./charts/hermes-agent \
+#     --namespace hermes-agent --create-namespace \
+#     -f charts/hermes-agent/values-openrouter.yaml \
+#     --set-string env.OPENROUTER_API_KEY='sk-or-<real>' --wait
+
+config:
+  model:
+    provider: openrouter
+    # OpenRouter model id (vendor/model): see https://openrouter.ai/models.
+    default: openai/gpt-4o-mini
+  terminal:
+    backend: local
+
+env:
+  OPENROUTER_API_KEY: "sk-or-DUMMY_replace_me_0000000000000000000000"
+  # Unused by the openrouter provider; overrides the chart's OpenAI placeholder.
+  OPENAI_API_KEY: "unused"

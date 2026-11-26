@@ -1,0 +1,23 @@
+# values-anthropic.yaml
+#
+# Hermes Agent using Anthropic (Claude) as the model provider.
+# Dummy key: override at install time.
+#
+#   helm upgrade --install hermes-agent ./charts/hermes-agent \
+#     --namespace hermes-agent --create-namespace \
+#     -f charts/hermes-agent/values-anthropic.yaml \
+#     --set-string env.ANTHROPIC_API_KEY='sk-ant-<real>' --wait
+
+config:
+  model:
+    provider: anthropic
+    # A current Claude model id: see https://docs.anthropic.com for the list
+    # (e.g. claude-opus-4-8, claude-sonnet-4-6, claude-haiku-4-5).
+    default: claude-sonnet-4-6
+  terminal:
+    backend: local
+
+env:
+  ANTHROPIC_API_KEY: "sk-ant-DUMMY_replace_me_0000000000000000000000"
+  # Unused by the anthropic provider; overrides the chart's OpenAI placeholder.
+  OPENAI_API_KEY: "unused"

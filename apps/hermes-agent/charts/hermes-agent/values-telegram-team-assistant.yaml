@@ -1,0 +1,59 @@
+# values-telegram-team-assistant.yaml
+#
+# ONE Hermes Telegram bot shared by several people: a team assistant, not a
+# multi-bot team. For several collaborating bots, see
+# values-telegram-team-leader.yaml / values-telegram-team-member.yaml.
+#
+# BotFather setup, once per bot:
+#   - /newbot, then keep the token secret (revoke with /revoke if it leaks).
+#   - In groups the bot sees only commands and replies to it while Group
+#     Privacy is ON. Either make the bot a group admin or turn privacy off
+#     (Bot Settings -> Group Privacy); after changing privacy, remove and
+#     re-add the bot to the group.
+#
+# Access control, pick what you need:
+#   - TELEGRAM_ALLOWED_USERS: people allowed everywhere (DMs and groups).
+#   - TELEGRAM_GROUP_ALLOWED_USERS: people allowed in groups only.
+#   - TELEGRAM_GROUP_ALLOWED_CHATS: whole groups; any member is allowed.
+#   - DM pairing: an unknown user who DMs the bot gets a one-time code; the
+#     operator approves it with
+#       kubectl exec -n hermes-agent deploy/hermes-agent -c hermes-agent -- \
+#         hermes pairing approve telegram <CODE>
+#     Approvals are stored in HERMES_HOME, so they survive restarts.
+#
+# Everything below is a placeholder. Never commit real tokens or IDs; put the
+# token in a Secret and reference it with extraEnvFrom in production.
+#
+#   helm upgrade --install hermes-agent ./charts/hermes-agent \
+#     --namespace hermes-agent --create-namespace \
+#     -f charts/hermes-agent/values-telegram-team-assistant.yaml \
+#     --set-string env.OPENAI_API_KEY='sk-<real>' \
+#     --set-string env.TELEGRAM_BOT_TOKEN='<real-bot-token>' --wait
+
+config:
+  model:
+    provider: openai-api
+    default: gpt-4o-mini
+  terminal:
+    backend: local
+  telegram:
+    # In groups, answer only when mentioned (@botname), replied to, or sent a
+    # /command@botname. Ordinary group chatter is ignored.
+    require_mention: true
+  # Each person in a group keeps their own conversation with the bot.
+  group_sessions_per_user: true
+
+env:
+  OPENAI_API_KEY: "sk-DUMMY_replace_me_000000000000000000000000"
+  TELEGRAM_BOT_TOKEN: "000000000:DUMMY_replace_me_with_a_real_bot_token"
+
+extraEnv:
+  # Numeric Telegram user IDs of the people who may use the bot anywhere.
+  - name: TELEGRAM_ALLOWED_USERS
+    value: "111111111,222222222"
+  # The team group's chat ID (negative). Any member of it may use the bot there.
+  - name: TELEGRAM_GROUP_ALLOWED_CHATS
+    value: "-1001234567890"
+  # Where cron job output is delivered.
+  - name: TELEGRAM_HOME_CHANNEL
+    value: "-1001234567890"

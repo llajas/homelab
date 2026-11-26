@@ -1,0 +1,84 @@
+# values-ingress-oauth.yaml
+#
+# Exposes the Hermes management dashboard through an Ingress and signs users in
+# with Nous Portal OAuth. Upstream recommends this provider for a dashboard that
+# is reachable over the public internet; the bundled username/password provider
+# (values-ingress.yaml) is meant for a trusted network or a VPN.
+#
+# 1. Register the dashboard in the Nous Portal ("Local Dashboards" page, or
+#    `hermes dashboard register` where a Nous login exists) and copy the client
+#    id it returns (shape `agent:<id>`). In the portal, set Base URL to the
+#    dashboard's external origin, https://hermes-agent.example.com, with no path:
+#    the portal appends /auth/callback itself. (`hermes dashboard register` takes
+#    the full `--redirect-uri https://hermes-agent.example.com/auth/callback`.)
+#    A personal-account registration limits sign-in to its owner ("Only you" in
+#    the portal), so, unlike the OIDC example, no extra access control is needed
+#    for that case.
+# 2. Put that client id in `config.dashboard.oauth.client_id` below. The client
+#    id is not a secret. The template fails at render time when it is missing;
+#    if you register from inside the pod instead (the CLI writes
+#    HERMES_DASHBOARD_OAUTH_CLIENT_ID into the persistent .env), set
+#    `dashboard.auth.provider: external` so the render-time check is skipped.
+# 3. Install, using your own host and ingress controller CIDR:
+#
+#      helm upgrade --install hermes-agent ./charts/hermes-agent \
+#        --namespace hermes-agent --create-namespace \
+#        -f charts/hermes-agent/values-ingress-oauth.yaml \
+#        --set-string env.OPENAI_API_KEY='sk-<real>' --wait
+#
+# After sign-in `GET /api/auth/me` reports `provider: nous`. Observed with a
+# personal account: `email` and `display_name` come back empty.
+#
+# Troubleshooting, as observed against the portal: a dashboard whose external
+# origin differs from the registered Base URL is rejected by the PORTAL, not by
+# the dashboard, with "Authorization failed ... Error: redirect_uri_mismatch:
+# redirect_uri does not match the agent's canonical URL or localhost carve-out".
+# The portal also requires PKCE; the dashboard sends it, so a hand-built
+# authorize request without a code_challenge fails with "invalid_request".
+#
+# The external origin must match the registered Base URL exactly. It is
+# derived from the first Ingress host (https once `ingress.tls` is set); set
+# `dashboard.publicUrl` explicitly when it differs. Dummy values below: replace
+# them, and never commit real credentials.
+
+config:
+  model:
+    provider: openai-api
+    default: gpt-4o-mini
+  terminal:
+    backend: local
+  dashboard:
+    oauth:
+      # Client id issued by the Nous Portal for this dashboard.
+      client_id: "agent:REPLACE_ME"
+
+dashboard:
+  enabled: true
+  # Only listed peers may supply X-Forwarded-Proto / X-Forwarded-For. Put your
+  # ingress controller's pod CIDR (or its exact pod IP) here; without it the
+  # session cookies are not marked Secure behind a TLS-terminating Ingress.
+  trustedProxies:
+    - "10.244.0.0/16"
+  auth:
+    provider: oauth
+
+env:
+  OPENAI_API_KEY: "sk-DUMMY_replace_me_000000000000000000000000"
+
+service:
+  enabled: true
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations: {}
+  #  cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: hermes-agent.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: hermes-agent-tls
+      hosts:
+        - hermes-agent.example.com

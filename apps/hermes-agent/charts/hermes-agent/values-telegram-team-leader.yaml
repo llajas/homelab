@@ -1,0 +1,124 @@
+# values-telegram-team-leader.yaml
+#
+# Chart-native LEADER for a Telegram star team: one Helm release per bot, all
+# bots in one Telegram group (or one forum topic). Handoffs are ordinary bot
+# messages: the leader @mentions one member, the member answers with the
+# leader's @username, and the leader's final answer to the human mentions no
+# bot, which ends the exchange.
+#
+# Team mode sets these gates on every release (and rejects them in extraEnv):
+#   TELEGRAM_ALLOW_BOTS=mentions         accept another bot only when it
+#   TELEGRAM_BOTS_REQUIRE_MENTION=true   explicitly @mentions this bot, so a
+#                                        quote-reply cannot start a loop
+#   TELEGRAM_REQUIRE_MENTION=true        group messages need a mention at all
+#   TELEGRAM_REPLY_TO_MODE=off           replies carry no reply reference
+# and defaults telegram.exclusive_bot_mentions=true (only the named bots act)
+# and telegram.mention_patterns=[] (no shared wake word). Hermes' own bot loop
+# guard (gateway.bot_loop_guard) stays on as a second line of defence.
+#
+# BotFather, for EVERY bot in the team:
+#   - Create a separate bot. Never reuse one token across releases: Telegram
+#     rejects concurrent polling for the same token.
+#   - Enable Bot-to-Bot Communication, so the bots can see each other.
+#   - Make the bot a group admin, or turn Group Privacy off and re-add it.
+#
+# The cluster default StorageClass must support ReadWriteMany, or override:
+#   --set-string team.sharedVolume.storageClass='<rwx-storage-class>'
+#
+# Placeholders only. See examples/argocd/hermes-team-telegram.yaml for the
+# ApplicationSet with per-bot Secrets.
+
+fullnameOverride: hermes-august
+
+config:
+  model:
+    provider: nvidia
+    default: z-ai/glm-5.2
+  terminal:
+    backend: local
+  display:
+    tool_progress: "off"
+  agent:
+    # Keep skills enabled: team.enabled injects the role-specific roster skill.
+    disabled_toolsets:
+      - browser
+      - clarify
+      - code_execution
+      - cronjob
+      - delegation
+      - messaging
+      - session_search
+      - terminal
+      - todo
+      - web
+
+team:
+  enabled: true
+  platform: telegram
+  name: hermes-team
+  role: leader
+  identity: august
+  leader:
+    name: august
+    username: hermes_august_bot
+  members:
+    - name: may
+      role: Research and evidence gathering
+      username: hermes_may_bot
+      capabilities: [research, source-review]
+    - name: march
+      role: Implementation and verification
+      username: hermes_march_bot
+      capabilities: [implementation, testing]
+  protocol:
+    maxHandoffs: 6
+  skill:
+    enabled: true
+    create: true
+    name: hermes-team-roster
+    configMapName: hermes-team-skill
+    extraInstructions: ""
+  sharedVolume:
+    enabled: true
+    create: true
+    claimName: hermes-team-knowledge
+    mountPath: /opt/data/team-knowledge
+    storageClass: ""
+    accessModes: [ReadWriteMany]
+    size: 10Gi
+    retain: true
+    permissions:
+      enabled: true
+      image: busybox:1.38
+      uid: 10000
+      gid: 10000
+
+env:
+  NVIDIA_API_KEY: "nvapi-DUMMY_replace_me_0000000000000000000000"
+  OPENAI_API_KEY: "unused"
+  TELEGRAM_BOT_TOKEN: "000000000:DUMMY_replace_me_with_the_leader_token"
+
+extraEnv:
+  # Humans allowed to start work (numeric IDs). Other team bots do not need to
+  # be listed: TELEGRAM_ALLOW_BOTS=mentions admits them when they mention us.
+  - name: TELEGRAM_ALLOWED_USERS
+    value: "111111111"
+  # The shared team group; also where cron output goes.
+  - name: TELEGRAM_GROUP_ALLOWED_CHATS
+    value: "-1001234567890"
+  - name: TELEGRAM_HOME_CHANNEL
+    value: "-1001234567890"
+
+persistence:
+  enabled: true
+  storageClass: ""
+  accessModes: [ReadWriteOnce]
+  size: 5Gi
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: "1"
+    memory: 1Gi

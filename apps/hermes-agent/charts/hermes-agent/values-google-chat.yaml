@@ -1,0 +1,76 @@
+# values-google-chat.yaml
+#
+# Hermes Agent as a Google Chat bot, receiving events over a Cloud Pub/Sub
+# PULL subscription. Pub/Sub pull means outbound connections only: no inbound
+# Service, Ingress or public endpoint is needed, so the listeners stay off.
+# Requires hermes-agent >= v2026.9.14, whose published image ships the
+# google-chat dependencies (no first-boot install).
+#
+# Prerequisites (upstream guide, "Google Chat Setup"):
+#   https://hermes-agent.nousresearch.com/docs/user-guide/messaging/google_chat
+# - A Google Workspace Chat app whose connection setting is Cloud Pub/Sub.
+# - A Pub/Sub topic. On the TOPIC, grant `Pub/Sub Publisher` to
+#   chat-api-push@system.gserviceaccount.com, or Chat can never deliver.
+# - A pull subscription. On the SUBSCRIPTION, grant your own service account
+#   `Pub/Sub Subscriber` AND `Pub/Sub Viewer` (Hermes checks the subscription
+#   at startup). Do not grant project-level Pub/Sub roles.
+#
+# The service-account JSON is a FILE, mounted from a Secret you create:
+#
+#   kubectl create secret generic google-chat-sa \
+#     --namespace hermes-agent \
+#     --from-file=sa.json=/path/to/key.json
+#
+#   helm upgrade --install hermes-agent ./charts/hermes-agent \
+#     --namespace hermes-agent --create-namespace \
+#     -f charts/hermes-agent/values-google-chat.yaml \
+#     --set-string env.OPENAI_API_KEY='sk-<real>' --wait
+#
+# Everything below is a placeholder. Never commit real project IDs, emails,
+# space IDs or keys.
+
+config:
+  model:
+    # Any provider works; OpenAI is only the example. `openai` is NOT valid
+    # here (it aliases to OpenRouter), the built-in key is `openai-api`.
+    provider: openai-api
+    default: gpt-4o-mini
+  terminal:
+    backend: local
+
+env:
+  OPENAI_API_KEY: "sk-DUMMY_replace_me_000000000000000000000000"
+
+# Google Chat settings are not secret, so they go in as plain env vars. The
+# only credential is the mounted service-account file.
+extraEnv:
+  - name: GOOGLE_CHAT_PROJECT_ID
+    value: "REPLACE_ME_GCP_PROJECT"
+  - name: GOOGLE_CHAT_SUBSCRIPTION_NAME
+    value: "projects/REPLACE_ME_GCP_PROJECT/subscriptions/hermes-chat-events-sub"
+  # Path inside the container to the JSON mounted below.
+  - name: GOOGLE_CHAT_SERVICE_ACCOUNT_JSON
+    value: /var/run/secrets/google-chat/sa.json
+  # Explicit allowlist of Workspace emails that may talk to the bot. Keep it
+  # narrow: this bot can run commands inside the pod.
+  - name: GOOGLE_CHAT_ALLOWED_USERS
+    value: "you@example.com"
+  # Optional: default destination for cron job output.
+  # - name: GOOGLE_CHAT_HOME_CHANNEL
+  #   value: "spaces/REPLACE_ME"
+
+# The Secret volume's default mode (0644) lets the Hermes runtime user
+# (uid 10000) read the key. If you set a tighter defaultMode such as 0440,
+# also give the pod `podSecurityContext.fsGroup: 10000`.
+extraVolumes:
+  - name: google-chat-sa
+    secret:
+      secretName: google-chat-sa
+extraVolumeMounts:
+  - name: google-chat-sa
+    mountPath: /var/run/secrets/google-chat
+    readOnly: true
+
+# Native file attachments need a separate, per-user OAuth setup
+# (`/setup-files` in chat, upstream guide Step 10). Plain text messaging
+# works without it, and this example does not configure it.

@@ -1,0 +1,26 @@
+hermes-agent:
+  fullnameOverride: hermes-agent
+  config:
+    model:
+      provider: openai-codex
+      default: gpt-5.6-terra
+  auth:
+    deviceFlow:
+      enabled: true
+      provider: openai-codex
+      notify: logs
+  env:
+    OPENAI_API_KEY: unused
+  extraEnvFrom:
+    - secretRef:
+        name: hermes-agent-secrets
+  extraResources:
+    - apiVersion: onepassword.com/v1
+      kind: OnePasswordItem
+      metadata:
+        name: hermes-agent-secrets
+        namespace: "{{ .Release.Namespace }}"
+      spec:
+        itemPath: vaults/z3emsr5qi5xqk33wthv5fpmfqa/items/gy7zr4o7r3ziuibzqktblqnooa
+  networkPolicy:
+    enabled: true

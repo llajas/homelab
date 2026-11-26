@@ -1,0 +1,85 @@
+# values-ingress.yaml
+#
+# Exposes the Hermes management dashboard (service.port, default 9119) via an
+# Ingress.
+#
+# The dashboard is an s6 service inside the image and stays DOWN until
+# `dashboard.enabled` (HERMES_DASHBOARD=1) is set. In-container it binds 0.0.0.0, and on any
+# non-loopback bind upstream's auth gate is mandatory: without an auth
+# provider the dashboard fails closed and never listens, so an Ingress in
+# front of it would answer 502/503. This example uses the bundled
+# username/password provider. The deprecated `--insecure` /
+# HERMES_DASHBOARD_INSECURE escape hatch is a no-op upstream.
+#
+# The dashboard shows API keys to whoever is logged in, and a logged-in user
+# can also create shell hooks and use the Chat tab (shell access to the pod).
+# Upstream says the
+# username/password provider is for a trusted network or a VPN, NOT for public
+# internet exposure. For a public host use values-ingress-oauth.yaml (Nous
+# Portal) or values-ingress-oidc.yaml (your own identity provider) instead; on
+# a private network you can still add a second auth layer at the proxy
+# (oauth2-proxy, an ingress basic-auth annotation, ...) as defence in depth.
+#
+# Dummy values: override at install time. Never commit real credentials.
+#
+#   helm upgrade --install hermes-agent ./charts/hermes-agent \
+#     --namespace hermes-agent --create-namespace \
+#     -f charts/hermes-agent/values-ingress.yaml \
+#     --set-string env.OPENAI_API_KEY='sk-<real>' \
+#     --set-string env.HERMES_DASHBOARD_BASIC_AUTH_PASSWORD='<strong password>' \
+#     --set-string env.HERMES_DASHBOARD_BASIC_AUTH_SECRET="$(openssl rand -base64 32)" \
+#     --wait
+#
+# Or reference an externally managed Secret holding those keys through
+# `extraEnvFrom` instead of `env` (see the README's "Secret provisioning
+# strategies").
+
+config:
+  model:
+    provider: openai-api
+    default: gpt-4o-mini
+  terminal:
+    backend: local
+
+dashboard:
+  enabled: true
+  # External origin the dashboard is reached at. Left empty it is derived from
+  # the first ingress host below (https once ingress.tls is set).
+  # publicUrl: "https://hermes-agent.example.com"
+  # Only listed peers may supply X-Forwarded-Proto / X-Forwarded-For. Put your
+  # ingress controller's pod CIDR (or its exact pod IP) here; Hermes rejects
+  # unbounded entries such as 0.0.0.0/0. Without this, a TLS-terminating
+  # ingress is not trusted and cookies are not marked Secure.
+  trustedProxies:
+    - "10.244.0.0/16"
+  auth:
+    # The template fails when this provider's keys are missing from env.
+    provider: basic
+
+# Secrets rendered into the chart's env Secret.
+env:
+  OPENAI_API_KEY: "sk-DUMMY_replace_me_000000000000000000000000"
+  HERMES_DASHBOARD_BASIC_AUTH_USERNAME: "admin"
+  HERMES_DASHBOARD_BASIC_AUTH_PASSWORD: "DUMMY_replace_me"
+  # 32+ random bytes signing the provider's session tokens; set it so logins
+  # survive pod restarts (blank = a fresh random key per process).
+  HERMES_DASHBOARD_BASIC_AUTH_SECRET: "DUMMY_replace_me_with_openssl_rand_base64_32"
+
+service:
+  enabled: true
+  type: ClusterIP
+  port: 9119
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations: {}
+  hosts:
+    - host: hermes-agent.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  #  - secretName: hermes-agent-tls
+  #    hosts:
+  #      - hermes-agent.example.com

@@ -1,0 +1,117 @@
+# values-shared-knowledge.yaml
+#
+# Example: multiple Hermes agents with private HERMES_HOME PVCs plus a separate
+# common knowledge base on one ReadWriteMany (RWX) PVC.
+#
+# Use case: A team of Hermes agents (planner, builder, researcher, etc.) that all
+# read from and write to the same durable knowledge repository: curated notes,
+# reference documents, or vector indices. Every agent mounts the SAME knowledge
+# PVC at /opt/data/shared-knowledge while retaining its own config, memory,
+# sessions, and identity on a private HERMES_HOME PVC.
+#
+# REQUIREMENT: The PVC must:
+#   - Use a StorageClass that supports ReadWriteMany (RWX) access mode
+#     (e.g., NFS, CephFS, Longhorn, Azure Files, GCE Persistent Disk with
+#     appropriate access modes). Most cloud providers' default StorageClass
+#     is ReadWriteOnce (RWO) and will NOT work for multiple writers.
+#   - Have accessModes: [ReadWriteMany]
+#   - Be created BEFORE deploying the agents (this chart only references it)
+#   - Be readable and writable by the Hermes uid/gid 10000
+#
+# Example PVC manifest (create this once, then reference it below):
+#
+#   apiVersion: v1
+#   kind: PersistentVolumeClaim
+#   metadata:
+#     name: hermes-shared-knowledge
+#     namespace: hermes-team
+#   spec:
+#     accessModes:
+#       - ReadWriteMany
+#     storageClassName: nfs-client  # or your RWX-capable StorageClass
+#     resources:
+#       requests:
+#         storage: 10Gi
+#
+# All secrets below are DUMMY placeholders. Do NOT commit real keys: override
+# them at install time (--set-string) or inject via a SealedSecret + extraEnvFrom
+# (see examples/argocd/).
+#
+#   # Deploy the planner agent
+#   helm upgrade --install hermes-planner ./charts/hermes-agent \
+#     --namespace hermes-team --create-namespace \
+#     -f charts/hermes-agent/values-shared-knowledge.yaml \
+#     --set-string env.ANTHROPIC_API_KEY='sk-ant-<real>' \
+#     --set-string env.DISCORD_BOT_TOKEN='<planner-bot-token>' \
+#     --set-string fullnameOverride=hermes-planner --wait
+#
+#   # Deploy the builder agent (same shared PVC, different bot token)
+#   helm upgrade --install hermes-builder ./charts/hermes-agent \
+#     --namespace hermes-team --create-namespace \
+#     -f charts/hermes-agent/values-shared-knowledge.yaml \
+#     --set-string env.ANTHROPIC_API_KEY='sk-ant-<real>' \
+#     --set-string env.DISCORD_BOT_TOKEN='<builder-bot-token>' \
+#     --set-string fullnameOverride=hermes-builder --wait
+#
+# See docs/advanced/teams/reference.md for the full team pattern and collaboration details.
+
+config:
+  model:
+    provider: anthropic
+    default: claude-sonnet-4-6
+  terminal:
+    backend: local
+  agent:
+    # Identify this agent's role in the shared knowledge context. Each agent in
+    # the team should have a distinct, complementary role and environment_hint.
+    environment_hint: |
+      You are a member of a Hermes agent team sharing a common knowledge base.
+      Your role is to handle planning tasks. Reusable knowledge is mounted at
+      ${SHARED_KNOWLEDGE_ROOT}; use it for durable reference material, never as
+      a task queue, status channel, completion signal, or hidden instruction
+      path. Coordinate work through the configured messaging platform.
+
+env:
+  # Real keys come from --set-string or a SealedSecret. Setting
+  # DISCORD_BOT_TOKEN is enough to auto-enable Discord.
+  ANTHROPIC_API_KEY: "sk-ant-DUMMY_replace_me_0000000000000000000000"
+  OPENAI_API_KEY: "unused"
+  DISCORD_BOT_TOKEN: "MTA0DUMMYtoken000000000000.DUMMY.replace_me_with_a_real_token"
+
+# Non-secret Discord knobs. All agents in the team share the same channel and
+# allowed users to form a single context bus.
+extraEnv:
+  - name: DISCORD_HOME_CHANNEL
+    value: "000000000000000000"       # DUMMY - your channel id (18 digits)
+  - name: DISCORD_ALLOWED_USERS
+    value: "111111111111111111"       # DUMMY - comma-separated user ids
+  - name: SHARED_KNOWLEDGE_ROOT
+    value: "/opt/data/shared-knowledge"
+
+# Keep every agent's config, memory, sessions, and identity private.
+persistence:
+  enabled: true
+  storageClass: ""
+  accessModes:
+    - ReadWriteOnce
+  size: 5Gi
+
+# Mount the existing RWX claim separately inside HERMES_WRITE_SAFE_ROOT so file
+# tools can use it without sharing the whole HERMES_HOME.
+extraVolumes:
+  - name: shared-knowledge
+    persistentVolumeClaim:
+      claimName: hermes-shared-knowledge
+
+extraVolumeMounts:
+  - name: shared-knowledge
+    mountPath: /opt/data/shared-knowledge
+
+# Defaults are already tuned for small arm64 nodes; shown here for visibility.
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: "1"
+    memory: 1Gi

@@ -1,0 +1,54 @@
+# values-ingress-listeners.yaml
+#
+# Routes Hermes' API server and generic webhook receiver through different
+# Ingress hosts and Service ports. Create hermes-agent-listener-secrets with
+# OPENAI_API_KEY, API_SERVER_KEY, and WEBHOOK_SECRET before installing. Do not
+# commit real credentials.
+#
+#   helm upgrade --install hermes-agent ./charts/hermes-agent \
+#     --namespace hermes-agent --create-namespace \
+#     -f charts/hermes-agent/values-ingress-listeners.yaml --wait
+
+config:
+  model:
+    provider: openai-api
+    default: gpt-4o-mini
+  terminal:
+    backend: local
+
+extraEnvFrom:
+  - secretRef:
+      name: hermes-agent-listener-secrets
+
+apiServer:
+  enabled: true
+  host: 0.0.0.0
+  port: 8642
+  corsOrigins: "https://chat.example.com"
+
+webhook:
+  enabled: true
+  port: 8644
+
+service:
+  enabled: true
+  ports:
+    - name: api-server
+      port: 8642
+    - name: webhook
+      port: 8644
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+    - host: api.example.com
+      paths:
+        - path: /v1
+          pathType: Prefix
+          port: 8642
+    - host: webhooks.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+          port: 8644

@@ -1,0 +1,835 @@
+# Default values for hermes-agent.
+# StatefulSet + ConfigMap (config.yaml) + Secret (.env) + Helm test.
+
+# -- Override the chart name used in resource names.
+nameOverride: ""
+# -- Fully override the generated resource name (release-name-chart).
+fullnameOverride: ""
+
+image:
+  # -- Container image repository (multi-arch: amd64 + arm64).
+  repository: nousresearch/hermes-agent
+  # -- Image tag. Upstream uses semver tags (e.g. "v0.22.2") since
+  # October 2026; older images use date-based tags (e.g. "v2026.9.24").
+  # Empty defaults to `.Chart.AppVersion`.
+  tag: ""
+  # -- Image pull policy.
+  pullPolicy: IfNotPresent
+
+# -- Image pull secrets for private registries.
+imagePullSecrets: []
+
+# -- Container command override. Empty keeps the Hermes image entrypoint, which
+#    starts the s6-supervised outbound messaging gateway and prepares volume
+#    ownership before dropping privileges. Set only for explicit debugging.
+command: []
+# -- Arguments passed through the image entrypoint. `gateway run` selects the
+#    non-interactive outbound messaging service instead of the default TUI.
+args: ["gateway", "run"]
+
+# ---------------------------------------------------------------------------
+# Workload controller.
+# "deployment" (default): no headless Service; when persistence is enabled, a
+#   single standalone PVC (named <fullname>) is created and the rollout
+#   strategy is forced to Recreate (so the new Pod doesn't race the old one
+#   for the ReadWriteOnce volume). More resource-flexible (no StatefulSet
+#   ordering/identity overhead): the right choice for a single replica.
+# "statefulset": stable identity, a dedicated PVC via volumeClaimTemplates
+#   (data-<fullname>-0), and a headless Service for governance/DNS. Pick this
+#   if you need StatefulSet semantics (ordered rollout, stable network
+#   identity).
+# Both render the same Pod spec (resources, env, probes, ...).
+# ---------------------------------------------------------------------------
+controller:
+  # -- Workload kind: "deployment" or "statefulset".
+  type: deployment
+
+# -- Set to 0 to prepare GitOps resources (Secret, ConfigMap, PVC, ...)
+#    without starting an agent Pod, then scale to 1 after credentials and
+#    optional device login are ready. The gateway and device-login init
+#    container do not run while paused. Hermes Agent is a single-writer
+#    workload bound to one HERMES_HOME (ReadWriteOnce PVC), so values above 1
+#    are unsupported: Deployment replicas contend for the same volume and
+#    StatefulSet replicas are disconnected agent identities.
+replicaCount: 1
+
+serviceAccount:
+  # -- Create a ServiceAccount for the pod.
+  create: true
+  # -- Name to use; generated from fullname when empty.
+  name: ""
+  # -- Annotations to add to the ServiceAccount.
+  annotations: {}
+  # -- Mount the ServiceAccount token into the Pod. The agent does not call
+  #    the Kubernetes API, so this chart turns it off. Behaviour change on
+  #    upgrade: without this field, Kubernetes applies its own default of
+  #    true. Set to true if something inside the Pod deliberately calls the
+  #    API (e.g. kubectl-style tooling in an extraContainer).
+  automountServiceAccountToken: false
+
+# ---------------------------------------------------------------------------
+# config.yaml -> Hermes reads $HERMES_HOME/config.yaml as a PARTIAL OVERRIDE on
+# top of its version-specific built-in defaults (precedence: CLI > config.yaml >
+# .env > built-in defaults). Only set the keys you want to change here; never
+# reproduce the full upstream config (it drifts across versions and Hermes fills
+# the rest in). This map is rendered into a ConfigMap and seeded into HERMES_HOME
+# by an init container (see `bootstrap`). Keys below use the real v2026.6.5 schema.
+#
+# Hermes supports many providers (openai, anthropic, google, openrouter, and any
+# OpenAI-compatible endpoint). Defaults use the provider's public endpoint;
+# override to point anywhere (see values-litellm.yaml / values-litellm-k8s.yaml).
+# ---------------------------------------------------------------------------
+config:
+  model:
+    # Model id for the chosen provider (no vendor prefix for built-ins).
+    default: gpt-4o-mini
+    # Hermes provider key. Use a BUILT-IN key: common ones:
+    #   openai-api (api.openai.com) | anthropic | gemini | openrouter |
+    #   nvidia | deepseek | lmstudio | ...
+    # NOTE: `openai` is NOT valid (it aliases to openrouter).
+    # For an OpenAI-compatible proxy (LiteLLM / vLLM / LM Studio / ...), register
+    # a custom provider under `config.providers` below and set this to that key
+    # (see values-litellm.yaml / values-litellm-k8s.yaml).
+    provider: openai-api
+  # Custom OpenAI-compatible providers, keyed by provider id. Empty by default.
+  #   providers:
+  #     litellm:
+  #       base_url: http://litellm.my-ns.svc.cluster.local:4000/v1
+  #       key_env: OPENAI_API_KEY   # env var holding the key
+  #       discover_models: true     # populate model picker from /v1/models
+  providers: {}
+  terminal:
+    # Run the agent's shell/code execution INSIDE this pod. The pod itself
+    # (namespace, securityContext, resource limits, PVC) is the sandbox.
+    # The `docker` backend is intentionally NOT supported in-cluster: it needs
+    # a Docker daemon/socket, which is a security risk and absent on containerd
+    # clusters (e.g. MicroK8s / Raspberry Pi). Keep this `local`.
+    backend: local
+  agent:
+    # Upstream leaves `max_turns` unlimited: a hard turn cap caused silent
+    # mid-task truncation, so it now relies on the HERMES_MAX_ITERATIONS
+    # budget (500, with a wrap-up grace call) plus `gateway_timeout` below.
+    # Earlier chart versions seeded `max_turns: 90`, which was just a mirror
+    # of the then-upstream default, not a chart decision. Set it here only as
+    # a deliberate per-deployment cost guard.
+    # max_turns: 90
+    gateway_timeout: 1800
+
+# -- Contents of SOUL.md, seeded into HERMES_HOME alongside config.yaml. It
+#    defines the agent's persistent identity. Empty means the chart seeds
+#    nothing, so Hermes writes its own starter file on first run.
+soul:
+  text: ""
+
+# Post a one-line message when the gateway has started, so you know when to
+# talk to the agent. A first boot can take minutes (skill sync, model warm-up),
+# and Hermes itself only announces a *restart*, not a fresh start. The chart
+# seeds a `gateway:startup` hook into HERMES_HOME/hooks/ready-notify that reuses
+# the bot credentials already in `env`/`extraEnvFrom`.
+readyNotify:
+  # -- Seed the hook and enable it. Off by default.
+  enabled: false
+  # -- Where to post: `discord` (DISCORD_BOT_TOKEN + DISCORD_HOME_CHANNEL) or
+  #    `telegram` (TELEGRAM_BOT_TOKEN + TELEGRAM_HOME_CHANNEL). Required when
+  #    enabled, unless `auth.deviceFlow.enabled` is true: then empty follows
+  #    `auth.deviceFlow.notify`.
+  notify: ""
+
+# Seeding of config.yaml into HERMES_HOME (the persistent volume). Hermes writes
+# to its home at runtime (skills, auth.json, self-improvement), so config lives
+# in the writable volume rather than a read-only mount.
+bootstrap:
+  # -- Seed chart-managed files into HERMES_HOME via an init container.
+  enabled: true
+  # -- false: seed config.yaml and configured SOUL.md only if absent, preserving
+  #    runtime edits across upgrades. Set true to replace both files with chart
+  #    content on every deploy.
+  overwrite: false
+
+# ---------------------------------------------------------------------------
+# Team mode -> one chart release still runs one independent Hermes identity,
+# while several releases share one chat (a Discord thread, or a Telegram group
+# or forum topic) and one RWX knowledge volume. The chart mounts one shared,
+# read-only roster skill and appends a small role-specific environment hint so
+# the agent knows when to load it. Cross-agent task handoffs stay visible in
+# the chat; the shared volume stores only durable, accepted knowledge.
+# ---------------------------------------------------------------------------
+team:
+  # -- Enable the chart-native leader/member team protocol, roster skill, and
+  # shared knowledge volume mount for this release.
+  enabled: false
+  # -- Chat platform the team coordinates on: `discord` or `telegram`. It picks
+  # the mention format and the gates team mode enforces (see the chart README,
+  # "Agent team"). Every release in one team must use the same platform.
+  platform: discord
+  # -- Stable team identifier used in the generated skill and default names.
+  name: ""
+  # -- This release's team role.
+  role: member
+  # -- This release's identity. For a leader it must equal `leader.name`; for a
+  # member it must match one entry under `members`.
+  identity: ""
+  leader:
+    # -- Leader identity shared by every release in the team.
+    name: ""
+    # -- Environment variable containing the leader's Discord user ID. Supply
+    # it through a Secret/SealedSecret; the ID is expanded by Hermes at runtime.
+    mentionEnv: ""
+    # -- Telegram only: the leader bot's @username, without the `@`.
+    username: ""
+  # -- Configured members. ApplicationSet users define this once in the common
+  # template so every generated release receives the same complete roster.
+  members: []
+  #  - name: researcher
+  #    role: Research and evidence gathering
+  #    mentionEnv: TEAM_RESEARCHER_DISCORD_ID
+  #    capabilities: [research, source-review]
+  #  Telegram teams give each member `username: <bot_username>` instead of
+  #  `mentionEnv`.
+  protocol:
+    # -- Maximum serial leader-to-member handoffs before escalating to a human.
+    maxHandoffs: 6
+  skill:
+    # -- Mount the shared team roster and protocol as a read-only skill.
+    enabled: true
+    # -- Create the shared skill ConfigMap from this release. Set true on
+    # exactly one leader release; every member references the same ConfigMap.
+    create: false
+    # -- Skill name. Empty defaults to `<team.name>-roster`.
+    name: ""
+    # -- Shared ConfigMap name. Empty defaults to `<team.name>-skill`.
+    configMapName: ""
+    # -- Optional deployment-specific policy appended to the generated skill.
+    # Used only by the release with `skill.create=true`.
+    extraInstructions: ""
+  sharedVolume:
+    # -- Mount a required RWX knowledge volume when team mode is enabled.
+    enabled: true
+    # -- Create the shared PVC from this release. Set true on exactly one leader
+    # release; all members set false and reference the same `claimName`.
+    create: false
+    # -- Shared PVC name. Empty defaults to `<team.name>-knowledge`.
+    claimName: ""
+    # -- Mount path for durable accepted team knowledge.
+    mountPath: /opt/data/team-knowledge
+    # -- StorageClass used only when `create=true`; empty uses cluster default.
+    storageClass: ""
+    # -- RWX access modes used only when `create=true`.
+    accessModes: [ReadWriteMany]
+    # -- Requested shared storage size used only when `create=true`.
+    size: 10Gi
+    # -- Keep a chart-created shared claim when the owning release is removed.
+    retain: true
+    # -- Annotations to add to the shared PVC, used only when `create=true`. With
+    #    `retain: true` the `helm.sh/resource-policy: keep` annotation is always set.
+    annotations: {}
+    permissions:
+      # -- On the leader, chown the shared volume before Hermes starts. Enable
+      # only when the storage backend permits ownership changes. This init
+      # container needs root (see securityContext below), so it is
+      # incompatible with Pod Security Standards `restricted` - set false and
+      # rely on `podSecurityContext.fsGroup` instead when the storage backend
+      # honours it. See values-hardened.yaml.
+      enabled: false
+      # -- Init image used for shared-volume ownership preparation.
+      image: busybox:1.38
+      # -- Runtime owner for the shared knowledge directory.
+      uid: 10000
+      gid: 10000
+      # -- securityContext for the chown init container. Defaults to root -
+      # `chown` across arbitrary storage backends needs it. Not overridable
+      # to non-root; disable `permissions.enabled` instead under `restricted`.
+      # Setting this to `{}` does NOT restore an image-default user the way
+      # `auth.deviceFlow.securityContext: {}` does - it renders an explicit
+      # empty securityContext, which inherits podSecurityContext's fields
+      # (e.g. a hardened profile's non-root runAsUser), silently breaking the
+      # chown this container exists to perform. Disable `permissions.enabled`
+      # instead of clearing this value.
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+
+# ---------------------------------------------------------------------------
+# .env / secrets -> Hermes reads API keys from the environment, which take
+# precedence over config.yaml. Keys are rendered into a Secret and injected via
+# envFrom (not written as a .env file). Override at deploy time, e.g.
+#   --set-string env.OPENAI_API_KEY=sk-...
+# Provider key names: OPENAI_API_KEY, ANTHROPIC_API_KEY, GOOGLE_API_KEY,
+# NVIDIA_API_KEY, OPENROUTER_API_KEY, LM_API_KEY (LM Studio), ...
+# ---------------------------------------------------------------------------
+env:
+  OPENAI_API_KEY: "sk-REPLACE_ME"
+
+# -- Plain (non-secret) env vars injected directly on the container.
+extraEnv: []
+#  - name: HERMES_ACCEPT_HOOKS
+#    value: "1"
+
+# -- Extra envFrom sources (reference existing ConfigMaps/Secrets).
+extraEnvFrom: []
+#  - secretRef:
+#      name: some-existing-secret
+
+# -- Extra volumes on the pod, for anything the agent needs as a FILE rather
+#    than an env var: e.g. a Secret holding a service-account JSON
+#    (see values-google-vertex.yaml).
+extraVolumes: []
+#  - name: vertex-sa
+#    secret:
+#      secretName: vertex-sa
+
+# -- Extra volume mounts on the hermes-agent container (pairs with extraVolumes).
+extraVolumeMounts: []
+#  - name: vertex-sa
+#    mountPath: /var/run/secrets/vertex
+#    readOnly: true
+
+# -- Extra init containers, appended after the chart's own (seed-config,
+#    device-flow login). Full container spec; combine with `extraVolumes` for
+#    one-time preparation of a user-provided volume (for example, a shared
+#    knowledge volume used independently of the Discord team handoff).
+extraInitContainers: []
+#  - name: init-workspace
+#    image: busybox:1.38
+#    command: ["sh", "-c", "chown 10000:10000 /work"]
+#    volumeMounts:
+#      - name: team-workspace
+#        mountPath: /work
+
+# -- Extra sidecar containers appended to the Pod's main `containers:` list.
+#    Distinct from `extraInitContainers` (init phase only). Full container
+#    spec; giving a sidecar its own resources and a PSS-compatible
+#    securityContext is the operator's responsibility.
+extraContainers: []
+#  - name: log-forwarder
+#    image: busybox:1.38
+#    # Replace this command and mount with the log source your deployment uses.
+#    command: ["sh", "-c", "tail -F /data/application.log"]
+#    resources:
+#      requests: { cpu: 10m, memory: 16Mi }
+#      limits: { cpu: 50m, memory: 32Mi }
+#    securityContext:
+#      runAsNonRoot: true
+#      runAsUser: 65534
+#      allowPrivilegeEscalation: false
+#      readOnlyRootFilesystem: true
+#      capabilities: { drop: ["ALL"] }
+#      seccompProfile: { type: RuntimeDefault }
+#    volumeMounts:
+#      - name: data
+#        mountPath: /data
+#        readOnly: true
+
+# -- Extra raw manifests rendered as-is alongside this chart's resources.
+#    Each entry is `tpl`-rendered, so `{{ .Release.Namespace }}` etc. work, and
+#    may be either an object or a multiline string (see examples/argocd/).
+#    Useful for things this chart doesn't model directly, e.g. a SealedSecret
+#    that a sealed-secrets controller decrypts into a Secret referenced via
+#    `extraEnvFrom` (see examples/argocd/).
+extraResources: []
+
+# ---------------------------------------------------------------------------
+# externalSecret -> replace the chart's own env Secret (above) with an
+# ExternalSecret for External Secrets Operator (ESO) users. This is a sole
+# replacement, not an addition: enabling it stops `secret.yaml` from
+# rendering entirely, and `env` above is then ignored - wire secret values
+# solely through `data`/`dataFrom` below. Every chart-owned envFrom reference
+# (main container, auth device-login init container, helm test Job) follows
+# automatically, no `extraEnvFrom` needed.
+#
+# ESO does not guarantee restarting the Pod when the external provider
+# rotates the secret's contents later - that's a reloader controller's job,
+# and this chart doesn't bundle one. Pair this with a tool like Reloader or
+# Stakater if that's required.
+# ---------------------------------------------------------------------------
+externalSecret:
+  # -- Render an ExternalSecret instead of the chart's own env Secret.
+  #    Requires the External Secrets Operator CRDs to already be installed
+  #    in-cluster.
+  enabled: false
+  # -- Annotations to add to the ExternalSecret, for example an Argo CD sync wave
+  #    so the Secret exists before the workload starts.
+  annotations: {}
+  # -- How often ESO resyncs the target Secret from the provider.
+  refreshInterval: 1h
+  # -- Which SecretStore/ClusterSecretStore to pull from. `name` is required
+  #    when enabled.
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: ""
+  target:
+    # -- Target Secret name. Empty defaults to the chart's own env Secret
+    #    name (`<fullname>-env`); when set, every chart-owned envFrom
+    #    reference uses this name instead.
+    name: ""
+    creationPolicy: Owner
+    deletionPolicy: Retain
+  # -- Individual remoteRef -> key mappings. See the External Secrets
+  #    Operator docs for the full field set.
+  data: []
+  #  - secretKey: OPENAI_API_KEY
+  #    remoteRef:
+  #      key: hermes-agent/openai
+  #      property: api-key
+  # -- Bulk provider-native secret imports. See the External Secrets
+  #    Operator docs for the full field set.
+  dataFrom: []
+
+# ---------------------------------------------------------------------------
+# auth -> Interactive credential bootstrap.
+#
+# By default the agent authenticates with the static provider key from `env`
+# (rendered into the `-env` Secret). `auth.deviceFlow` is an alternative for
+# providers that support interactive device login. At pod startup it surfaces
+# a verification URL + user code to a human (e.g. via the agent's Discord bot),
+# waits for approval, and persists credentials where Hermes natively reads
+# them. Credentials survive restarts on the persistent volume.
+#
+# Supported profiles are **github-copilot** (Hermes provider id `copilot`) and
+# **openai-codex** (ChatGPT/Codex account login, distinct from `openai-api`).
+# ---------------------------------------------------------------------------
+auth:
+  deviceFlow:
+    # -- Bootstrap a provider credential via the OAuth device flow at startup.
+    #    When false, the agent uses the static key from `env`/`extraEnvFrom`.
+    enabled: false
+    # -- Which provider profile to authenticate. Must be a key under
+    #    `providers` below. Only one device-flow login runs at a time.
+    provider: github-copilot
+    # -- Where to deliver the verification URL + user code for human approval.
+    #    `discord` reuses the agent's bot creds (DISCORD_BOT_TOKEN +
+    #    DISCORD_HOME_CHANNEL from `env`/`extraEnvFrom`); `telegram` reuses
+    #    TELEGRAM_BOT_TOKEN + TELEGRAM_HOME_CHANNEL the same way. The code is
+    #    always also printed to the init container logs as a fallback.
+    notify: discord
+    # -- Seconds to wait for the human to authorize before the init container
+    #    fails (and retries). Keep below the provider's device-code validity.
+    timeoutSeconds: 870
+    # -- Force a fresh login even if a token already exists on the volume.
+    forceRelogin: false
+    # -- uid/gid that should own the written token file. By default this init
+    #    container inherits the login image's own user (root for the Python
+    #    image below) so it can write to any storage class reliably, then
+    #    chowns the token to this owner. Set it to the Hermes runtime uid; the
+    #    upstream image's s6-overlay runs the agent as uid/gid 10000: so the
+    #    non-root agent can read the credential.
+    tokenOwner:
+      uid: 10000
+      gid: 10000
+    # -- securityContext for the device-login init container. Empty by
+    #    default - inherits the image's own user (root for the Python image,
+    #    the pinned Hermes image otherwise). Overriding to a non-root uid only
+    #    works if that uid can already write the token's destination path;
+    #    see values-hardened.yaml for a verified non-root override (uid/gid
+    #    matching tokenOwner, so the chown above becomes a same-uid no-op).
+    securityContext: {}
+    # -- Login image for GitHub-style profiles. OpenAI Codex uses the pinned
+    #    Hermes image so auth.json persistence and refresh stay version-aligned.
+    image:
+      repository: python
+      tag: "3.14-slim"
+    # -- Resources for the login init container.
+    resources: {}
+    # Catalog of interactive-login profiles. `flow` selects the handler;
+    # profiles without it retain the legacy GitHub handler for compatibility.
+    providers:
+      github-copilot:
+        # -- Login protocol handler.
+        flow: github
+        # -- OAuth client id for the device grant. The shared opencode/Copilot-CLI
+        #    client used by the upstream GitHub Copilot provider.
+        clientId: "Ov23li8tweQw6odWQebz"
+        # -- OAuth scope requested in the device grant.
+        scope: "read:user"
+        # -- Host serving the device-code + token endpoints (GitHub-style paths).
+        authHost: github.com
+        # -- .env key Hermes reads this provider's token from (resolution order
+        #    COPILOT_GITHUB_TOKEN > GH_TOKEN > GITHUB_TOKEN).
+        tokenEnv: COPILOT_GITHUB_TOKEN
+        # -- Optional endpoint to verify an existing token is still live; on
+        #    401/403 the init container re-runs the login. Empty = skip the check.
+        #    `/user` answers 401 for a revoked token and does not depend on the
+        #    Copilot plan. The old `copilot_internal/v2/token` exchange endpoint
+        #    returned 403 for a valid token on a Copilot Free account, which made
+        #    every restart ask for a new login.
+        validateUrl: https://api.github.com/user
+      openai-codex:
+        # -- Use the OpenAI Codex device-code flow bundled with the pinned
+        #    Hermes version and persist refreshable credentials in auth.json.
+        flow: openai-codex
+        # -- OpenAI account issuer. Override only for a compatible test server.
+        issuer: https://auth.openai.com
+
+# ---------------------------------------------------------------------------
+# Persistence: HERMES_HOME state lives here.
+#
+# HERMES_HOME holds SQLite databases (state.db and others) in WAL mode by
+# default. A PVC's access mode (RWO/RWX) says nothing about whether the
+# filesystem underneath supports the file locking and shared memory WAL needs:
+# prefer block-backed storage (ext4/xfs), and check what is actually mounted
+# at mountPath. Hermes detects virtiofs and 9p and falls back to `delete`
+# journaling for a fresh database there; it does not detect NFS/CIFS. On a
+# network filesystem set `config.database.journal_mode: delete` BEFORE the
+# first start. An existing WAL database is never switched live: stop the
+# workload first (see the storage guide). Keep one private HERMES_HOME per
+# agent; share knowledge through `team.sharedVolume`, never HERMES_HOME.
+# ---------------------------------------------------------------------------
+persistence:
+  enabled: true
+  # -- StorageClass for the volumeClaimTemplate. Empty = cluster default.
+  storageClass: ""
+  accessModes:
+    - ReadWriteOnce
+  size: 5Gi
+  mountPath: /opt/data
+  # -- Use an existing PVC instead of creating a new one.
+  # When specified, the chart will use this PVC and skip creating its own.
+  existingClaim: ""
+  # -- Annotations to add to the PVC, or to the StatefulSet's volumeClaimTemplate
+  #    (for example backup tool hints or `helm.sh/resource-policy: keep`). They are
+  #    not applied to `existingClaim`. Kubernetes does not allow changing a
+  #    StatefulSet's volumeClaimTemplates, so set them at install time.
+  annotations: {}
+
+# ---------------------------------------------------------------------------
+# Networking. `hermes gateway run` uses outbound messenger connections by
+# default, so no access Service is created by default. A
+# headless Service is always created for StatefulSet DNS/governance.
+#
+# The management `dashboard`, optional OpenAI-compatible API server, and
+# optional webhook receiver are inbound HTTP listeners. Enabling a listener
+# does not expose it through Kubernetes: choose its Service ports explicitly
+# below.
+#
+# The dashboard is an s6 service inside the image, off by default: set
+# `dashboard.enabled: true` to start it (see the `dashboard` block below).
+# Prefer that over putting `HERMES_DASHBOARD=1` in `extraEnv`/`env`: the image
+# honors the bare variable, but the chart cannot see it, so none of the
+# dashboard wiring applies (no readiness probe, so an Ingress answers 502 during
+# the first start; no derived `public_url`/`trusted_proxies`; no auth check; no
+# trusted-proxy warning). If you must keep the variable, add your own
+# `probes.readiness`, for example a `tcpSocket` probe on `service.port`.
+# In-container it binds
+# `0.0.0.0:9119` (`HERMES_DASHBOARD_HOST` / `_PORT`), and on any non-loopback
+# bind upstream's auth gate is mandatory: provide the bundled password
+# provider (`HERMES_DASHBOARD_BASIC_AUTH_USERNAME` + `_PASSWORD`, secrets, so
+# put them in `env`), OAuth (`HERMES_DASHBOARD_OAUTH_CLIENT_ID`) or OIDC, or
+# the service fails closed and stays down. `HERMES_DASHBOARD_INSECURE` and the
+# `--insecure` flag are deprecated no-ops upstream and do not disable the
+# gate. Behind a TLS-terminating Ingress also set `config.dashboard.public_url`
+# and `config.dashboard.trusted_proxies`; see values-ingress.yaml.
+# ---------------------------------------------------------------------------
+dashboard:
+  # -- Start the supervised management dashboard (renders `HERMES_DASHBOARD=1`).
+  #    Exposing it also needs `service.enabled` plus an `ingress` or `httpRoute`.
+  #    `public_url` and `trusted_proxies` are written into `config.yaml` when the
+  #    volume is first seeded, so changing the host or `dashboard.*` later needs
+  #    `--set bootstrap.overwrite=true` for that upgrade (see the README, "Expose the
+  #    dashboard").
+  enabled: false
+  # -- External origin the dashboard is reached at, for example
+  #    `https://hermes.example.com`. Feeds `config.dashboard.public_url`. When
+  #    empty and `ingress.enabled`, it is derived from the first Ingress host
+  #    (`https` when `ingress.tls` is set). Set it explicitly for an HTTPRoute.
+  #    A value already set under `config.dashboard` wins.
+  publicUrl: ""
+  # -- Peers allowed to supply X-Forwarded-Proto / X-Forwarded-For, usually the
+  #    ingress controller's pod CIDR. Feeds `config.dashboard.trusted_proxies`;
+  #    upstream rejects unbounded entries such as 0.0.0.0/0.
+  trustedProxies: []
+  readinessProbe:
+    # -- Render a TCP readiness probe on `service.port` while the dashboard is
+    #    enabled, so the pod only joins the Service once the dashboard
+    #    listens. The first start can take minutes (bundled skills sync onto
+    #    the volume), during which an Ingress would otherwise answer 502. An
+    #    explicit `probes.readiness` wins. Readiness never restarts the pod.
+    enabled: true
+    # -- Seconds between readiness checks.
+    periodSeconds: 10
+  auth:
+    # -- Upstream auth provider the credentials below are for. The template
+    #    fails when the provider's required keys are missing from `env` or
+    #    `extraEnv`: `basic` (HERMES_DASHBOARD_BASIC_AUTH_USERNAME + _PASSWORD
+    #    or _PASSWORD_HASH), `oauth` (HERMES_DASHBOARD_OAUTH_CLIENT_ID) or
+    #    `oidc` (HERMES_DASHBOARD_OIDC_ISSUER + _CLIENT_ID). Use `external`
+    #    when credentials arrive through `extraEnvFrom` or an ExternalSecret,
+    #    which the chart cannot inspect.
+    provider: basic
+
+apiServer:
+  # -- Enable Hermes' OpenAI-compatible HTTP API server.
+  enabled: false
+  # -- Bind address. Upstream defaults to 127.0.0.1; a Kubernetes Service needs
+  #    a non-loopback address. API_SERVER_KEY is still required on loopback.
+  host: 0.0.0.0
+  # -- API server port.
+  port: 8642
+  # -- Comma-separated browser origins allowed to call the API directly. Empty
+  #    disables browser CORS access.
+  corsOrigins: ""
+
+webhook:
+  # -- Enable Hermes' generic inbound webhook receiver. Native messenger
+  #    webhook modes (such as Telegram) are separate listeners configured via env/config.
+  enabled: false
+  # -- Webhook receiver port.
+  port: 8644
+
+service:
+  # -- Create a ClusterIP Service for explicitly selected listeners.
+  enabled: false
+  # -- Service type.
+  type: ClusterIP
+  # -- Legacy dashboard Service port. Used only while `service.ports` is empty,
+  #    preserving the existing dashboard-only Service behaviour.
+  port: 9119
+  # -- Explicit Service ports. A non-empty list replaces the legacy dashboard
+  #    port entirely. Enabling apiServer or webhook does not add a Service port
+  #    automatically.
+  ports: []
+  #  - name: dashboard
+  #    port: 9119
+  #    targetPort: 9119
+  #  - name: api-server
+  #    port: 8642
+  #  - name: webhook
+  #    port: 8644
+  # -- Annotations to add to the Service.
+  annotations: {}
+
+# Ingress and Gateway API HTTPRoute are opt-in, cluster-specific HTTP routing
+# resources. Pick the one supported by your cluster. Any backend that omits a
+# Service name targets this chart's Service and therefore requires
+# `service.enabled: true`. Routing the management dashboard also requires
+# the dashboard to be enabled with an auth provider (see the listener comment
+# above and values-ingress.yaml).
+ingress:
+  # -- Create an Ingress resource.
+  enabled: false
+  # -- IngressClass name (e.g. "nginx", "traefik"). Empty uses the cluster default.
+  className: ""
+  # -- Annotations to add to the Ingress (e.g. auth, cert-manager, rewrite rules).
+  annotations: {}
+  # -- Host/path rules. Each path defaults to this chart's Service and the
+  #    legacy dashboard port; override `service` and `port` per listener.
+  hosts:
+    - host: hermes-agent.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+          # -- Optional backend Service name. Empty targets this chart's Service.
+          # service: ""
+          # -- Optional backend Service port. Omit to use `service.port`.
+          # port: 9119
+  # -- TLS configuration for the Ingress.
+  tls: []
+  #  - secretName: hermes-agent-tls
+  #    hosts:
+  #      - hermes-agent.example.com
+
+httpRoute:
+  # -- Create a Gateway API HTTPRoute. The cluster must already provide the
+  #    Gateway API CRD and a Gateway selected by `parentRefs`.
+  enabled: false
+  # -- Annotations to add to the HTTPRoute (e.g. external-dns, cert-manager,
+  #    or Gateway implementation-specific policies).
+  annotations: {}
+  # -- Gateway API parent references.
+  parentRefs: []
+  #  - name: my-gateway
+  #    sectionName: https
+  # -- HTTP hostnames accepted by this route.
+  hostnames: []
+  # -- HTTPRoute rules. An empty backendRef name targets this chart's Service.
+  rules: []
+  #  - matches:
+  #      - path:
+  #          type: PathPrefix
+  #          value: /v1
+  #    backendRefs:
+  #      - name: ""
+  #        port: 8642
+
+# ---------------------------------------------------------------------------
+# The agent runs its own shell/code execution inside this Pod (see
+# `config.terminal.backend` above) - without egress control that sandbox has
+# no network boundary: lateral movement to other in-cluster Services, and
+# reachability of the cloud metadata endpoint (169.254.169.254 / fd00::/8),
+# which on most managed clusters hands out node IAM credentials.
+# ---------------------------------------------------------------------------
+networkPolicy:
+  # -- Annotations to add to the NetworkPolicy.
+  annotations: {}
+  # -- Create a NetworkPolicy isolating both directions. Ingress is denied
+  #    entirely by default - not an oversight: `hermes gateway run` is
+  #    outbound-only, so nothing needs to reach this Pod unless a listener
+  #    (dashboard, apiServer, webhook, a2a, ...) is exposed. Use
+  #    `extraIngress` in that case.
+  enabled: false
+  # -- Permit DNS lookups to kube-dns/CoreDNS. Required for the agent to
+  #    resolve any provider/messaging endpoint.
+  allowDns: true
+  dns:
+    # -- Kubernetes' immutable namespace-name label keeps this peer limited
+    #    to kube-system. Override both selectors for a distribution whose
+    #    DNS runs elsewhere.
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: kube-system
+    podSelector:
+      matchLabels:
+        k8s-app: kube-dns
+  # -- Block RFC1918 ranges and the cloud metadata endpoint (both IPv4
+  #    169.254.0.0/16 and its IPv6 equivalent within fd00::/8) while still
+  #    permitting public internet egress. Set false when the agent must
+  #    reach an in-cluster proxy such as LiteLLM - see
+  #    values-networkpolicy-litellm.yaml for a precise allowlist instead.
+  blockPrivateEgress: true
+  # -- Additional raw NetworkPolicy egress rules, appended as-is.
+  extraEgress: []
+  # -- Additional raw NetworkPolicy ingress rules, appended as-is. Required
+  #    before enabling networkPolicy alongside any exposed listener.
+  extraIngress: []
+
+# -- Container resource requests/limits. Lightweight defaults aimed at small
+# clusters (incl. Raspberry Pi / arm64).
+resources:
+  requests:
+    cpu: "100m"
+    memory: "256Mi"
+  limits:
+    cpu: "2"
+    memory: "2Gi"
+
+# -- Pod-level securityContext. Left empty by default to stay compatible with
+# the image's s6-overlay init (which starts as root and drops privileges
+# itself). Non-root and read-only rootfs are both CI-verified to work; see
+# values-hardened.yaml for a Pod Security Standards `restricted`-compliant
+# overlay rather than hand-rolling this.
+podSecurityContext: {}
+#  runAsNonRoot: true
+#  runAsUser: 10000
+#  runAsGroup: 10000
+#  fsGroup: 10000
+#  seccompProfile:
+#    type: RuntimeDefault
+
+# -- Container-level securityContext. Same caveat as `podSecurityContext` above.
+securityContext: {}
+#  allowPrivilegeEscalation: false
+#  readOnlyRootFilesystem: true
+#  capabilities:
+#    drop: [ALL]
+
+# -- Health probes. Empty = none. The image's s6-overlay already supervises and
+# auto-restarts the gateway in-container, so k8s probes are optional. Provide a
+# full probe spec to enable, e.g. an exec check:
+#   liveness:
+#     exec: { command: ["hermes","gateway","status"] }
+#     initialDelaySeconds: 30
+#     periodSeconds: 30
+probes:
+  # -- Liveness probe spec. Empty = no liveness probe.
+  liveness: {}
+  # -- Readiness probe spec. Empty = no readiness probe.
+  readiness: {}
+  # -- Startup probe spec. Empty = no startup probe. Use this when first start
+  # takes longer than the liveness probe allows.
+  startup: {}
+
+# -- Pod termination grace period in seconds. Empty = Kubernetes default (30s).
+# The gateway (image v2026.7.1+) defaults `agent.restart_drain_timeout` to 0:
+# on stop it interrupts in-flight runs immediately, persists the transcript,
+# and exits fast: the default grace period is plenty. If you opt into a drain
+# window via `config.agent.restart_drain_timeout: <seconds>`, raise this WELL
+# ABOVE that value or the kubelet SIGKILLs the gateway mid-drain (stale lock +
+# crash loop: the same race upstream warns about with systemd's
+# TimeoutStopSec). See "Gateway lifecycle" in the README.
+terminationGracePeriodSeconds: ""
+
+# ---------------------------------------------------------------------------
+# Helm test (chart test). `helm test <release>` runs a doctor-style Job
+# (helm.sh/hook: test) AFTER install to verify the deployment. Rendered by
+# default; set tests.enabled=false to skip it entirely.
+# ---------------------------------------------------------------------------
+tests:
+  # -- Render the chart test Job.
+  enabled: true
+  # -- Extra annotations to add to the test Job. The chart's own Helm and Argo CD
+  #    hook annotations are always set, and a key here that repeats one of them
+  #    is ignored.
+  annotations: {}
+  # -- Image used by the test Job. Empty fields fall back to the main
+  # `image.*` (so the hermes CLI + doctor are available and arch matches).
+  image:
+    repository: ""
+    tag: ""
+    pullPolicy: ""
+  # -- When true, `hermes doctor` issues fail the test. When false, doctor runs
+  #    for visibility but only hard checks (hermes --version, seeded config) fail.
+  doctorStrict: false
+  # -- Run non-strict doctor in a separate container so a diagnostic OOM
+  #    does not kill the required checks. Opt-in; requires Kubernetes 1.33+
+  #    and a positive doctorTimeout. Each container uses tests.resources.
+  isolateDoctor: false
+  # -- Seconds to allow `hermes doctor` to run before timing out.
+  doctorTimeout: 120
+  # ---------------------------------------------------------------------------
+  # Optional real model round-trip: `hermes chat -q "<prompt>"` against the
+  # configured provider. The full conversation (prompt + response) is printed
+  # to the test Job's logs. Requires a working provider key in `env`/`config`
+  # (e.g. config.model.provider=gemini + env.GOOGLE_API_KEY, or a LiteLLM-style
+  # custom provider: see values-litellm.yaml). Off by default since the
+  # placeholder key cannot reach a real provider.
+  # ---------------------------------------------------------------------------
+  chat:
+    # -- Run a `hermes chat` round-trip and log the conversation.
+    enabled: false
+    # -- Prompt sent to the agent.
+    prompt: "Just say hi."
+    # -- Max agent turns for the round-trip.
+    maxTurns: 1
+    # -- Seconds to allow each round-trip attempt to run before timing out.
+    timeout: 180
+    # -- When true, a failed/empty round-trip fails the test job.
+    failOnError: false
+    # -- Optional pool of `provider/model` ids to try in order (via `hermes chat
+    #    -m <id> --provider config.model.provider`), each with its own `timeout`.
+    #    Passes as soon as one succeeds: useful for free-tier models that are
+    #    sometimes overloaded. Leave empty to use `config.model.default` as-is
+    #    (single attempt, no `-m`/`--provider` override).
+    models: []
+  # -- Resource requests/limits for the test Job's container. The memory limit
+  #    leaves room for `hermes doctor`, which needs several hundred MiB while it runs.
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: "1"
+      memory: 1536Mi
+
+# -- Annotations to add to the Pod.
+podAnnotations: {}
+# -- Annotations to add to every ConfigMap the chart renders (config, login
+#    script, team skill), for example Argo CD sync waves.
+configMapAnnotations: {}
+# -- Annotations to add to the chart's env Secret. With `externalSecret.enabled`
+#    the Secret is created by ESO, so use `externalSecret.annotations` instead.
+secretAnnotations: {}
+# -- Annotations to add to the Deployment or StatefulSet object.
+deploymentAnnotations: {}
+# -- Labels to add to the Pod.
+podLabels: {}
+
+# -- Node selector for Pod scheduling.
+nodeSelector: {}
+# -- Tolerations for Pod scheduling.
+tolerations: []
+# -- Affinity rules for Pod scheduling.
+affinity: {}
+
+# -- RuntimeClass for the Pod. Set to a sandboxed runtime (gVisor: "gvisor",
+#    Kata: "kata-containers") to add a kernel isolation boundary around the
+#    agent's shell execution. Empty by default: the cluster's default runtime.
+runtimeClassName: ""

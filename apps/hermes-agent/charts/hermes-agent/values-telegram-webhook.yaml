@@ -1,0 +1,63 @@
+# Telegram's native webhook mode. Ordinary Telegram polling needs no Service.
+# Supply OPENAI_API_KEY, TELEGRAM_BOT_TOKEN, TELEGRAM_WEBHOOK_SECRET and
+# TELEGRAM_ALLOWED_USERS in the externally managed Secret below.
+# TELEGRAM_WEBHOOK_SECRET is mandatory; do not disable verification.
+#
+# Configure the public hostname, TLS Secret (or certificate issuer annotation)
+# and your cluster's Ingress class before deploying. Keep the public URL path
+# and Ingress path identical. The external HTTPS port is 443; the receiver
+# inside the Pod listens on 8443.
+#
+#   helm upgrade --install hermes-agent ./charts/hermes-agent \
+#     --namespace hermes-agent --create-namespace \
+#     -f charts/hermes-agent/values-telegram-webhook.yaml --wait
+
+config:
+  model:
+    provider: openai-api
+    default: gpt-4o-mini
+  terminal:
+    backend: local
+
+extraEnvFrom:
+  - secretRef:
+      name: hermes-agent-telegram-webhook-secrets
+
+extraEnv:
+  - name: TELEGRAM_WEBHOOK_URL
+    value: https://telegram.example.com/telegram
+  - name: TELEGRAM_WEBHOOK_HOST
+    value: 0.0.0.0
+  - name: TELEGRAM_WEBHOOK_PORT
+    value: "8443"
+
+service:
+  enabled: true
+  type: ClusterIP
+  ports:
+    - name: tg-webhook
+      port: 8443
+      targetPort: 8443
+
+# This opt-in receiver has a real listening port; keep it out of Service
+# endpoints until that port is open. The default polling chart has no probe.
+probes:
+  readiness:
+    tcpSocket:
+      port: 8443
+    periodSeconds: 5
+
+ingress:
+  enabled: true
+  className: ""
+  annotations: {}
+  hosts:
+    - host: telegram.example.com
+      paths:
+        - path: /telegram
+          pathType: Prefix
+          port: 8443
+  tls:
+    - secretName: hermes-agent-telegram-tls
+      hosts:
+        - telegram.example.com
