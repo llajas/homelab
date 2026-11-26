@@ -15,6 +15,15 @@ data:
           "oauth": false,
           "timeout": 30000
         },
+        "woodpecker": {
+          "type": "remote",
+          "url": "https://mcp-woodpecker.lajas.tech/mcp",
+          "enabled": true,
+          "oauth": false,
+          "headers": {
+            "Authorization": "Bearer {env:WOODPECKER_TOKEN}"
+          }
+        },
         "tmux": {
           "type": "local",
           "command": [

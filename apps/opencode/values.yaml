@@ -76,6 +76,11 @@ app-template:
                 secretKeyRef:
                   name: opencode-server-auth
                   key: github_token
+            WOODPECKER_TOKEN:
+              valueFrom:
+                secretKeyRef:
+                  name: opencode-server-auth
+                  key: woodpecker_token
             GIT_CONFIG_COUNT: "3"
             GIT_CONFIG_KEY_0: "url.https://git.lajas.tech/.insteadOf"
             GIT_CONFIG_VALUE_0: "ssh://git@git.lajas.tech/"
