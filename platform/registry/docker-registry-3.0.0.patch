@@ -1,0 +1,19 @@
+--- a/templates/secret.yaml
++++ b/templates/secret.yaml
+@@ -1,3 +1,4 @@
++{{- if not .Values.secrets.existingSecret }}
+ apiVersion: v1
+ kind: Secret
+ metadata:
+@@ -38,3 +39,4 @@
+   {{- end }}
+   proxyUsername: {{ .Values.proxy.username | default "" | b64enc | quote }}
+   proxyPassword: {{ .Values.proxy.password | default "" | b64enc | quote }}
++{{- end }}
+--- a/values.yaml
++++ b/values.yaml
+@@ -80,3 +80,4 @@
+ secrets:
++  existingSecret: false
+   haSharedSecret: ""
+   htpasswd: ""
