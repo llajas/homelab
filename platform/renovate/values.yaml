@@ -1,6 +1,9 @@
 renovate:
   cronjob:
     schedule: '0 9 * * *'  # Everyday at 09:00
+  envFrom:
+    - secretRef:
+        name: renovate-github-token
   renovate:
     config: |
       {
@@ -10,3 +13,8 @@ renovate:
         "autodiscover": true
       }
   existingSecret: renovate-secret
+
+# This 1Password item must contain a read-only PAT in a field named RENOVATE_GITHUB_COM_TOKEN.
+onepassword:
+  vault: z3emsr5qi5xqk33wthv5fpmfqa
+  githubTokenItem: 7x4ngfwdyybkwvp4q7tgyipc3m
