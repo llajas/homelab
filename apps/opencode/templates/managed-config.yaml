@@ -24,6 +24,12 @@ data:
             "Authorization": "Bearer {env:WOODPECKER_TOKEN}"
           }
         },
+        "atuin": {
+          "type": "local",
+          "command": ["/usr/local/bin/atuin", "mcp"],
+          "enabled": true,
+          "timeout": 30000
+        },
         "tmux": {
           "type": "local",
           "command": [

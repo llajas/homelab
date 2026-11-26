@@ -44,7 +44,7 @@ app-template:
         app:
           image:
             repository: registry.lajas.tech/opencode
-            tag: "0.0.12"
+            tag: "0.0.14"
             pullPolicy: IfNotPresent
           args:
             - serve
