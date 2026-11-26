@@ -233,8 +233,7 @@ containerSecurityContext: {}
 sso:
   enabled: true
   enableSignup: true
-  # shortcut: link existing accounts by verified email during migration; set false after all users sign in.
-  mergeAccountsByEmail: true
+  mergeAccountsByEmail: false
   enableRoleManagement: false
   enableGroupManagement: false
 
