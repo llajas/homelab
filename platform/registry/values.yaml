@@ -46,9 +46,12 @@ docker-registry:
   #         name: auth
   persistence:
     enabled: true
+    # Recreated as RWX; registry images are disposable and will be rebuilt.
+    existingClaim: registry-docker-registry-rwx
     size: 50Gi
   garbageCollect:
-    enabled: true
+    # The read-only coordinator below replaces the chart's online GC CronJob.
+    enabled: false
     deleteUntagged: false
     schedule: "0 1 * * *" # Runs daily at 1 AM
     resources:
@@ -67,4 +70,7 @@ docker-registry:
     # Local chart patch disables the generated random secret; see docker-registry-3.0.0.patch.
     existingSecret: true
   updateStrategy:
-    type: Recreate
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0

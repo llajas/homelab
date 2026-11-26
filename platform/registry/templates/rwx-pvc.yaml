@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: registry-docker-registry-rwx
+  namespace: {{ .Release.Namespace }}
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: longhorn
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: {{ index .Values "docker-registry" "persistence" "size" | quote }}
