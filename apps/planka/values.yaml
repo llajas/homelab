@@ -219,6 +219,8 @@ oidc:
 extraEnv:
   - name: OIDC_IGNORE_USERNAME
     value: "true"
+  - name: OIDC_ID_TOKEN_SIGNED_RESPONSE_ALG
+    value: "ES256"
   - name: OIDC_PROJECT_OWNER_ROLES
     value: "planka_admins,planka_admins@auth.lajas.tech"
   - name: OIDC_BOARD_USER_ROLES
