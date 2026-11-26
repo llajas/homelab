@@ -61,4 +61,11 @@ spec:
           kind: HTTPRoute
           jqPathExpressions:
             - '.metadata.annotations."argocd.argoproj.io/tracking-id"'
+        # Registry GC toggles read-only mode while its worker runs.
+        - group: apps
+          kind: Deployment
+          name: registry-docker-registry
+          namespace: registry
+          jqPathExpressions:
+            - '.spec.template.spec.containers[]? | select(.name == "docker-registry").env[]? | select(.name == "REGISTRY_MAINTENANCE_READONLY_ENABLED")'
 {{- end }}
