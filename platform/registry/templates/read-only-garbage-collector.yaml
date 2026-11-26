@@ -22,7 +22,7 @@ rules:
     verbs: [get, list, watch]
   - apiGroups: [batch]
     resources: [jobs]
-    verbs: [create, delete, get, watch]
+    verbs: [create, delete, get, list, watch]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -97,6 +97,7 @@ data:
         break
       fi
       if [ "${failed:-0}" -gt 0 ]; then
+        kubectl -n {{ .Release.Namespace }} logs job/"$worker" --all-containers=true || true
         exit 1
       fi
       sleep 10
