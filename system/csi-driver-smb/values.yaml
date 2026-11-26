@@ -36,6 +36,7 @@ rbac:
 
 driver:
   name: smb.csi.k8s.io
+  labels: {}
 
 feature:
   enableGetVolumeStats: true
@@ -52,6 +53,9 @@ controller:
   runOnControlPlane: false
   logLevel: 5
   workingMountDir: "/tmp"
+  extraArgs:
+    csiProvisioner: []
+    csiResizer: []
   resources:
     csiProvisioner:
       limits:
@@ -96,6 +100,7 @@ linux:
   kubelet: /var/lib/kubelet
   krb5CacheDirectory: "" # directory for kerberos credential cache, empty string means default(/var/lib/kubelet/kerberos/)
   krb5Prefix: "" # prefix for kerberos credential cache, empty string means default(krb5cc_)
+  krb5AutoConfig: false
   tolerations:
     - operator: "Exists"
   resources:
@@ -124,6 +129,7 @@ windows:
   dsName: csi-smb-node-win # daemonset name
   kubelet: 'C:\var\lib\kubelet'
   removeSMBMappingDuringUnmount: true
+  requirePrivacyForGlobalMapping: true
   tolerations:
     - key: "node.kubernetes.io/os"
       operator: "Exists"
@@ -168,3 +174,5 @@ priorityClassName: system-cluster-critical
 ## by example :
 ## securityContext: { runAsUser: 1001 }
 securityContext: { seccompProfile: {type: RuntimeDefault} }
+
+storageClasses: []

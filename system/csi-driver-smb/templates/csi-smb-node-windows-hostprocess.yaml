@@ -105,6 +105,11 @@ spec:
             - "--enable-get-volume-stats={{ .Values.feature.enableGetVolumeStats }}"
             - "--remove-smb-mapping-during-unmount={{ .Values.windows.removeSMBMappingDuringUnmount }}"
             - "--enable-windows-host-process=true"
+{{- if hasKey .Values.windows "requirePrivacyForGlobalMapping" }}
+            - "--require-privacy-for-global-mapping={{ .Values.windows.requirePrivacyForGlobalMapping }}"
+{{- else }}
+            - "--require-privacy-for-global-mapping=true"
+{{- end }}
           env:
             - name: CSI_ENDPOINT
               value: unix://{{ .Values.windows.kubelet }}\plugins\{{ .Values.driver.name }}\csi.sock
