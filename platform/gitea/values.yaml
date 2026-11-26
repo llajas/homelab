@@ -1,4 +1,7 @@
 gitea:
+  # shortcut: Recreate avoids RWO multi-attach; revisit after a RWX/HA storage move.
+  strategy:
+    type: Recreate
   ingress:
     enabled: false
     # className: nginx  # Migrated to Gateway API
@@ -18,6 +21,12 @@ gitea:
   gitea:
     admin:
       existingSecret: gitea-admin-secret
+    oauth:
+      - name: Kanidm
+        provider: openidConnect
+        existingSecret: gitea-kanidm-oauth
+        autoDiscoverUrl: https://auth.lajas.tech/oauth2/openid/gitea/.well-known/openid-configuration
+        scopes: email profile groups
     config:
       server:
         LANDING_PAGE: explore
