@@ -210,6 +210,8 @@ extraEnvVars:
     value: *openwebuihost
   - name: BYPASS_MODEL_ACCESS_CONTROL
     value: "true"
+  - name: OAUTH_CODE_CHALLENGE_METHOD
+    value: "S256"
 
 commonEnvVars: []
 extraEnvFrom: []
