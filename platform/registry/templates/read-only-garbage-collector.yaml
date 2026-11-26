@@ -91,6 +91,7 @@ data:
     kubectl -n {{ .Release.Namespace }} set env deployment/registry-docker-registry REGISTRY_MAINTENANCE_READONLY_ENABLED=true
     kubectl -n {{ .Release.Namespace }} rollout status deployment/registry-docker-registry --timeout=15m
     mkdir -p /var/lib/registry/docker/registry/v2/repositories /var/lib/registry/docker/registry/v2/blobs/sha256
+    chown 1000:1000 /var/lib/registry /var/lib/registry/docker /var/lib/registry/docker/registry /var/lib/registry/docker/registry/v2 /var/lib/registry/docker/registry/v2/repositories /var/lib/registry/docker/registry/v2/blobs /var/lib/registry/docker/registry/v2/blobs/sha256
     if ! kubectl -n {{ .Release.Namespace }} get job "$worker" >/dev/null 2>&1; then
       kubectl create -f /scripts/worker-job.yaml
     fi
@@ -188,8 +189,8 @@ spec:
         spec:
           serviceAccountName: registry-gc-coordinator
           securityContext:
-            fsGroup: 1000
-            runAsUser: 1000
+            runAsUser: 0
+            runAsGroup: 0
           restartPolicy: OnFailure
           terminationGracePeriodSeconds: 300
           containers:
