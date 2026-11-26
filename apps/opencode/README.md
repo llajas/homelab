@@ -19,11 +19,10 @@ Verify these values in `values.yaml` before syncing the application:
 | UID/GID | `1000:1000` | Matches the workstation user and NFS ownership |
 | `opSecrets.vault` | `z3emsr5qi5xqk33wthv5fpmfqa` | ID of the `homelab` vault |
 | `opSecrets.item` | `4msntvjd4yesnjuli2ywrkic5i` | ID of the `OpenCode Server` item |
-| Image | `registry.lajas.tech/opencode:1.18.35-1` | Built and pushed before Argo sync |
+| Git CLI tokens | `gitea_token`, `github_token` | Fields on the existing OpenCode Server 1Password item |
+| Image | `registry.lajas.tech/opencode:0.0.12` | Built and pushed before Argo sync |
 
-The chart pins the published image digest as well as its human-readable tag.
-When rebuilding the tag, update the digest only after verifying the new registry
-manifest.
+The chart uses the published image tag; update it after the new image is pushed.
 
 Confirm the workstation identity with `id -u` and `id -g`; change every
 `1000` security-context value together if either result differs. Upgrade the
@@ -56,7 +55,7 @@ the same plaintext from the item's `password` field.
 
 There is no currently documented official general-purpose OpenCode server
 image. The chart consumes the separately built and published
-`registry.lajas.tech/opencode:1.18.35-1` image, which installs the pinned
+`registry.lajas.tech/opencode:0.0.12` image, which installs the pinned
 official `opencode-ai@1.18.35` package and adds the baseline infrastructure
 tools. Image source and publishing automation belong in a dedicated repository,
 not in this homelab chart.
@@ -113,10 +112,18 @@ If direct `kubectl` or Helm access is later required, add narrowly scoped RBAC
 for the exact namespaces and resources; do not mount an administrator
 kubeconfig or grant `cluster-admin`.
 
-Git authentication is also intentionally not provisioned yet. Add a dedicated,
-limited-purpose GitHub/Gitea token or SSH key through 1Password when repository
-push access is required. Never mount the workstation's complete `.ssh`
-directory; when SSH is used, provide a dedicated key and pinned `known_hosts`.
+The OpenCode Server 1Password item supplies `gitea_token` as `GITEA_TOKEN` and
+`github_token` as `GH_TOKEN`; Gitea requests target the canonical
+`https://git.lajas.tech` URL used by repository remotes. Keep this URL rather
+than using the in-cluster service address so `tea` can match repository remotes
+and honor Gitea's canonical URLs.
+Add `github_token` as a normal text/password field to that item and store the
+GitHub token there. The existing `gitea_token` field name already matches the
+chart and does not need renaming. Use narrowly scoped tokens and never put their
+values in Helm values or Git. These API tokens do not authenticate plain `git`
+operations; the configured Gitea credential helper only covers HTTPS remotes to
+`git.lajas.tech`. Never mount the workstation's complete `.ssh` directory; when
+SSH is used, provide a dedicated key and pinned `known_hosts`.
 
 ## Server-side OpenCode configuration
 

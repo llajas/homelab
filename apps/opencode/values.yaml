@@ -44,7 +44,7 @@ app-template:
         app:
           image:
             repository: registry.lajas.tech/opencode
-            tag: "sha-737557d2@sha256:eb9291227440fd26c9e38091a54b524808eecc4d56113ba0af343b23ba10474b"
+            tag: "0.0.12"
             pullPolicy: IfNotPresent
           args:
             - serve
@@ -60,6 +60,7 @@ app-template:
             XDG_DATA_HOME: /home/opencode/.local/share
             XDG_STATE_HOME: /home/opencode/.local/state
             OPENCODE_CONFIG: /etc/opencode-managed/opencode.json
+            GITEA_INSTANCE_URL: https://git.lajas.tech
             OPENCODE_API_KEY:
               valueFrom:
                 secretKeyRef:
@@ -70,6 +71,11 @@ app-template:
                 secretKeyRef:
                   name: opencode-server-auth
                   key: gitea_token
+            GH_TOKEN:
+              valueFrom:
+                secretKeyRef:
+                  name: opencode-server-auth
+                  key: github_token
             GIT_CONFIG_COUNT: "3"
             GIT_CONFIG_KEY_0: "url.https://git.lajas.tech/.insteadOf"
             GIT_CONFIG_VALUE_0: "ssh://git@git.lajas.tech/"
