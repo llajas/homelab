@@ -63,5 +63,8 @@ docker-registry:
       cache:
         blobdescriptor: disabled
   replicaCount: 1
+  secrets:
+    # Local chart patch disables the generated random secret; see docker-registry-3.0.0.patch.
+    existingSecret: true
   updateStrategy:
     type: Recreate
