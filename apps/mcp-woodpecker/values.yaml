@@ -1,0 +1,42 @@
+app-template:
+  defaultPodOptions:
+    automountServiceAccountToken: false
+
+  controllers:
+    mcp-woodpecker:
+      containers:
+        app:
+          image:
+            repository: ghcr.io/rtuszik/woodpecker-mcp
+            tag: latest
+            pullPolicy: IfNotPresent
+          env:
+            WOODPECKER_SERVER: https://ci.lajas.tech
+            WOODPECKER_MCP_TRANSPORT: http
+            WOODPECKER_MCP_READ_ONLY: "false"
+            HOST: 0.0.0.0
+            PORT: "8000"
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+
+  service:
+    app:
+      controller: mcp-woodpecker
+      type: ClusterIP
+      ports:
+        http:
+          port: 8000
+
+httpRoute:
+  host: mcp-woodpecker.lajas.tech
+  gateway:
+    name: public-gateway
+    namespace: kube-system
