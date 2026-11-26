@@ -22,8 +22,6 @@ gitea:
       server:
         LANDING_PAGE: explore
         ROOT_URL: https://git.lajas.tech
-      oauth2_client:
-        ACCOUNT_LINKING: login
       webhook:
         ALLOWED_HOST_LIST: private
   persistence:
