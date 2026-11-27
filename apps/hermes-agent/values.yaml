@@ -61,7 +61,7 @@ hermes-agent:
               - ingress
             toPorts:
               - ports:
-                  - port: "443"
+                  - port: "9999"
                     protocol: TCP
   networkPolicy:
     enabled: true

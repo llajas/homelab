@@ -9,9 +9,11 @@ user allowlist. Dashboard access grants shell-like control over the agent, so
 treat the OIDC client as privileged. The chart's NetworkPolicy blocks inbound
 traffic and limits egress to DNS and public services. A CiliumNetworkPolicy
 allows Cilium's reserved `ingress` identity to reach dashboard port 9119 and
-allows Hermes to reach Cilium's `ingress` identity on HTTPS for Kanidm OIDC
-discovery. These Cilium identity selectors are needed because Kubernetes
-`ipBlock` rules do not match Cilium-managed node and proxy identities by default.
+allows Hermes to reach Cilium's `ingress` identity for Kanidm OIDC discovery.
+Cilium translates the Gateway Service's HTTPS port to Envoy's backend port
+before its L4 policy check, so this rule targets Envoy port 9999. Cilium identity
+selectors are needed because Kubernetes `ipBlock` rules do not match
+Cilium-managed node and proxy identities by default.
 
 The `OnePasswordItem` syncs the item UUID in `values.yaml` into the
 `hermes-agent-secrets` Kubernetes Secret. For static API-key providers, add the
