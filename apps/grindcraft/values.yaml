@@ -370,7 +370,7 @@ initContainers:
 #             key: "{{ .Values.minecraftServer.rcon.secretKey | default "rcon-password" }}"
 sidecarContainers:
   - name: geyser
-    image: "registry.lajas.tech/geyser:latest"
+    image: "registry.lajas.tech/geyser:0.0.956"
     imagePullPolicy: IfNotPresent
     volumeMounts:
       - name: geyser-data
