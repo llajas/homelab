@@ -6,6 +6,7 @@
     chart_version: "{{ cilium_version }}"
     release_namespace: "{{ cilium_namespace }}"
     values: "{{ cilium_values }}"
+    reset_values: true
 
 - name: Wait for Cilium CRDs
   kubernetes.core.k8s_info:
