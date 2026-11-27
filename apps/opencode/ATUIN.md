@@ -4,9 +4,9 @@ OpenCode runs Atuin's built-in stdio MCP server as a subprocess inside its
 container. Atuin config and history live under the persistent OpenCode home;
 no Atuin credentials are placed in the image or OpenCode environment.
 
-The OpenCode image is pinned to `registry.lajas.tech/opencode:0.0.14`. Publish
-that image before syncing the chart. Then sign in to the existing Atuin account
-and sync history from the running pod:
+The OpenCode image is pinned to `registry.lajas.tech/opencode:0.0.15`. Sign in
+to the existing Atuin account and sync history from the running pod. Publish
+that image before syncing the chart:
 
 ```bash
 kubectl -n opencode exec -it deploy/opencode -c app -- atuin login -u <username>
