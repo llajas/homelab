@@ -48,10 +48,6 @@ gitea:
       database: gitea
       enablePostgresUser: true
       existingSecret: gitea-postgresql-credentials
-    passwordUpdateJob:
-      enabled: true
-      previousPasswords:
-        existingSecret: gitea-postgresql
     image:
       tag: "16.6.0-debian-12-r2"
     persistence:
