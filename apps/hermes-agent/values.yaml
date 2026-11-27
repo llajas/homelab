@@ -56,15 +56,15 @@ hermes-agent:
               - ports:
                   - port: "9119"
                     protocol: TCP
+        egress:
+          - toEntities:
+              - ingress
+            toPorts:
+              - ports:
+                  - port: "443"
+                    protocol: TCP
   networkPolicy:
     enabled: true
-    extraEgress:
-      - to:
-          - ipBlock:
-              cidr: 10.138.0.226/32
-        ports:
-          - protocol: TCP
-            port: 443
   dashboard:
     enabled: true
     publicUrl: https://hermes-agent.lajas.tech
