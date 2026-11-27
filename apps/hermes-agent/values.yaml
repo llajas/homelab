@@ -68,6 +68,15 @@ hermes-agent:
               - ports:
                   - port: "8080"
                     protocol: TCP
+          - toEndpoints:
+              - matchLabels:
+                  k8s:io.kubernetes.pod.namespace: mcp-woodpecker
+                  k8s:app.kubernetes.io/instance: mcp-woodpecker
+                  k8s:app.kubernetes.io/name: mcp-woodpecker
+            toPorts:
+              - ports:
+                  - port: "8000"
+                    protocol: TCP
   networkPolicy:
     enabled: true
     extraEgress:
@@ -82,6 +91,17 @@ hermes-agent:
         ports:
           - protocol: TCP
             port: 8080
+      - to:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: mcp-woodpecker
+            podSelector:
+              matchLabels:
+                app.kubernetes.io/instance: mcp-woodpecker
+                app.kubernetes.io/name: mcp-woodpecker
+        ports:
+          - protocol: TCP
+            port: 8000
   dashboard:
     enabled: true
     publicUrl: https://hermes-agent.lajas.tech
