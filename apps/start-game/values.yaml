@@ -22,7 +22,7 @@ app-template:
         app:
           image:
             repository: registry.lajas.tech/start-game-identity-portal
-            tag: latest
+            tag: "0.0.12"
             pullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
@@ -86,7 +86,7 @@ app-template:
         app:
           image:
             repository: registry.lajas.tech/start-game-identity-portal
-            tag: sha-222c9a89
+            tag: "0.0.12@sha256:0f2b1b2b1c8d30c5e29bfe61b99b8da094c79cc7728f4971c1de2c7d979a1975"
             pullPolicy: IfNotPresent
           command:
             - /app/portal-admin
