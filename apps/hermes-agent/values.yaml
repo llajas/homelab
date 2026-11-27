@@ -57,13 +57,13 @@ hermes-agent:
                   - port: "9119"
                     protocol: TCP
         egress:
-          - toServices:
-              - k8sService:
-                  serviceName: cilium-gateway-public-gateway
-                  namespace: kube-system
+          - toEndpoints:
+              - matchLabels:
+                  k8s:io.kubernetes.pod.namespace: kanidm
+                  k8s:app.kubernetes.io/name: kanidm-http-bridge
             toPorts:
               - ports:
-                  - port: "9999"
+                  - port: "8080"
                     protocol: TCP
   networkPolicy:
     enabled: true
