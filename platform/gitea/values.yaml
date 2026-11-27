@@ -27,6 +27,12 @@ gitea:
         existingSecret: gitea-kanidm-oauth
         autoDiscoverUrl: https://auth.lajas.tech/oauth2/openid/gitea/.well-known/openid-configuration
         scopes: email profile groups
+    additionalConfigFromEnvs:
+      - name: GITEA__DATABASE__PASSWD
+        valueFrom:
+          secretKeyRef:
+            name: gitea-postgresql-credentials
+            key: password
     config:
       server:
         LANDING_PAGE: explore
@@ -37,6 +43,15 @@ gitea:
     storageClass: longhorn
   postgresql:
     enabled: true
+    auth:
+      username: gitea
+      database: gitea
+      enablePostgresUser: true
+      existingSecret: gitea-postgresql-credentials
+    passwordUpdateJob:
+      enabled: true
+      previousPasswords:
+        existingSecret: gitea-postgresql
     image:
       tag: "16.6.0-debian-12-r2"
     persistence:
