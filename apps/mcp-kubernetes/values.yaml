@@ -6,6 +6,10 @@ networkPolicy:
       podSelector:
         app.kubernetes.io/name: opencode
         app.kubernetes.io/instance: opencode
+    - namespace: hermes-agent
+      podSelector:
+        app.kubernetes.io/name: hermes-agent
+        app.kubernetes.io/instance: hermes-agent
 
 httpRoute:
   enabled: false

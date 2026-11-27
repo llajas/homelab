@@ -9,7 +9,8 @@ Most workload configuration is passed through under the upstream subchart key `k
 The default access model is deliberately private:
 
 - no external route by default (`HTTPRoute` disabled)
-- in-cluster access is limited to the OpenCode pod by `NetworkPolicy`
+- in-cluster access is limited to the OpenCode and Hermes Agent pods by
+  `NetworkPolicy`
 - local access uses `kubectl port-forward`, authorized by the caller's kubeconfig
 - read-only MCP server mode
 - no upstream `config` toolset, so clients cannot request kubeconfig inspection
@@ -29,5 +30,8 @@ Then point your MCP client at:
 The OpenCode server connects internally to:
 
 - `http://mcp-kubernetes.mcp-kubernetes.svc.cluster.local:8080/mcp`
+
+Hermes Agent uses the same in-cluster MCP service; both its egress policy and
+this chart's `networkPolicy.allowedClients` must allow the connection.
 
 If you later decide to expose it through the cluster gateway, re-enable `httpRoute.enabled` and explicitly add the gateway workload to `networkPolicy.allowedClients`.
