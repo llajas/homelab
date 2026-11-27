@@ -2,13 +2,17 @@
 
 === "For user"
 
-    ## Create user
+    ## Request an account
 
-    Ask an admin to create your account, provide the following information:
+    Submit an access request at the [homelab registration portal](https://register.lajas.tech). Provide a username, display name, email address, and optionally a legal name. Select at least one of the application roles or groups offered by the form.
 
-    - [ ] Full name (John Doe)
-    - [ ] Select a username (`johndoe`)
-    - [ ] Email address (`johndoe@example.com`)
+    The portal submits a request for review; it does not create an account or grant access. It does not ask for a password or other credentials. An owner reviews the request and follows up using the email address you provide. No access is granted before approval.
+
+    ## Complete account setup
+
+    If approved, an administrator will privately send you a temporary Kanidm enrollment link and sign-in instructions. Use the link to complete the credential setup flow. Treat the link as a password: anyone who has it may be able to activate the account. The link expires after 24 hours; contact the administrator if it has expired.
+
+    After setup, sign in to the approved applications with your Kanidm account. The request portal is not a login or self-service password-reset page.
 
     ## Install companion apps
 
@@ -24,63 +28,27 @@
 
 === "For admin"
 
-    ## Create a new account
+    ## Review and provision an account
 
-    The supported onboarding flow today is Kanidm-first.
+    The public portal turns an access request into a pull request in the private identity repository. A request is only a proposal: the person is not provisioned and receives no access until the change is reviewed, merged, and applied.
 
-    1. Make sure you have local access to the repo and cluster kubeconfig.
-    2. Run the onboarding script:
+    1. Review the pull request in [`homelab-identity`](https://git.lajas.tech/ops/homelab-identity). Check the username, identity details, requested application roles, and group memberships against the request and the current catalog. The portal creates the user record with the `request-only` preset and `onboarding: true`; review any access changes before approving it.
 
-        ```sh
-        ./scripts/onboard-user johndoe "John Doe" johndoe@example.com
-        ```
+    2. If creating a user without the portal, use `make add-user` in a trusted checkout of `homelab-identity`. Do not use this repository's legacy `scripts/onboard-user`; it creates Kanidm accounts directly and bypasses the identity repository's review and Terraform workflow.
 
-        This will:
+    3. Merge one user change at a time. The protected-main Woodpecker workflow validates the change, creates a fresh Terraform plan, and applies that plan. Pull-request checks validate the change but do not run a live plan or provision the account.
 
-        - create the Kanidm account
-        - set the user's email address
-        - add the user to the `editor` group by default
-        - print a credential reset token or recovery link for first login
+    4. After the apply, retrieve the user's temporary enrollment link from the authenticated [identity admin portal](https://portal-admin.lajas.tech). The main-branch workflow hands off active onboarding links to this separate admin service; the public request portal never receives them. Share the link privately and promptly. It expires after 24 hours. If it expires, follow the identity repository's documented Kanidm reset procedure; rerunning Terraform does not generate a replacement link.
 
-    3. To assign non-default groups during onboarding, pass them after the email:
+    5. After the user completes enrollment, change their `onboarding` field to `false` in `homelab-identity` and merge the follow-up change.
 
-        ```sh
-        ./scripts/onboard-user johndoe "John Doe" johndoe@example.com editor grafana_editors planka_admins
-        ```
+    The request portal offers only the roles and groups exposed by the identity repository's catalog. For full user, group, OAuth client, approval, and Terraform details, refer to [`homelab-identity`](https://git.lajas.tech/ops/homelab-identity) and [`homelab-identity-portal`](https://git.lajas.tech/ops/homelab-identity-portal).
 
-    4. If a user loses access before they complete first login, generate a recovery credential as needed:
+    ## Identity and application access
 
-        ```sh
-        ./scripts/kanidm-reset-password johndoe
-        ```
+    Kanidm is the identity provider. Applications use their configured Kanidm OIDC clients directly; Dex is not part of the current onboarding or sign-in flow. User and group desired state is managed in `homelab-identity`, not in this repository.
 
-    Kanidm is the source of truth for users and groups. Dex is only the application-facing OIDC broker in front of Kanidm.
-
-    During staged Kanidm upgrades, keep Dex and the downstream application issuer settings unchanged until the Kanidm hop is validated.
-
-    ## Group assignment
-
-    Group membership determines which applications a user can access and what role they receive after login.
-
-    Common examples in this repo:
-
-    - `editor` - default baseline access used by current automation
-    - `grafana_editors@auth.lajas.tech` / `grafana_admins@auth.lajas.tech` - Grafana roles
-    - `planka_admins` / `planka_admins@auth.lajas.tech` - Planka admin roles
-
-    Before assigning a new application group, verify that the target app and its OIDC role mapping are already configured in Git.
-
-    ## Send the initial login link or token
-
-    Choose one of the methods listed below to send the initial credential-reset link or token to the user:
-
-    - Share via password manager (if supported)
-    - Encrypt the token or link and send it via email or chat
-    - Write or print the token or link on a piece of paper
-
-    On the first login, the user will be required to set or update their credentials.
-
-    There is currently no full Kanidm admin web UI workflow documented in this repo for creating users or groups. Administration is done through the Kanidm CLI and the helper scripts above.
+    Review the catalog before assigning access. Application roles resolve into the groups used by each application's OIDC policy, while explicit group memberships provide additional access. The two identity repositories are the source of truth for current options and policy.
 
 ## Appendix
 

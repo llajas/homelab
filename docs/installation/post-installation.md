@@ -25,23 +25,13 @@ Save the following files to a safe location like a password manager (if you're u
 ## SSO operations
 
 - Kanidm is the identity source for users and groups.
-- Dex remains the application-facing OIDC broker for Grafana, Gitea, Open WebUI, and Planka.
-- Onboard a user with:
-
-    ```sh
-    ./scripts/onboard-user johndoe "John Doe" johndoe@example.com
-    ```
-
-- Add specific groups during onboarding by passing them after the email address.
-- Recover a user's initial credential with:
-
-    ```sh
-    ./scripts/kanidm-reset-password johndoe
-    ```
+- Applications authenticate directly with their Kanidm OIDC clients. The legacy Dex release no longer handles authentication; its chart is removed from desired state and Argo CD will prune the existing release on reconciliation.
+- The private [`homelab-identity`](https://git.lajas.tech/ops/homelab-identity) repository owns user, group, and OAuth client desired state. Changes are reviewed and applied through its Terraform workflow.
+- Users request access through the [registration portal](https://register.lajas.tech). Administrators review the resulting pull request, merge approved changes, then retrieve and privately share the temporary enrollment link through the [identity admin portal](https://portal-admin.lajas.tech).
+- See [user onboarding](../getting-started/user-onboarding.md) for the complete request, approval, provisioning, and credential handoff flow.
 
 ### Upgrade notes
 
-- Dex can be updated independently.
 - Kanidm upgrades must be done sequentially between minor versions.
 - This repo is pinned to the latest supported `1.10.x` hop.
 - Before every Kanidm minor upgrade, run:
@@ -54,7 +44,7 @@ Save the following files to a safe location like a password manager (if you're u
 
 ### Kanidm staged upgrade checklist
 
-When upgrading Kanidm with Dex still in front of applications, use this order of operations:
+When upgrading Kanidm, validate its direct OIDC clients and relying applications after each supported version hop:
 
 1. Back up Kanidm data before the image change.
 2. Run the pre-upgrade check:
@@ -64,26 +54,22 @@ When upgrading Kanidm with Dex still in front of applications, use this order of
     ```
 
 3. Upgrade only one supported Kanidm minor hop at a time.
-4. After rollout, validate the Dex upstream OIDC surface:
+4. After rollout, validate Kanidm's OIDC surface:
 
-    - issuer/discovery document at `https://auth.lajas.tech/oauth2/openid/dex`
+    - issuer/discovery documents for the configured clients
     - JWKS and token endpoints
-    - client authentication for Dex's `kanidm` connector
-    - scopes and redirect URI behavior for the `dex` OAuth2 client in Kanidm
+    - client authentication, scopes, and redirect URIs
 
-5. Then validate the claims that dependent apps still receive through Dex:
+5. Validate the claims applications receive directly from Kanidm:
 
     - `sub`
     - `email`
     - username / profile claims used at login
-    - `groups` claims used for Grafana and Planka authorization
+    - `groups` claims used for application authorization
 
 6. Confirm login still works for:
 
-    - Grafana
-    - Gitea
-    - Open WebUI
-    - Planka
+    - Grafana, Gitea, Open WebUI, Planka, and Neko
 
 7. Only after those checks pass should the next Kanidm minor hop be planned.
 

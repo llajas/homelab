@@ -59,8 +59,8 @@ SignIn: CLUSTERDOWN The cluster is down
 session(release): CLUSTERDOWN The cluster is down
 ```
 
-OAuth login through Dex and other operations that require Gitea's session backend
-will fail. Gitea may panic while releasing or accessing the session:
+OAuth login and other operations that require Gitea's session backend will fail.
+Gitea may panic while releasing or accessing the session:
 
 ```text
 PANIC: session(release): CLUSTERDOWN The cluster is down
