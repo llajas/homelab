@@ -47,10 +47,14 @@ redirect URI:
 https://hermes-agent.lajas.tech/auth/callback
 ```
 
-The issuer and client ID configured in `values.yaml` are
-`https://auth.lajas.tech/oauth2/openid/hermes-agent`. No client secret belongs
-in 1Password; Hermes uses the public client. The dashboard route is TLS-only on
-the cluster's `public-gateway`.
+The issuer configured in `values.yaml` is
+`https://auth.lajas.tech/oauth2/openid/hermes-agent`. The 1Password item
+`homelab-kanidm-hermes-agent-oidc-client-id` creates the
+`hermes-agent-oidc-client-id` Secret; the workload reads its `client_id` field
+as `HERMES_DASHBOARD_OIDC_CLIENT_ID`. Hermes uses a public PKCE client, so the
+dashboard OIDC flow does not need a client secret. The item's `password` field
+is intentionally not mounted into the agent pod. The dashboard route is TLS-only
+on the cluster's `public-gateway`.
 
 The OpenCode pay-as-you-go Console can also be used directly by Hermes, but it
 uses an OpenCode Console API key, not the OpenCode browser session. Add
