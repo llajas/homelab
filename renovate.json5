@@ -22,6 +22,15 @@
       "versioning": "semver"
     },
     {
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchPackageNames": [
+        "ghcr.io/vacuula/vacuula"
+      ],
+      "versioning": "semver"
+    },
+    {
       "matchPackagePatterns": [
         "*"
       ],
