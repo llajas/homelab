@@ -81,7 +81,7 @@
         "/(^|/)apps/clusterplex/values\\.yaml$/"
       ],
       "matchStrings": [
-        "(?<versionIndent>[ \\t]*)clusterplexVersion:[ \\t]*(?:(?<legacyTag>sha-[A-Za-z0-9._-]+)|(?<currentValue>v?\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?))"
+        "(?<versionIndent>[ \\t]*)clusterplexVersion:[ \\t]*['\\\"]?(?:(?<legacyTag>sha-[A-Za-z0-9._-]+)|(?<currentValue>v?\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?))['\\\"]?"
       ],
       "depNameTemplate": "registry.lajas.tech/clusterplex-orchestrator",
       "datasourceTemplate": "docker",
