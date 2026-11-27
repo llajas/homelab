@@ -21,7 +21,6 @@ grafana:
       enabled: true
       searchNamespace: ALL
   envFromSecrets:
-    - name: grafana-secrets
     - name: grafana-onepassword
     - name: grafana-kanidm-oidc
   admin:
