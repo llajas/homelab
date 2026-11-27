@@ -57,8 +57,10 @@ hermes-agent:
                   - port: "9119"
                     protocol: TCP
         egress:
-          - toEntities:
-              - ingress
+          - toServices:
+              - k8sService:
+                  serviceName: cilium-gateway-public-gateway
+                  namespace: kube-system
             toPorts:
               - ports:
                   - port: "9999"
