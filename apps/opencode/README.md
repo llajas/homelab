@@ -18,9 +18,9 @@ Verify these values in `values.yaml` before syncing the application:
 | `workspace.nfs.path` | `/mnt/user/ghq` | Matches the Unraid NFS export |
 | UID/GID | `1000:1000` | Matches the workstation user and NFS ownership |
 | `opSecrets.vault` | `z3emsr5qi5xqk33wthv5fpmfqa` | ID of the `homelab` vault |
-| `opSecrets.item` | `4msntvjd4yesnjuli2ywrkic5i` | ID of the `OpenCode Server` item |
-| Git CLI tokens | `gitea_token`, `github_token` | Fields on the existing OpenCode Server 1Password item |
-| Image | `registry.lajas.tech/opencode:0.0.12` | Built and pushed before Argo sync |
+| `opSecrets.secrets` | `OpenCode Server`, `Tmux SSH Key` | 1Password items synced as `opencode-server-auth` and `opencode-tmux-ssh` |
+| Git and Woodpecker tokens | `gitea_token`, `github_token`, `woodpecker_token` | Fields on the existing OpenCode Server 1Password item |
+| Image | `registry.lajas.tech/opencode:0.0.15` | Built and pushed before Argo sync |
 
 The chart uses the published image tag; update it after the new image is pushed.
 
@@ -113,10 +113,11 @@ for the exact namespaces and resources; do not mount an administrator
 kubeconfig or grant `cluster-admin`.
 
 The OpenCode Server 1Password item supplies `gitea_token` as `GITEA_TOKEN` and
-`github_token` as `GH_TOKEN`; Gitea requests target the canonical
-`https://git.lajas.tech` URL used by repository remotes. Keep this URL rather
-than using the in-cluster service address so `tea` can match repository remotes
-and honor Gitea's canonical URLs.
+`github_token` as `GH_TOKEN`, and `woodpecker_token` as `WOODPECKER_TOKEN` for
+the remote Woodpecker MCP's `Authorization` header. Gitea requests target the
+canonical `https://git.lajas.tech` URL used by repository remotes. Keep this URL
+rather than using the in-cluster service address so `tea` can match repository
+remotes and honor Gitea's canonical URLs.
 Add `github_token` as a normal text/password field to that item and store the
 GitHub token there. The existing `gitea_token` field name already matches the
 chart and does not need renaming. Use narrowly scoped tokens and never put their
@@ -133,9 +134,10 @@ under `/home/opencode/.config/opencode` on the Longhorn claim. Provider auth and
 session state belong under `/home/opencode/.local` on the same claim. TUI-only
 preferences such as `tui.json` stay on the workstation.
 
-The current project config only enables the `tmux` plugin. Review whether that
-plugin is needed by the remote backend before copying any global configuration.
-Do not copy the workstation configuration wholesale or commit credentials.
+The remote global configuration enables `oh-my-openagent`. Workstation-local
+MCP servers such as `tmux-mcp` do not run through an attached client and must
+not be copied to the remote backend. Do not copy the workstation configuration
+wholesale or commit credentials.
 
 To authenticate providers, start a shell in the pod and run the supported
 OpenCode connect flow there. Complete any browser step locally; the resulting
@@ -145,20 +147,29 @@ credential must be written to the remote persistent home.
 kubectl -n opencode exec -it deploy/opencode -- opencode auth login
 ```
 
+## Observability follow-up
+
+- [ ] Make OpenCode runtime diagnostics visible through Kubernetes logging.
+  Collect `/home/opencode/.local/share/opencode/log/opencode.log` and
+  `/tmp/oh-my-opencode.log` through container stdout or a dedicated log
+  sidecar. Also emit sanitized startup diagnostics for the configuration loaded
+  from `/home/opencode/.config/opencode/opencode.jsonc`, including plugin and
+  connected-provider status, without exporting configuration contents or
+  credentials.
+
 ## Local client wrapper
 
-Keep the local OpenCode binary installed, then add the wrapper to the shell:
+Keep the local OpenCode binary installed and apply the dotfiles repository. Its
+`opencode-remote` function retrieves the proxy credentials from 1Password and
+attaches to the server:
 
 ```bash
-alias opencode="$HOME/ghq/github.com/llajas/homelab/scripts/opencode-remote"
-export OPENCODE_SERVER_USERNAME=opencode_server
-export OPENCODE_SERVER_PASSWORD="$(op read 'op://z3emsr5qi5xqk33wthv5fpmfqa/4msntvjd4yesnjuli2ywrkic5i/password')"
+opencode-remote
 ```
 
 The wrapper maps `$HOME/ghq` to `/workspace/ghq`, rejects directories outside
-that tree, and forwards remaining arguments to `opencode attach`. Override the
-defaults with `OPENCODE_LOCAL_ROOT`, `OPENCODE_REMOTE_ROOT`,
-`OPENCODE_SERVER_URL`, or `OPENCODE_REAL_BIN`.
+that tree, retrieves the server URL and credentials through the `creds` helper,
+and forwards remaining arguments to `opencode attach`.
 
 ## Migration and acceptance
 
