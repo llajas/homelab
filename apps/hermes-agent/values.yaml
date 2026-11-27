@@ -61,12 +61,27 @@ hermes-agent:
               - matchLabels:
                   k8s:io.kubernetes.pod.namespace: kanidm
                   k8s:app.kubernetes.io/name: kanidm-http-bridge
+              - matchLabels:
+                  k8s:io.kubernetes.pod.namespace: mcp-kubernetes
+                  k8s:app.kubernetes.io/name: kubernetes-mcp-server
             toPorts:
               - ports:
                   - port: "8080"
                     protocol: TCP
   networkPolicy:
     enabled: true
+    extraEgress:
+      - to:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: mcp-kubernetes
+            podSelector:
+              matchLabels:
+                app.kubernetes.io/name: kubernetes-mcp-server
+                app.kubernetes.io/instance: mcp-kubernetes
+        ports:
+          - protocol: TCP
+            port: 8080
   dashboard:
     enabled: true
     publicUrl: https://hermes-agent.lajas.tech
