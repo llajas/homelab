@@ -39,15 +39,25 @@ hermes-agent:
         namespace: "{{ .Release.Namespace }}"
       spec:
         itemPath: vaults/z3emsr5qi5xqk33wthv5fpmfqa/items/xcubpkbhx6cxagoeqevg4a4oqq
+    - apiVersion: cilium.io/v2
+      kind: CiliumNetworkPolicy
+      metadata:
+        name: hermes-agent-gateway
+        namespace: "{{ .Release.Namespace }}"
+      spec:
+        endpointSelector:
+          matchLabels:
+            app.kubernetes.io/instance: hermes-agent
+            app.kubernetes.io/name: hermes-agent
+        ingress:
+          - fromEntities:
+              - ingress
+            toPorts:
+              - ports:
+                  - port: "9119"
+                    protocol: TCP
   networkPolicy:
     enabled: true
-    extraIngress:
-      - from:
-          - ipBlock:
-              cidr: 10.137.0.0/24
-        ports:
-          - protocol: TCP
-            port: 9119
     extraEgress:
       - to:
           - ipBlock:

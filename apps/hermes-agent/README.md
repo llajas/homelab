@@ -6,10 +6,10 @@ It runs the Hermes Agent gateway and management dashboard at
 provider's OIDC authorization-code flow with PKCE; restrict this OIDC client to
 the intended users in the identity provider because Hermes' dashboard has no
 user allowlist. Dashboard access grants shell-like control over the agent, so
-treat the OIDC client as privileged. The chart's NetworkPolicy allows the
-Cilium Gateway nodes to reach the dashboard and permits the agent to reach the
-Gateway VIP for identity-provider requests while blocking other private-network
-and metadata access.
+treat the OIDC client as privileged. The chart's NetworkPolicy blocks inbound
+traffic and limits egress to DNS and public services, with a narrow exception
+for the Gateway VIP used by Kanidm discovery. A CiliumNetworkPolicy allows only
+Cilium's reserved `ingress` identity to reach dashboard port 9119.
 
 The `OnePasswordItem` syncs the item UUID in `values.yaml` into the
 `hermes-agent-secrets` Kubernetes Secret. For static API-key providers, add the
@@ -53,8 +53,9 @@ The issuer configured in `values.yaml` is
 `hermes-agent-oidc-client-id` Secret; the workload reads its `client_id` field
 as `HERMES_DASHBOARD_OIDC_CLIENT_ID`. Hermes uses a public PKCE client, so the
 dashboard OIDC flow does not need a client secret. The item's `password` field
-is intentionally not mounted into the agent pod. The dashboard route is TLS-only
-on the cluster's `public-gateway`.
+is intentionally not mounted into the agent pod; only the `client_id` field is
+used for this public-client flow. The dashboard route is TLS-only on the
+cluster's `public-gateway`.
 
 The OpenCode pay-as-you-go Console can also be used directly by Hermes, but it
 uses an OpenCode Console API key, not the OpenCode browser session. Add
