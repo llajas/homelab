@@ -18,7 +18,7 @@ Verify these values in `values.yaml` before syncing the application:
 | `workspace.nfs.path` | `/mnt/user/ghq` | Matches the Unraid NFS export |
 | UID/GID | `1000:1000` | Matches the workstation user and NFS ownership |
 | `opSecrets.vault` | `z3emsr5qi5xqk33wthv5fpmfqa` | ID of the `homelab` vault |
-| `opSecrets.secrets` | `OpenCode Server`, `Tmux SSH Key` | 1Password items synced as `opencode-server-auth` and `opencode-tmux-ssh` |
+| `opSecrets.secrets` | `OpenCode Server` | 1Password item synced as `opencode-server-auth` |
 | Git and Woodpecker tokens | `gitea_token`, `github_token`, `woodpecker_token` | Fields on the existing OpenCode Server 1Password item |
 | Image | `registry.lajas.tech/opencode:0.0.15` | Built and pushed before Argo sync |
 
@@ -112,7 +112,8 @@ If direct `kubectl` or Helm access is later required, add narrowly scoped RBAC
 for the exact namespaces and resources; do not mount an administrator
 kubeconfig or grant `cluster-admin`.
 
-The OpenCode Server 1Password item supplies `gitea_token` as `GITEA_TOKEN` and
+The OpenCode Server 1Password item's `OPENCODE_API_KEY` also authenticates the
+shared `mcp-tmux` service. The item supplies `gitea_token` as `GITEA_TOKEN` and
 `github_token` as `GH_TOKEN`, and `woodpecker_token` as `WOODPECKER_TOKEN` for
 the remote Woodpecker MCP's `Authorization` header. Gitea requests target the
 canonical `https://git.lajas.tech` URL used by repository remotes. Keep this URL
@@ -134,10 +135,10 @@ under `/home/opencode/.config/opencode` on the Longhorn claim. Provider auth and
 session state belong under `/home/opencode/.local` on the same claim. TUI-only
 preferences such as `tui.json` stay on the workstation.
 
-The remote global configuration enables `oh-my-openagent`. Workstation-local
-MCP servers such as `tmux-mcp` do not run through an attached client and must
-not be copied to the remote backend. Do not copy the workstation configuration
-wholesale or commit credentials.
+The remote global configuration enables `oh-my-openagent` and connects to the
+shared in-cluster `mcp-tmux` endpoint over authenticated Streamable HTTP. The
+SSH key stays with the MCP service and is no longer mounted into this pod. Do
+not copy the workstation configuration wholesale or commit credentials.
 
 To authenticate providers, start a shell in the pod and run the supported
 OpenCode connect flow there. Complete any browser step locally; the resulting
