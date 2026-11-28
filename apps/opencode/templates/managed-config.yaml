@@ -31,12 +31,13 @@ data:
           "timeout": 30000
         },
         "tmux": {
-          "type": "local",
-          "command": [
-            "/usr/local/bin/tmux-mcp-rs",
-            "--ssh=-n -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=/home/opencode/.ssh/tmux-mcp/known_hosts -o GlobalKnownHostsFile=/dev/null -i /home/opencode/.ssh/tmux-mcp/id_ed25519 red@mt-silver.johto.lajas.tech env LC_ALL=C.UTF-8"
-          ],
+          "type": "remote",
+          "url": "http://mcp-tmux.mcp-tmux.svc.cluster.local:8080/mcp",
           "enabled": true,
+          "oauth": false,
+          "headers": {
+            "Authorization": "Bearer {env:OPENCODE_API_KEY}"
+          },
           "timeout": 30000
         }
       }
