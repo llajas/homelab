@@ -1,0 +1,54 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: openshell-gateway
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/ai-openshell/openshell.git
+    targetRevision: v0.1.10
+    path: deploy/helm/openshell
+    helm:
+      releaseName: openshell
+      values: |
+        service:
+          type: ClusterIP
+        networkPolicy:
+          enabled: true
+        server:
+          dataStorageClass: longhorn
+          enableUserNamespaces: true
+          workspaceStorageClass: longhorn
+          telemetryEnabled: false
+          extraEnv:
+            - name: OPENSHELL_OIDC_AUDIENCE
+              valueFrom:
+                secretKeyRef:
+                  name: openshell-oidc-client-id
+                  key: client_id
+          credentialDrivers:
+            kubernetesSecrets:
+              enabled: true
+              namespace: openshell-credentials
+              createNamespace: true
+          tls:
+            enableMtls: false
+            clientCaSecretName: ""
+        gatewayConfig:
+          openshell.gateway.oidc:
+            issuer: https://auth.lajas.tech/oauth2/openid/openshell-cli
+            roles_claim: groups
+            admin_role: openshell_admins@auth.lajas.tech
+            user_role: openshell_users@auth.lajas.tech
+            scopes_claim: ""
+  destination:
+    name: in-cluster
+    namespace: openshell
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
