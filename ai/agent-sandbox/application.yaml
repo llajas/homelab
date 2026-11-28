@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: agent-sandbox-controller
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/kubernetes-sigs/agent-sandbox.git
+    targetRevision: v1.0.12
+    path: helm
+    helm:
+      releaseName: agent-sandbox-controller
+      values: |
+        image:
+          tag: v1.0.12
+        controller:
+          extensions: false
+  destination:
+    name: in-cluster
+    namespace: agent-sandbox-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
