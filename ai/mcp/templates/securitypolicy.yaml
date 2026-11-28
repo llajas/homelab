@@ -1,0 +1,64 @@
+{{- $authType := .Values.gatewayApi.auth.type | default "" -}}
+{{- if and .Values.gatewayApi.enabled (or (eq $authType "jwt") (eq $authType "apiKey")) -}}
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: {{ include "mcp.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "mcp.labels" . | nindent 4 }}
+  {{- with .Values.gatewayApi.auth.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: {{ include "mcp.fullname" . }}
+  {{- if eq $authType "jwt" }}
+  jwt:
+    providers:
+      {{- range .Values.gatewayApi.auth.jwt.providers }}
+      - name: {{ required "gatewayApi.auth.jwt.providers[].name is required" .name }}
+        {{- with .issuer }}
+        issuer: {{ . | quote }}
+        {{- end }}
+        {{- with .audiences }}
+        audiences:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .remoteJWKS }}
+        remoteJWKS:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .localJWKS }}
+        localJWKS:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+      {{- end }}
+  {{- else if eq $authType "apiKey" }}
+  apiKey:
+    {{- with .Values.gatewayApi.auth.apiKey.extractFrom }}
+    extractFrom:
+      {{- with .headers }}
+      headers:
+        {{- range . }}
+        - name: {{ required "gatewayApi.auth.apiKey.extractFrom.headers[].name is required" .name }}
+          {{- with .valuePrefix }}
+          valuePrefix: {{ . | quote }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+    {{- with .Values.gatewayApi.auth.apiKey.credentialRefs }}
+    credentialRefs:
+      {{- range . }}
+      - group: {{ .group | default "" | quote }}
+        kind: {{ .kind | default "Secret" }}
+        name: {{ required "gatewayApi.auth.apiKey.credentialRefs[].name is required" .name }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}

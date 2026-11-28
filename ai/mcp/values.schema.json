@@ -1,0 +1,662 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "mode": {
+      "type": "string",
+      "enum": ["direct", "proxy"],
+      "default": "direct",
+      "description": "Deployment mode: 'direct' for MCP servers with native HTTP support, 'proxy' for stdio-only servers wrapped by supergateway"
+    },
+    "replicaCount": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 1,
+      "description": "Number of pod replicas"
+    },
+    "containerPort": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 65535,
+      "default": 8080,
+      "description": "Port the MCP server listens on inside the container"
+    },
+    "nameOverride": {
+      "type": "string",
+      "description": "Override the chart name"
+    },
+    "fullnameOverride": {
+      "type": "string",
+      "description": "Override the full release name"
+    },
+    "image": {
+      "type": "object",
+      "description": "Direct mode image configuration",
+      "properties": {
+        "repository": {
+          "type": "string",
+          "description": "Container image repository"
+        },
+        "tag": {
+          "type": "string",
+          "description": "Container image tag (immutable tags are recommended)"
+        },
+        "pullPolicy": {
+          "type": "string",
+          "enum": ["Always", "IfNotPresent", "Never"],
+          "default": "IfNotPresent",
+          "description": "Image pull policy"
+        }
+      }
+    },
+    "imagePullSecrets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": ["name"]
+      },
+      "description": "Registry credentials for private images"
+    },
+    "command": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Override the container entrypoint (direct mode)"
+    },
+    "args": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Override the container arguments (direct mode)"
+    },
+    "proxy": {
+      "type": "object",
+      "description": "Proxy mode configuration for wrapping stdio-only MCP servers",
+      "properties": {
+        "image": {
+          "type": "object",
+          "properties": {
+            "repository": {
+              "type": "string",
+              "default": "node",
+              "description": "Proxy container image repository"
+            },
+            "tag": {
+              "type": "string",
+              "default": "20-slim",
+              "description": "Proxy container image tag"
+            },
+            "pullPolicy": {
+              "type": "string",
+              "enum": ["Always", "IfNotPresent", "Never"],
+              "default": "IfNotPresent",
+              "description": "Proxy image pull policy"
+            }
+          }
+        },
+        "gateway": {
+          "type": "object",
+          "properties": {
+            "package": {
+              "type": "string",
+              "default": "supergateway",
+              "description": "NPM package used as the HTTP gateway"
+            },
+            "stdioCommand": {
+              "type": "string",
+              "description": "The stdio MCP command to wrap"
+            },
+            "outputTransport": {
+              "type": "string",
+              "enum": ["streamableHttp", "sse", "ws", "streamable-http"],
+              "default": "streamableHttp",
+              "description": "Transport exposed by the gateway ('streamable-http' is a deprecated alias of 'streamableHttp')"
+            },
+            "port": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535,
+              "default": 8080,
+              "description": "Port the gateway listens on (should match containerPort)"
+            },
+            "httpPath": {
+              "type": "string",
+              "default": "/mcp",
+              "description": "HTTP path for the MCP endpoint (--streamableHttpPath or --ssePath)"
+            },
+            "messagePath": {
+              "type": "string",
+              "default": "/message",
+              "description": "Path clients POST messages to (sse and ws transports)"
+            },
+            "baseUrl": {
+              "type": "string",
+              "default": "",
+              "description": "Public base URL advertised to SSE clients"
+            },
+            "stateful": {
+              "type": "boolean",
+              "default": false,
+              "description": "Keep MCP sessions in memory (streamableHttp only)"
+            },
+            "sessionTimeout": {
+              "type": ["integer", "string"],
+              "default": "",
+              "description": "Session timeout in milliseconds (stateful streamableHttp only)"
+            },
+            "logLevel": {
+              "type": "string",
+              "enum": ["debug", "info", "none"],
+              "default": "info",
+              "description": "Gateway log level"
+            },
+            "healthEndpoints": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Extra paths that return \"ok\", usable by probes"
+            },
+            "cors": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": false,
+                  "description": "Enable CORS on the gateway"
+                },
+                "origins": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "description": "Allowed origins; empty means all"
+                }
+              }
+            },
+            "extraArgs": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Additional supergateway CLI arguments"
+            }
+          }
+        }
+      }
+    },
+    "env": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "value": { "type": "string" },
+          "valueFrom": { "type": "object" }
+        },
+        "required": ["name"]
+      },
+      "description": "Extra environment variables injected into the container"
+    },
+    "envFrom": {
+      "type": "array",
+      "items": { "type": "object" },
+      "description": "Extra envFrom sources (configMapRef, secretRef) injected into the container"
+    },
+    "secret": {
+      "type": "object",
+      "description": "Optionally create a Kubernetes Secret and inject it via envFrom",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Create a Secret resource and mount it via envFrom"
+        },
+        "annotations": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "description": "Annotations added to the Secret"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "description": "Key-value pairs stored as stringData in the Secret"
+        }
+      }
+    },
+    "configMap": {
+      "type": "object",
+      "description": "Optionally render config files into a chart-managed ConfigMap and mount it",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Create a ConfigMap and mount it into the container"
+        },
+        "mountPath": {
+          "type": "string",
+          "default": "/config",
+          "description": "Directory where the ConfigMap keys are mounted as files"
+        },
+        "annotations": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "description": "Annotations added to the ConfigMap"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "description": "Map of filename -> file content rendered into the ConfigMap"
+        }
+      }
+    },
+    "externalSecrets": {
+      "type": "object",
+      "description": "External Secrets Operator configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Create an ExternalSecret and mount its target Secret"
+        },
+        "apiVersion": {
+          "type": "string",
+          "default": "external-secrets.io/v1",
+          "description": "external-secrets.io API version (v1 or v1beta1)"
+        },
+        "refreshInterval": {
+          "type": "string",
+          "default": "1h",
+          "description": "How often ESO reconciles the remote secret"
+        },
+        "secretStoreRef": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "SecretStore or ClusterSecretStore resource name"
+            },
+            "kind": {
+              "type": "string",
+              "enum": ["SecretStore", "ClusterSecretStore"],
+              "default": "ClusterSecretStore",
+              "description": "SecretStore or ClusterSecretStore"
+            }
+          }
+        },
+        "target": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Kubernetes Secret to create (default: chart fullname)"
+            },
+            "creationPolicy": {
+              "type": "string",
+              "enum": ["Owner", "Merge", "None"],
+              "default": "Owner",
+              "description": "ESO creationPolicy"
+            }
+          }
+        },
+        "annotations": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "description": "Annotations on the ExternalSecret resource"
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "description": "Extra labels on the ExternalSecret resource"
+        },
+        "data": {
+          "type": "array",
+          "items": { "type": "object" },
+          "description": "ESO spec.data entries (remoteRef -> secretKey)"
+        },
+        "dataFrom": {
+          "type": "array",
+          "items": { "type": "object" },
+          "description": "ESO spec.dataFrom entries"
+        }
+      }
+    },
+    "service": {
+      "type": "object",
+      "description": "Service configuration",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["ClusterIP", "NodePort", "LoadBalancer", "ExternalName"],
+          "default": "ClusterIP",
+          "description": "Kubernetes Service type"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "default": 80,
+          "description": "Service port (maps to containerPort on the pod)"
+        }
+      }
+    },
+    "ingress": {
+      "type": "object",
+      "description": "Ingress configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable Ingress resource creation"
+        },
+        "className": {
+          "type": "string",
+          "description": "IngressClass name"
+        },
+        "annotations": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "description": "Annotations for the Ingress resource"
+        },
+        "hosts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "host": { "type": "string" },
+              "paths": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "path": { "type": "string" },
+                    "pathType": {
+                      "type": "string",
+                      "enum": ["Prefix", "Exact", "ImplementationSpecific"]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "description": "Ingress host rules"
+        },
+        "tls": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "secretName": { "type": "string" },
+              "hosts": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            }
+          },
+          "description": "TLS configuration for the Ingress"
+        }
+      }
+    },
+    "gatewayApi": {
+      "type": "object",
+      "description": "Gateway API (HTTPRoute) configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable HTTPRoute resource creation"
+        },
+        "annotations": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "description": "Annotations for the HTTPRoute resource"
+        },
+        "parentRefs": {
+          "type": "array",
+          "items": { "type": "object" },
+          "description": "References to the parent Gateway resource(s)"
+        },
+        "hostnames": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Hostnames matched by this HTTPRoute"
+        },
+        "timeouts": {
+          "type": "object",
+          "properties": {
+            "request": { "type": "string" },
+            "backendRequest": { "type": "string" }
+          },
+          "description": "Default timeouts applied to all rules"
+        },
+        "rules": {
+          "type": "array",
+          "items": { "type": "object" },
+          "description": "Routing rules"
+        },
+        "auth": {
+          "type": "object",
+          "description": "Gateway API Authentication (Envoy SecurityPolicy)",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["", "jwt", "apiKey"],
+              "default": "",
+              "description": "Authentication type: 'jwt', 'apiKey', or '' (disabled)"
+            },
+            "annotations": {
+              "type": "object",
+              "additionalProperties": { "type": "string" },
+              "description": "Annotations for the SecurityPolicy resource"
+            },
+            "jwt": {
+              "type": "object",
+              "properties": {
+                "providers": {
+                  "type": "array",
+                  "items": { "type": "object" },
+                  "description": "List of JWT providers"
+                }
+              }
+            },
+            "apiKey": {
+              "type": "object",
+              "properties": {
+                "extractFrom": {
+                  "type": "object",
+                  "properties": {
+                    "headers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": { "type": "string" },
+                          "valuePrefix": { "type": "string" }
+                        }
+                      }
+                    }
+                  },
+                  "description": "Headers from which to extract the API key"
+                },
+                "credentialRefs": {
+                  "type": "array",
+                  "items": { "type": "object" },
+                  "description": "References to Secrets holding valid API keys"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "serviceAccount": {
+      "type": "object",
+      "description": "ServiceAccount configuration",
+      "properties": {
+        "create": {
+          "type": "boolean",
+          "default": true,
+          "description": "Create a ServiceAccount resource"
+        },
+        "name": {
+          "type": "string",
+          "description": "Override ServiceAccount name (defaults to fullname)"
+        },
+        "annotations": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "description": "Annotations added to the ServiceAccount"
+        },
+        "automountServiceAccountToken": {
+          "type": "boolean",
+          "default": true,
+          "description": "Mount the API token into pods"
+        }
+      }
+    },
+    "autoscaling": {
+      "type": "object",
+      "description": "HorizontalPodAutoscaler configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable HorizontalPodAutoscaler"
+        },
+        "minReplicas": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1,
+          "description": "Minimum number of replicas"
+        },
+        "maxReplicas": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 5,
+          "description": "Maximum number of replicas"
+        },
+        "metrics": {
+          "type": "array",
+          "items": { "type": "object" },
+          "description": "Autoscaling metric targets (autoscaling/v2 format)"
+        },
+        "behavior": {
+          "type": "object",
+          "description": "Scaling behavior policies (scale-up / scale-down)"
+        }
+      }
+    },
+    "resources": {
+      "type": "object",
+      "description": "CPU/memory resource requests and limits",
+      "properties": {
+        "limits": {
+          "type": "object",
+          "properties": {
+            "cpu": { "type": "string" },
+            "memory": { "type": "string" }
+          }
+        },
+        "requests": {
+          "type": "object",
+          "properties": {
+            "cpu": { "type": "string" },
+            "memory": { "type": "string" }
+          }
+        }
+      }
+    },
+    "probes": {
+      "type": "object",
+      "description": "Health check probes for the MCP server container",
+      "properties": {
+        "livenessProbe": {
+          "type": "object",
+          "description": "Liveness probe configuration"
+        },
+        "readinessProbe": {
+          "type": "object",
+          "description": "Readiness probe configuration"
+        }
+      }
+    },
+    "volumes": {
+      "type": "array",
+      "items": { "type": "object" },
+      "description": "Extra volumes to add to the pod"
+    },
+    "volumeMounts": {
+      "type": "array",
+      "items": { "type": "object" },
+      "description": "Extra volume mounts for the container"
+    },
+    "nodeSelector": {
+      "type": "object",
+      "additionalProperties": { "type": "string" },
+      "description": "Node labels for pod assignment"
+    },
+    "tolerations": {
+      "type": "array",
+      "items": { "type": "object" },
+      "description": "Tolerations for pod assignment"
+    },
+    "affinity": {
+      "type": "object",
+      "description": "Affinity rules for pod assignment"
+    },
+    "vault": {
+      "type": "object",
+      "description": "HashiCorp Vault (Banzai Cloud webhook) configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable Vault annotations on pods"
+        },
+        "role": {
+          "type": "string",
+          "description": "Vault role used for Kubernetes authentication"
+        },
+        "path": {
+          "type": "string",
+          "description": "Vault auth backend mount path"
+        }
+      }
+    },
+    "podAnnotations": {
+      "type": "object",
+      "additionalProperties": { "type": "string" },
+      "description": "Annotations added to each pod"
+    },
+    "podLabels": {
+      "type": "object",
+      "additionalProperties": { "type": "string" },
+      "description": "Extra labels added to each pod"
+    },
+    "podSecurityContext": {
+      "type": "object",
+      "description": "Pod-level security context"
+    },
+    "securityContext": {
+      "type": "object",
+      "description": "Container-level security context"
+    },
+    "rbac": {
+      "type": "object",
+      "description": "RBAC configuration",
+      "properties": {
+        "create": {
+          "type": "boolean",
+          "default": false,
+          "description": "Create RBAC resources (ClusterRoleBinding, optionally ClusterRole)"
+        },
+        "clusterRole": {
+          "type": "string",
+          "description": "Use existing ClusterRole name (e.g. 'view' for read-only)"
+        },
+        "rules": {
+          "type": "array",
+          "items": { "type": "object" },
+          "description": "Custom ClusterRole rules (used only when rbac.clusterRole is empty)"
+        }
+      }
+    }
+  }
+}
