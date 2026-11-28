@@ -1,0 +1,15 @@
+---
+apiVersion: v2
+name: mcp-tmux
+description: Private tmux MCP server exposed through Supergateway Streamable HTTP
+type: application
+version: 0.0.0
+appVersion: 0.6.0
+keywords:
+  - mcp
+  - tmux
+  - ai
+dependencies:
+  - name: mcp
+    repository: file://../../ai/mcp
+    version: 0.6.0

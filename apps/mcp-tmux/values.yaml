@@ -1,0 +1,116 @@
+---
+mcp:
+  mode: proxy
+  replicaCount: 1
+  containerPort: 8080
+  serviceAccount:
+    create: false
+    automountServiceAccountToken: false
+
+  proxy:
+    image:
+      repository: registry.lajas.tech/opencode
+      tag: "0.0.15"
+    gateway:
+      package: supergateway@4.3.0
+      stdioCommand: >-
+        sh -c "mkdir -p /tmp/tmux-work/home/.cache /tmp/tmux-work/npm-cache &&
+        cp /run/tmux-ssh/private-key /tmp/tmux-work/id_ed25519 &&
+        chmod 0600 /tmp/tmux-work/id_ed25519 &&
+        cp /run/tmux-ssh/known_hosts /tmp/tmux-work/known_hosts &&
+        chmod 0644 /tmp/tmux-work/known_hosts &&
+        exec npx -y @bnomei/tmux-mcp-rs@0.6.0 --config /etc/tmux-mcp/config.toml
+        --ssh \"-n -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes
+        -o UserKnownHostsFile=/tmp/tmux-work/known_hosts -o GlobalKnownHostsFile=/dev/null
+        -i /tmp/tmux-work/id_ed25519 red@mt-silver.johto.lajas.tech env LC_ALL=C.UTF-8\""
+      outputTransport: streamableHttp
+      port: 8080
+      httpPath: /mcp
+      stateful: true
+      logLevel: info
+      healthEndpoints:
+        - /healthz
+  env:
+    - name: HOME
+      value: /tmp/tmux-work/home
+    - name: XDG_CACHE_HOME
+      value: /tmp/tmux-work/home/.cache
+    - name: npm_config_cache
+      value: /tmp/tmux-work/npm-cache
+    - name: TMUX_MCP_RS_NPM_CACHE
+      value: /tmp/tmux-work/home/.cache/tmux-mcp-rs
+    - name: SUPERGATEWAY_API_KEY
+      valueFrom:
+        secretKeyRef:
+          name: mcp-tmux-auth
+          key: OPENCODE_API_KEY
+  service:
+    type: ClusterIP
+    port: 8080
+  podSecurityContext:
+    fsGroup: 1000
+    seccompProfile:
+      type: RuntimeDefault
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: true
+    runAsGroup: 1000
+    runAsNonRoot: true
+    runAsUser: 1000
+  configMap:
+    enabled: true
+    mountPath: /etc/tmux-mcp
+    data:
+      config.toml: |
+        [security]
+        enabled = true
+        allow_execute_command = false
+        allow_raw_mode = false
+        allow_send_keys = false
+        allow_kill = false
+        allow_create = false
+        allow_split = false
+        allow_rename = false
+        allow_move = false
+        allow_capture = true
+        allow_list = true
+
+        [security.tools]
+        mode = "allow"
+        items = ["@read"]
+  volumes:
+    - name: tmux-ssh
+      secret:
+        secretName: mcp-tmux-ssh
+        defaultMode: 0444
+        items:
+          - key: private-key
+            path: private-key
+          - key: known_hosts
+            path: known_hosts
+    - name: tmux-work
+      emptyDir: {}
+  volumeMounts:
+    - name: tmux-ssh
+      mountPath: /run/tmux-ssh
+      readOnly: true
+    - name: tmux-work
+      mountPath: /tmp/tmux-work
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 512Mi
+
+onePassword:
+  vault: z3emsr5qi5xqk33wthv5fpmfqa
+  items:
+    - name: mcp-tmux-ssh
+      item: 4akfuxcnmy4ittsanxbnnyz6xi
+    - name: mcp-tmux-auth
+      item: 4msntvjd4yesnjuli2ywrkic5i
