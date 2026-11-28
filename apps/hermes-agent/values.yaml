@@ -89,6 +89,10 @@ hermes-agent:
                   k8s:io.kubernetes.pod.namespace: mcp-tmux
                   k8s:app.kubernetes.io/name: mcp
                   k8s:app.kubernetes.io/instance: mcp-tmux
+              - matchLabels:
+                  k8s:io.kubernetes.pod.namespace: mcp-gitea
+                  k8s:app.kubernetes.io/name: mcp-gitea
+                  k8s:app.kubernetes.io/instance: mcp-gitea
             toPorts:
               - ports:
                   - port: "8080"
@@ -135,6 +139,17 @@ hermes-agent:
               matchLabels:
                 app.kubernetes.io/name: mcp
                 app.kubernetes.io/instance: mcp-tmux
+        ports:
+          - protocol: TCP
+            port: 8080
+      - to:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: mcp-gitea
+            podSelector:
+              matchLabels:
+                app.kubernetes.io/name: mcp-gitea
+                app.kubernetes.io/instance: mcp-gitea
         ports:
           - protocol: TCP
             port: 8080
