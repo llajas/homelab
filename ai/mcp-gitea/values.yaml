@@ -1,0 +1,45 @@
+---
+app-template:
+  defaultPodOptions:
+    automountServiceAccountToken: false
+
+  controllers:
+    mcp-gitea:
+      containers:
+        app:
+          image:
+            repository: docker.gitea.com/gitea-mcp-server
+            tag: 1.13.0
+            pullPolicy: IfNotPresent
+          env:
+            MCP_MODE: http
+            GITEA_HOST: https://git.lajas.tech
+            GITEA_ACCESS_TOKEN:
+              valueFrom:
+                secretKeyRef:
+                  name: mcp-gitea-auth
+                  key: gitea_token
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+
+  service:
+    app:
+      controller: mcp-gitea
+      type: ClusterIP
+      ports:
+        http:
+          port: 8080
+
+onePassword:
+  vault: z3emsr5qi5xqk33wthv5fpmfqa
+  items:
+    - name: mcp-gitea-auth
+      item: 4msntvjd4yesnjuli2ywrkic5i
