@@ -1,6 +1,6 @@
 dependencies:
 - name: mcp
-  repository: file://../../ai/mcp
+  repository: oci://ghcr.io/javdet/charts
   version: 0.6.0
-digest: sha256:acbe9d4d66aef3492a3ca0f7c6a90eb526699bbb0633ef3650d0aaffa9e7bb30
-generated: "2026-11-27T02:21:04.030474579-06:00"
+digest: sha256:c1250048f5e4143ba2cfe5ed0d75c044970cdae1e5e0f68bc4dd98d6d7557a7c
+generated: "2026-11-27T19:29:17.335993124-06:00"

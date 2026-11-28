@@ -11,5 +11,5 @@ keywords:
   - ai
 dependencies:
   - name: mcp
-    repository: file://../../ai/mcp
+    repository: oci://ghcr.io/javdet/charts
     version: 0.6.0

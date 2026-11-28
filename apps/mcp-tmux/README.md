@@ -21,10 +21,11 @@ OpenShell can be added later as another authenticated HTTP client by allowing
 its pod identity in Cilium and configuring the same Streamable HTTP endpoint;
 it is not required by this deployment.
 
-The upstream chart is checked in at `../../ai/mcp` and pinned to `0.6.0` as a
-local Helm dependency. To update it, pull the desired version from
-`oci://ghcr.io/javdet/charts/mcp`, replace `ai/mcp`, update the dependency
-version, then render this chart before syncing Argo CD.
+The upstream chart is pinned as an OCI Helm dependency at
+`oci://ghcr.io/javdet/charts`, version `0.6.0`. Helm fetches it while building
+dependencies during Argo CD manifest generation. To update it, change the
+dependency version, run `helm dependency update apps/mcp-tmux`, and render the
+chart before syncing Argo CD.
 
 The initial deployment targets `red@mt-silver.johto.lajas.tech`, matching the
 existing OpenCode tmux configuration. The target needs tmux 3.0+ and a
