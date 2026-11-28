@@ -24,7 +24,7 @@ it is not required by this deployment.
 The upstream chart is pinned as an OCI Helm dependency at
 `oci://ghcr.io/javdet/charts`, version `0.6.0`. Helm fetches it while building
 dependencies during Argo CD manifest generation. To update it, change the
-dependency version, run `helm dependency update apps/mcp-tmux`, and render the
+dependency version, run `helm dependency update ai/mcp-tmux`, and render the
 chart before syncing Argo CD.
 
 The initial deployment targets `red@mt-silver.johto.lajas.tech`, matching the
@@ -36,7 +36,7 @@ checksum-verifies the tmux MCP binary at startup.
 Validate with:
 
 ```bash
-helm dependency build apps/mcp-tmux
-helm lint apps/mcp-tmux
-helm template mcp-tmux apps/mcp-tmux --namespace mcp-tmux
+helm dependency build ai/mcp-tmux
+helm lint ai/mcp-tmux
+helm template mcp-tmux ai/mcp-tmux --namespace mcp-tmux
 ```
