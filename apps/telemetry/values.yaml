@@ -1,0 +1,132 @@
+app-template:
+  defaultPodOptions:
+    automountServiceAccountToken: true
+    hostAliases:
+      - ip: 10.137.0.1
+        hostnames:
+          - unifi-atx.lajas.tech
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 10001
+      runAsGroup: 10001
+      seccompProfile:
+        type: RuntimeDefault
+
+  serviceAccount:
+    telemetry:
+      enabled: true
+      automountServiceAccountToken: true
+
+  rbac:
+    roles:
+      telemetry-reader:
+        type: ClusterRole
+        rules:
+          - apiGroups:
+              - ""
+            resources:
+              - nodes
+              - pods
+            verbs:
+              - list
+    bindings:
+      telemetry-reader:
+        type: ClusterRoleBinding
+        roleRef:
+          identifier: telemetry-reader
+        subjects:
+          - identifier: telemetry
+
+  controllers:
+    telemetry:
+      replicas: 1
+      strategy: Recreate
+      serviceAccount:
+        identifier: telemetry
+      containers:
+        app:
+          image:
+            repository: registry.lajas.tech/homelab-telemetry
+            digest: sha256:36262408c79f1b386bd4d051e5449a758c1a3f8e901cc26dc259dfce2d452a
+            pullPolicy: IfNotPresent
+          env:
+            API_CONSUMER_TOKENS:
+              valueFrom:
+                secretKeyRef:
+                  name: telemetry-api-consumer-tokens
+                  key: API_CONSUMER_TOKENS
+            ENABLE_KUBERNETES: "true"
+            ENABLE_SPEEDTEST: "true"
+            HTTP_ADDR: ":8080"
+            KUBERNETES_INTERVAL: 30s
+            UNIFI_BASE_URL: https://unifi-atx.lajas.tech
+            UNIFI_INTERVAL: 5m
+            UNIFI_LOOKBACK_DAYS: "30"
+            UNIFI_PASSWORD:
+              valueFrom:
+                secretKeyRef:
+                  name: telemetry-unifi
+                  key: password
+            UNIFI_SITE: default
+            UNIFI_TIMEOUT: 10s
+            UNIFI_USERNAME: unifipoller
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          probes:
+            liveness:
+              enabled: true
+              custom: true
+              spec:
+                httpGet:
+                  path: /healthz
+                  port: http
+                periodSeconds: 10
+            readiness:
+              enabled: true
+              custom: true
+              spec:
+                httpGet:
+                  path: /readyz
+                  port: http
+                periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+
+  service:
+    telemetry:
+      controller: telemetry
+      type: ClusterIP
+      ports:
+        http:
+          port: 8080
+          targetPort: http
+
+opSecrets:
+  vault: z3emsr5qi5xqk33wthv5fpmfqa
+  secrets:
+    - item: xllogkl2fokq5bmxr47lv4xtnu
+      secretName: telemetry-unifi
+    - item: a44hgf64tehkhb5rwsb4u7i2za
+      secretName: telemetry-api-consumer-tokens
+
+httpRoute:
+  host: telemetry.lajas.tech
+  gateway:
+    name: public-gateway
+    namespace: kube-system
+
+unifi:
+  address: 10.137.0.1
