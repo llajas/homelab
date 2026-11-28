@@ -1,6 +1,15 @@
 hermes-agent:
   fullnameOverride: hermes-agent
   config:
+    mcp_servers:
+      tmux:
+        url: http://mcp-tmux.mcp-tmux.svc.cluster.local:8080/mcp
+        headers:
+          Authorization: "Bearer ${MCP_TMUX_API_KEY}"
+        trust: untrusted
+        tools:
+          resources: false
+          prompts: false
     model:
       provider: openai-codex
       default: gpt-5.6-terra
@@ -19,12 +28,24 @@ hermes-agent:
     - secretRef:
         name: hermes-agent-secrets
   extraEnv:
+    - name: MCP_TMUX_API_KEY
+      valueFrom:
+        secretKeyRef:
+          name: mcp-tmux-auth
+          key: OPENCODE_API_KEY
     - name: HERMES_DASHBOARD_OIDC_CLIENT_ID
       valueFrom:
         secretKeyRef:
           name: hermes-agent-oidc-client-id
           key: client_id
   extraResources:
+    - apiVersion: onepassword.com/v1
+      kind: OnePasswordItem
+      metadata:
+        name: mcp-tmux-auth
+        namespace: "{{ .Release.Namespace }}"
+      spec:
+        itemPath: vaults/z3emsr5qi5xqk33wthv5fpmfqa/items/4msntvjd4yesnjuli2ywrkic5i
     - apiVersion: onepassword.com/v1
       kind: OnePasswordItem
       metadata:
@@ -64,6 +85,10 @@ hermes-agent:
               - matchLabels:
                   k8s:io.kubernetes.pod.namespace: mcp-kubernetes
                   k8s:app.kubernetes.io/name: kubernetes-mcp-server
+              - matchLabels:
+                  k8s:io.kubernetes.pod.namespace: mcp-tmux
+                  k8s:app.kubernetes.io/name: mcp
+                  k8s:app.kubernetes.io/instance: mcp-tmux
             toPorts:
               - ports:
                   - port: "8080"
@@ -102,11 +127,22 @@ hermes-agent:
         ports:
           - protocol: TCP
             port: 8000
+      - to:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: mcp-tmux
+            podSelector:
+              matchLabels:
+                app.kubernetes.io/name: mcp
+                app.kubernetes.io/instance: mcp-tmux
+        ports:
+          - protocol: TCP
+            port: 8080
   dashboard:
     enabled: true
     publicUrl: https://hermes-agent.lajas.tech
     auth:
-      provider: oidc
+      provider: external
     trustedProxies:
       - 10.137.0.0/24
   service:
