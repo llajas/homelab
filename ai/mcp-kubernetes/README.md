@@ -2,7 +2,7 @@
 
 Deploys the Kubernetes MCP server inside the cluster as a private, read-only service for the OpenCode server and optional local access through `kubectl port-forward`.
 
-This chart intentionally follows the repo's normal `apps/*` pattern so additional MCP servers can be added as sibling apps later instead of forcing an umbrella chart too early.
+This chart lives under `ai/*` so Argo CD manages it with the other AI workloads. Its ApplicationSet-derived app and service namespace remain `mcp-kubernetes`.
 
 Most workload configuration is passed through under the upstream subchart key `kubernetes-mcp-server`.
 
