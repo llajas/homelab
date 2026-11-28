@@ -12,6 +12,9 @@ spec:
     helm:
       releaseName: openshell
       values: |
+        global:
+          image:
+            tag: "0.1.10"
         service:
           type: ClusterIP
         networkPolicy:
